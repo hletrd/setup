@@ -111,9 +111,10 @@ elif command -v iptables >/dev/null 2>&1; then
 fi
 
 printf "Setting passwordless sudo for current user...\n"
+current_user="$(id -un)"
 sudo -n mkdir -p /etc/sudoers.d
-sudo -n sh -c 'echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER'
-sudo -n chmod 0440 /etc/sudoers.d/$USER
+sudo -n sh -c "echo \"${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${current_user}"
+sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
 
 printf "Installing base packages...\n"
 pkg_install zsh figlet screenfetch git curl vim

@@ -114,9 +114,10 @@ elif command -v iptables >/dev/null 2>&1; then
 fi
 
 printf "Setting passwordless sudo for current user...\n"
+current_user="$(id -un)"
 sudo -n mkdir -p /etc/sudoers.d
-sudo -n sh -c 'echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER'
-sudo -n chmod 0440 /etc/sudoers.d/$USER
+sudo -n sh -c "echo \"${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${current_user}"
+sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
 
 printf "Installing base packages...\n"
 pkg_install zsh figlet screenfetch git curl vim
@@ -203,10 +204,28 @@ cat <<'MCP_EOF' > "$mcp_servers_dir/github.json"
   "args": ["-y", "@modelcontextprotocol/server-github"]
 }
 MCP_EOF
+cat <<'MCP_EOF' > "$mcp_servers_dir/git.json"
+"git": {
+  "command": "uvx",
+  "args": ["mcp-server-git"]
+}
+MCP_EOF
+cat <<'MCP_EOF' > "$mcp_servers_dir/sequential-thinking.json"
+"sequential-thinking": {
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+}
+MCP_EOF
 cat <<'MCP_EOF' > "$mcp_servers_dir/playwright.json"
 "playwright": {
   "command": "npx",
   "args": ["-y", "@playwright/mcp@latest"]
+}
+MCP_EOF
+cat <<'MCP_EOF' > "$mcp_servers_dir/jupyter.json"
+"jupyter": {
+  "command": "uvx",
+  "args": ["mcp-server-jupyter", "stdio"]
 }
 MCP_EOF
 cat <<'MCP_EOF' > "$mcp_servers_dir/context7.json"

@@ -1,0 +1,69 @@
+model = "gpt-5.2"
+model_reasoning_effort = "xhigh"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+project_root_markers = [
+  ".git",
+  ".hg",
+  ".sl",
+  ".codex",
+  "package.json",
+  "pnpm-workspace.yaml",
+  "turbo.json",
+  "nx.json",
+  "pyproject.toml",
+  "poetry.lock",
+  "requirements.txt",
+  "Pipfile",
+  "go.mod",
+  "Cargo.toml",
+  "pom.xml",
+  "build.gradle",
+]
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "$HOME"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.git]
+command = "uvx"
+args = ["mcp-server-git"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+env_vars = ["CONTEXT7_API_KEY"]
+
+[mcp_servers.sequential-thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.sequential-thinking-tools]
+command = "npx"
+args = ["-y", "mcp-sequentialthinking-tools"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+startup_timeout_sec = 30
+tool_timeout_sec = 180
+
+[mcp_servers.playwright.env]
+PLAYWRIGHT_BROWSERS_PATH = "0"
+
+[mcp_servers.jupyter]
+command = "uvx"
+args = ["mcp-server-jupyter", "stdio"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
