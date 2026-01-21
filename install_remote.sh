@@ -55,6 +55,26 @@ cfg_pkg_cargo="true"
 cfg_pkg_ruff="true"
 cfg_pkg_ty="true"
 
+# CLI tools toggles (default all enabled)
+cfg_cli_hishtory="true"
+cfg_cli_fzf="true"
+cfg_cli_eza="true"
+cfg_cli_bat="true"
+cfg_cli_delta="true"
+cfg_cli_dust="true"
+cfg_cli_duf="true"
+cfg_cli_fd="true"
+cfg_cli_ripgrep="true"
+cfg_cli_mcfly="true"
+cfg_cli_sd="true"
+cfg_cli_choose="true"
+cfg_cli_cheat="true"
+cfg_cli_bottom="true"
+cfg_cli_procs="true"
+cfg_cli_zoxide="true"
+cfg_cli_lsd="true"
+cfg_cli_gping="true"
+
 # MCP server toggles (default all enabled)
 cfg_mcp_agentic_tools="true"
 cfg_mcp_auggie_context="true"
@@ -86,6 +106,26 @@ if [ -f "$config_file" ]; then
   cfg_pkg_cargo="$(json_get_bool "cargo" "$config_file")"
   cfg_pkg_ruff="$(json_get_bool "ruff" "$config_file")"
   cfg_pkg_ty="$(json_get_bool "ty" "$config_file")"
+
+  # Load CLI tools toggles
+  cfg_cli_hishtory="$(json_get_bool "hishtory" "$config_file")"
+  cfg_cli_fzf="$(json_get_bool "fzf" "$config_file")"
+  cfg_cli_eza="$(json_get_bool "eza" "$config_file")"
+  cfg_cli_bat="$(json_get_bool "bat" "$config_file")"
+  cfg_cli_delta="$(json_get_bool "delta" "$config_file")"
+  cfg_cli_dust="$(json_get_bool "dust" "$config_file")"
+  cfg_cli_duf="$(json_get_bool "duf" "$config_file")"
+  cfg_cli_fd="$(json_get_bool "fd" "$config_file")"
+  cfg_cli_ripgrep="$(json_get_bool "ripgrep" "$config_file")"
+  cfg_cli_mcfly="$(json_get_bool "mcfly" "$config_file")"
+  cfg_cli_sd="$(json_get_bool "sd" "$config_file")"
+  cfg_cli_choose="$(json_get_bool "choose" "$config_file")"
+  cfg_cli_cheat="$(json_get_bool "cheat" "$config_file")"
+  cfg_cli_bottom="$(json_get_bool "bottom" "$config_file")"
+  cfg_cli_procs="$(json_get_bool "procs" "$config_file")"
+  cfg_cli_zoxide="$(json_get_bool "zoxide" "$config_file")"
+  cfg_cli_lsd="$(json_get_bool "lsd" "$config_file")"
+  cfg_cli_gping="$(json_get_bool "gping" "$config_file")"
 
   # Load MCP server toggles
   cfg_mcp_agentic_tools="$(json_get_bool "agentic-tools" "$config_file")"
@@ -197,6 +237,26 @@ case "$key_choice" in
 	cfg_pkg_cargo="$cfg_pkg_cargo"
 	cfg_pkg_ruff="$cfg_pkg_ruff"
 	cfg_pkg_ty="$cfg_pkg_ty"
+
+	# CLI tools toggles
+	cfg_cli_hishtory="$cfg_cli_hishtory"
+	cfg_cli_fzf="$cfg_cli_fzf"
+	cfg_cli_eza="$cfg_cli_eza"
+	cfg_cli_bat="$cfg_cli_bat"
+	cfg_cli_delta="$cfg_cli_delta"
+	cfg_cli_dust="$cfg_cli_dust"
+	cfg_cli_duf="$cfg_cli_duf"
+	cfg_cli_fd="$cfg_cli_fd"
+	cfg_cli_ripgrep="$cfg_cli_ripgrep"
+	cfg_cli_mcfly="$cfg_cli_mcfly"
+	cfg_cli_sd="$cfg_cli_sd"
+	cfg_cli_choose="$cfg_cli_choose"
+	cfg_cli_cheat="$cfg_cli_cheat"
+	cfg_cli_bottom="$cfg_cli_bottom"
+	cfg_cli_procs="$cfg_cli_procs"
+	cfg_cli_zoxide="$cfg_cli_zoxide"
+	cfg_cli_lsd="$cfg_cli_lsd"
+	cfg_cli_gping="$cfg_cli_gping"
 
 	# MCP server toggles
 	cfg_mcp_agentic_tools="$cfg_mcp_agentic_tools"
@@ -321,6 +381,113 @@ if [ "\$cfg_pkg_ty" = "true" ]; then
   "\$HOME/.local/bin/uv" tool install ty 2>/dev/null || uv tool install ty
 else
   printf "Skipping ty installation (disabled in config)...\n"
+fi
+
+# Install modern CLI tools (Rust-based tools via cargo)
+cargo_bin="\$HOME/.cargo/bin/cargo"
+install_cargo_tool() {
+  tool_name="\$1"
+  cargo_pkg="\${2:-\$1}"
+  if [ -x "\$cargo_bin" ]; then
+    "\$cargo_bin" install "\$cargo_pkg"
+  elif command -v cargo >/dev/null 2>&1; then
+    cargo install "\$cargo_pkg"
+  else
+    printf "Warning: cargo not available, skipping %s\n" "\$tool_name"
+  fi
+}
+
+if [ "\$cfg_cli_fzf" = "true" ]; then
+  printf "Installing fzf...\n"
+  if [ ! -d "\$HOME/.fzf" ]; then
+    git clone --depth 1 https://github.com/junegunn/fzf.git "\$HOME/.fzf"
+    "\$HOME/.fzf/install" --all --no-bash --no-fish
+  fi
+fi
+
+if [ "\$cfg_cli_hishtory" = "true" ]; then
+  printf "Installing hishtory...\n"
+  curl -fsSL https://hishtory.dev/install.py | python3 -
+fi
+
+if [ "\$cfg_cli_eza" = "true" ]; then
+  printf "Installing eza...\n"
+  install_cargo_tool eza
+fi
+
+if [ "\$cfg_cli_bat" = "true" ]; then
+  printf "Installing bat...\n"
+  install_cargo_tool bat
+fi
+
+if [ "\$cfg_cli_delta" = "true" ]; then
+  printf "Installing delta...\n"
+  install_cargo_tool delta git-delta
+fi
+
+if [ "\$cfg_cli_dust" = "true" ]; then
+  printf "Installing dust...\n"
+  install_cargo_tool dust du-dust
+fi
+
+if [ "\$cfg_cli_duf" = "true" ]; then
+  printf "Installing duf...\n"
+  pkg_install duf || printf "Warning: duf not available in package manager\n"
+fi
+
+if [ "\$cfg_cli_fd" = "true" ]; then
+  printf "Installing fd...\n"
+  install_cargo_tool fd fd-find
+fi
+
+if [ "\$cfg_cli_ripgrep" = "true" ]; then
+  printf "Installing ripgrep...\n"
+  install_cargo_tool rg ripgrep
+fi
+
+if [ "\$cfg_cli_mcfly" = "true" ]; then
+  printf "Installing mcfly...\n"
+  install_cargo_tool mcfly
+fi
+
+if [ "\$cfg_cli_sd" = "true" ]; then
+  printf "Installing sd...\n"
+  install_cargo_tool sd
+fi
+
+if [ "\$cfg_cli_choose" = "true" ]; then
+  printf "Installing choose...\n"
+  install_cargo_tool choose
+fi
+
+if [ "\$cfg_cli_cheat" = "true" ]; then
+  printf "Installing cheat...\n"
+  pkg_install cheat || printf "Warning: cheat not available in package manager\n"
+fi
+
+if [ "\$cfg_cli_bottom" = "true" ]; then
+  printf "Installing bottom...\n"
+  install_cargo_tool btm bottom
+fi
+
+if [ "\$cfg_cli_procs" = "true" ]; then
+  printf "Installing procs...\n"
+  install_cargo_tool procs
+fi
+
+if [ "\$cfg_cli_zoxide" = "true" ]; then
+  printf "Installing zoxide...\n"
+  install_cargo_tool zoxide
+fi
+
+if [ "\$cfg_cli_lsd" = "true" ]; then
+  printf "Installing lsd...\n"
+  install_cargo_tool lsd
+fi
+
+if [ "\$cfg_cli_gping" = "true" ]; then
+  printf "Installing gping...\n"
+  install_cargo_tool gping
 fi
 
 printf "Set up motd...\n"
@@ -596,11 +763,43 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line 'export EDITOR=vim'
 	ensure_zshrc_line 'export VISUAL=vim'
 	ensure_zshrc_line 'alias nano=vim'
-	ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
-	ensure_zshrc_line 'export PATH="$HOME/.cargo/bin:$PATH"'
-	ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
-	ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
-	ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
+	ensure_zshrc_line 'export PATH="\$HOME/.local/bin:\$PATH"'
+	ensure_zshrc_line 'export PATH="\$HOME/.cargo/bin:\$PATH"'
+	ensure_zshrc_line 'export NVM_DIR="\$HOME/.nvm"'
+	ensure_zshrc_line '[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"'
+	ensure_zshrc_line '[ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"'
+
+# Modern CLI tool aliases (only add if the tool is installed)
+[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias ls="eza"'
+[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias ll="eza -l"'
+[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias la="eza -la"'
+[ -x "\$HOME/.cargo/bin/bat" ] || command -v bat >/dev/null 2>&1 && ensure_zshrc_line 'alias cat="bat"'
+[ -x "\$HOME/.cargo/bin/dust" ] || command -v dust >/dev/null 2>&1 && ensure_zshrc_line 'alias du="dust"'
+command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
+[ -x "\$HOME/.cargo/bin/fd" ] || command -v fd >/dev/null 2>&1 && ensure_zshrc_line 'alias find="fd"'
+[ -x "\$HOME/.cargo/bin/rg" ] || command -v rg >/dev/null 2>&1 && ensure_zshrc_line 'alias grep="rg"'
+[ -x "\$HOME/.cargo/bin/sd" ] || command -v sd >/dev/null 2>&1 && ensure_zshrc_line 'alias sed="sd"'
+[ -x "\$HOME/.cargo/bin/choose" ] || command -v choose >/dev/null 2>&1 && ensure_zshrc_line 'alias cut="choose"'
+[ -x "\$HOME/.cargo/bin/btm" ] || command -v btm >/dev/null 2>&1 && ensure_zshrc_line 'alias top="btm"'
+[ -x "\$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1 && ensure_zshrc_line 'alias ps="procs"'
+[ -x "\$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1 && ensure_zshrc_line 'alias ping="gping"'
+[ -x "\$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1 && ensure_zshrc_line 'alias lsd="lsd"'
+
+# Tool initializations
+[ -f "\$HOME/.fzf.zsh" ] && ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+[ -x "\$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(zoxide init zsh)"'
+[ -x "\$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(mcfly init zsh)"'
+command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(hishtory init zsh)"'
+
+# Configure delta as git pager
+[ -x "\$HOME/.cargo/bin/delta" ] || command -v delta >/dev/null 2>&1 && {
+  git config --global core.pager delta
+  git config --global interactive.diffFilter "delta --color-only"
+  git config --global delta.navigate true
+  git config --global delta.side-by-side true
+  git config --global merge.conflictstyle diff3
+  git config --global diff.colorMoved default
+}
 EOF
 
 ssh -tt -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty

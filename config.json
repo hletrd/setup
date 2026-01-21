@@ -40,6 +40,27 @@
     "ty": true,
     "comment": "Set to false to skip installing specific packages"
   },
+  "cli_tools": {
+    "hishtory": true,
+    "fzf": true,
+    "eza": true,
+    "bat": true,
+    "delta": true,
+    "dust": true,
+    "duf": true,
+    "fd": true,
+    "ripgrep": true,
+    "mcfly": true,
+    "sd": true,
+    "choose": true,
+    "cheat": true,
+    "bottom": true,
+    "procs": true,
+    "zoxide": true,
+    "lsd": true,
+    "gping": true,
+    "comment": "Modern CLI tool replacements. Set to false to skip."
+  },
   "editors": {
     "cursor": true,
     "codex": true,
