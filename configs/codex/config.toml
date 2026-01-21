@@ -1,5 +1,5 @@
 model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 
@@ -67,3 +67,31 @@ command = "uvx"
 args = ["mcp-server-jupyter", "stdio"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
+
+[mcp_servers.agentic-tools]
+command = "npx"
+args = ["-y", "@pimzino/agentic-tools-mcp"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.graphiti]
+command = "npx"
+args = ["-y", "@zhangzichao2008/mcp-graphiti"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+env_vars = [
+  "NEO4J_URI",
+  "NEO4J_USER",
+  "NEO4J_PASSWORD",
+  "NEO4J_DATABASE",
+  "EMBEDDING_API_KEY",
+  "EMBEDDING_API_URL",
+  "EMBEDDING_MODEL",
+]
+
+[mcp_servers.claude-context]
+command = "npx"
+args = ["-y", "@zilliz/claude-context-mcp@latest"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+env_vars = ["OPENAI_API_KEY", "MILVUS_ADDRESS", "MILVUS_TOKEN"]

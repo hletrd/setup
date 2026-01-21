@@ -186,6 +186,8 @@ nvm_dir="$HOME/.nvm"
 curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
 if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
   bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+  printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+  bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
 fi
 
 printf "Configuring global MCP servers...\n"
@@ -211,7 +213,18 @@ build_mcp_config() {
     fi
     first=0
     while IFS= read -r line || [ -n "$line" ]; do
-      line=${line//__HOME__/$HOME}
+      while :; do
+        case "$line" in
+          *__HOME__*)
+            prefix=${line%%__HOME__*}
+            suffix=${line#*__HOME__}
+            line=${prefix}${HOME}${suffix}
+            ;;
+          *)
+            break
+            ;;
+        esac
+      done
       printf "    %s\n" "$line" >> "$mcp_config"
     done < "$server_file"
   done
@@ -227,7 +240,10 @@ link_mcp_config() {
 }
 link_mcp_config "$HOME/.cursor/mcp.json"
 link_mcp_config "$HOME/.config/codex/mcp.json"
+link_mcp_config "$HOME/.config/codexx/mcp.json"
+link_mcp_config "$HOME/.config/opencode/mcp.json"
 link_mcp_config "$HOME/.config/antigravity/mcp.json"
+link_mcp_config "$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 
 printf "Configuring zsh settings...\n"
 zshrc="$HOME/.zshrc"
@@ -278,6 +294,9 @@ ensure_zshrc_line 'setopt autocd'
 ensure_zshrc_line 'bindkey -e'
 ensure_zshrc_line 'export HOMEBREW_NO_ANALYTICS=1'
 ensure_zshrc_line 'DISABLE_UPDATE_PROMPT=true'
+ensure_zshrc_line 'export EDITOR=vim'
+ensure_zshrc_line 'export VISUAL=vim'
+ensure_zshrc_line 'alias nano=vim'
 ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
 ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
 ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'

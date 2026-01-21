@@ -59,15 +59,16 @@ case "$key_choice" in
       ssh-keygen -t ecdsa -b 521 -N "" -f "$key_path"
     fi
     cp "${key_path}.pub" "$pubkey_path"
-    pubkey="$(cat "$pubkey_path")"
-    ;;
-esac
-
-ssh -p "$server_port" "$ssh_user@$server_addr" sh -s -- "$server_port" "$servername" "$pubkey" <<'EOF'
-set -e
-
-printf "Caching sudo credentials...\n"
-sudo -v
+	    pubkey="$(cat "$pubkey_path")"
+	    ;;
+	esac
+	
+	remote_script_path="/tmp/setup-bootstrap.$$"
+	ssh -p "$server_port" "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 700 \"$remote_script_path\"" <<'EOF'
+	set -e
+	
+	printf "Caching sudo credentials...\n"
+	sudo -v
 
 if [ -f /etc/os-release ]; then
   . /etc/os-release
@@ -189,18 +190,20 @@ if [ -x "$omz_cmd" ]; then
   ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin enable zsh-syntax-highlighting zsh-autosuggestions
 fi
 
-printf "Setting up nvm and Node.js...\n"
-if ! command -v bash >/dev/null 2>&1; then
-  pkg_install bash
-fi
-nvm_dir="$HOME/.nvm"
-curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
-if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-  bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
-fi
-
-printf "Configuring global MCP servers...\n"
-mcp_config_dir="$HOME/.config/mcp"
+	printf "Setting up nvm and Node.js...\n"
+	if ! command -v bash >/dev/null 2>&1; then
+	  pkg_install bash
+	fi
+	nvm_dir="$HOME/.nvm"
+	curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
+	if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
+	  bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+	  printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+	  bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+	fi
+	
+	printf "Configuring global MCP servers...\n"
+	mcp_config_dir="$HOME/.config/mcp"
 mcp_servers_dir="$mcp_config_dir/servers"
 mcp_config="$mcp_config_dir/mcp.json"
 mkdir -p "$mcp_servers_dir"
@@ -347,10 +350,15 @@ ensure_zshrc_line 'HISTSIZE=100000'
 ensure_zshrc_line 'SAVEHIST=100000'
 ensure_zshrc_line 'setopt autocd'
 ensure_zshrc_line 'bindkey -e'
-ensure_zshrc_line 'export HOMEBREW_NO_ANALYTICS=1'
-ensure_zshrc_line 'DISABLE_UPDATE_PROMPT=true'
-ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
-ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
-ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
-ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
+	ensure_zshrc_line 'export HOMEBREW_NO_ANALYTICS=1'
+	ensure_zshrc_line 'DISABLE_UPDATE_PROMPT=true'
+	ensure_zshrc_line 'export EDITOR=vim'
+	ensure_zshrc_line 'export VISUAL=vim'
+	ensure_zshrc_line 'alias nano=vim'
+	ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
+	ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
+	ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
+	ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
 EOF
+
+ssh -tt -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
