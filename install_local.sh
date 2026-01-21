@@ -111,6 +111,7 @@ elif command -v iptables >/dev/null 2>&1; then
 fi
 
 printf "Setting passwordless sudo for current user...\n"
+sudo -n mkdir -p /etc/sudoers.d
 sudo -n sh -c 'echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER'
 sudo -n chmod 0440 /etc/sudoers.d/$USER
 
@@ -158,39 +159,45 @@ if [ -x "$omz_cmd" ]; then
 fi
 
 printf "Setting up nvm and Node.js...\n"
-if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
-  if ! command -v bash >/dev/null 2>&1; then
-    pkg_install bash
-  fi
-  nvm_dir="$HOME/.nvm"
-  if [ ! -d "$nvm_dir" ]; then
-    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-  fi
-  if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-    bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts && nvm alias default lts/* && nvm use --lts"
-  fi
+if ! command -v bash >/dev/null 2>&1; then
+  pkg_install bash
+fi
+nvm_dir="$HOME/.nvm"
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
+if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
+  bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
 fi
 
 printf "Configuring global MCP servers...\n"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+mcp_repo_dir="$script_dir/mcp"
 mcp_config_dir="$HOME/.config/mcp"
+mcp_servers_dir="$mcp_config_dir/servers"
 mcp_config="$mcp_config_dir/mcp.json"
-if [ ! -f "$mcp_config" ]; then
-  mkdir -p "$mcp_config_dir"
-  cat <<EOF > "$mcp_config"
-{
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$HOME"]
-    },
-    "fetch": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch"]
-    }
-  }
-}
-EOF
+mkdir -p "$mcp_servers_dir"
+if [ -d "$mcp_repo_dir/servers" ]; then
+  for server_file in "$mcp_repo_dir"/servers/*.json; do
+    [ -f "$server_file" ] || continue
+    cp "$server_file" "$mcp_servers_dir/"
+  done
 fi
+build_mcp_config() {
+  printf "{\n  \"mcpServers\": {\n" > "$mcp_config"
+  first=1
+  for server_file in "$mcp_servers_dir"/*.json; do
+    [ -f "$server_file" ] || continue
+    if [ $first -eq 0 ]; then
+      printf ",\n" >> "$mcp_config"
+    fi
+    first=0
+    while IFS= read -r line || [ -n "$line" ]; do
+      line=${line//__HOME__/$HOME}
+      printf "    %s\n" "$line" >> "$mcp_config"
+    done < "$server_file"
+  done
+  printf "  }\n}\n" >> "$mcp_config"
+}
+build_mcp_config
 link_mcp_config() {
   target="$1"
   if [ ! -e "$target" ]; then

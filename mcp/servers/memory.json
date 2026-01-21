@@ -1,0 +1,7 @@
+"memory": {
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-memory"],
+  "env": {
+    "MEMORY_FILE_PATH": "__HOME__/.config/mcp/memory.jsonl"
+  }
+}
