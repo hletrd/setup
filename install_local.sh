@@ -657,6 +657,7 @@ command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
 # Tool initializations
 [ -f "$HOME/.fzf.zsh" ] && ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
 [ -x "$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(zoxide init zsh)"'
+[ -x "$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'alias cd="z"'
 [ -x "$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(mcfly init zsh)"'
 command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(hishtory init zsh)"'
 
