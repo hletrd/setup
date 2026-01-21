@@ -48,7 +48,21 @@ cfg_skip_package_update="false"
 cfg_skip_oh_my_zsh="false"
 cfg_skip_nvm="false"
 cfg_skip_mcp_setup="false"
-cfg_disabled_servers=""
+
+# MCP server toggles (default all enabled)
+cfg_mcp_agentic_tools="true"
+cfg_mcp_auggie_context="true"
+cfg_mcp_claude_context="true"
+cfg_mcp_context7="true"
+cfg_mcp_fetch="true"
+cfg_mcp_filesystem="true"
+cfg_mcp_git="true"
+cfg_mcp_github="true"
+cfg_mcp_graphiti="true"
+cfg_mcp_jupyter="true"
+cfg_mcp_memory="true"
+cfg_mcp_playwright="true"
+cfg_mcp_sequential_thinking="true"
 
 if [ -f "$config_file" ]; then
   printf "Loading configuration from %s\n" "$config_file"
@@ -60,7 +74,22 @@ if [ -f "$config_file" ]; then
   cfg_skip_oh_my_zsh="$(json_get_bool "skip_oh_my_zsh" "$config_file")"
   cfg_skip_nvm="$(json_get_bool "skip_nvm" "$config_file")"
   cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
-  cfg_disabled_servers="$(json_get_array "disabled_servers" "$config_file")"
+
+  # Load MCP server toggles
+  cfg_mcp_agentic_tools="$(json_get_bool "agentic-tools" "$config_file")"
+  cfg_mcp_auggie_context="$(json_get_bool "auggie-context" "$config_file")"
+  cfg_mcp_claude_context="$(json_get_bool "claude-context" "$config_file")"
+  cfg_mcp_context7="$(json_get_bool "context7" "$config_file")"
+  cfg_mcp_fetch="$(json_get_bool "fetch" "$config_file")"
+  cfg_mcp_filesystem="$(json_get_bool "filesystem" "$config_file")"
+  cfg_mcp_git="$(json_get_bool "git" "$config_file")"
+  cfg_mcp_github="$(json_get_bool "github" "$config_file")"
+  cfg_mcp_graphiti="$(json_get_bool "graphiti" "$config_file")"
+  cfg_mcp_jupyter="$(json_get_bool "jupyter" "$config_file")"
+  cfg_mcp_memory="$(json_get_bool "memory" "$config_file")"
+  cfg_mcp_playwright="$(json_get_bool "playwright" "$config_file")"
+  cfg_mcp_sequential_thinking="$(json_get_bool "sequential-thinking" "$config_file")"
+
   [ -z "$cfg_ssh_port" ] && cfg_ssh_port="22"
   [ -z "$cfg_server_address" ] && cfg_server_address="localhost"
   [ -z "$cfg_ssh_key_action" ] && cfg_ssh_key_action="generate"
@@ -150,7 +179,21 @@ case "$key_choice" in
 	cfg_skip_oh_my_zsh="$cfg_skip_oh_my_zsh"
 	cfg_skip_nvm="$cfg_skip_nvm"
 	cfg_skip_mcp_setup="$cfg_skip_mcp_setup"
-	cfg_disabled_servers="$cfg_disabled_servers"
+
+	# MCP server toggles
+	cfg_mcp_agentic_tools="$cfg_mcp_agentic_tools"
+	cfg_mcp_auggie_context="$cfg_mcp_auggie_context"
+	cfg_mcp_claude_context="$cfg_mcp_claude_context"
+	cfg_mcp_context7="$cfg_mcp_context7"
+	cfg_mcp_fetch="$cfg_mcp_fetch"
+	cfg_mcp_filesystem="$cfg_mcp_filesystem"
+	cfg_mcp_git="$cfg_mcp_git"
+	cfg_mcp_github="$cfg_mcp_github"
+	cfg_mcp_graphiti="$cfg_mcp_graphiti"
+	cfg_mcp_jupyter="$cfg_mcp_jupyter"
+	cfg_mcp_memory="$cfg_mcp_memory"
+	cfg_mcp_playwright="$cfg_mcp_playwright"
+	cfg_mcp_sequential_thinking="$cfg_mcp_sequential_thinking"
 
 	printf "Caching sudo credentials...\n"
 	sudo -v
@@ -308,20 +351,30 @@ else
   mcp_config="\$mcp_config_dir/mcp.json"
   mkdir -p "\$mcp_servers_dir"
 
-  # Check if a server is disabled
-  is_server_disabled() {
+  # Check if a server is enabled based on config toggles
+  is_server_enabled() {
     server_name="\$1"
-    for disabled in \$cfg_disabled_servers; do
-      if [ "\$disabled" = "\$server_name" ]; then
-        return 0
-      fi
-    done
-    return 1
+    case "\$server_name" in
+      agentic-tools) [ "\$cfg_mcp_agentic_tools" = "true" ] ;;
+      auggie-context) [ "\$cfg_mcp_auggie_context" = "true" ] ;;
+      claude-context) [ "\$cfg_mcp_claude_context" = "true" ] ;;
+      context7) [ "\$cfg_mcp_context7" = "true" ] ;;
+      fetch) [ "\$cfg_mcp_fetch" = "true" ] ;;
+      filesystem) [ "\$cfg_mcp_filesystem" = "true" ] ;;
+      git) [ "\$cfg_mcp_git" = "true" ] ;;
+      github) [ "\$cfg_mcp_github" = "true" ] ;;
+      graphiti) [ "\$cfg_mcp_graphiti" = "true" ] ;;
+      jupyter) [ "\$cfg_mcp_jupyter" = "true" ] ;;
+      memory) [ "\$cfg_mcp_memory" = "true" ] ;;
+      playwright) [ "\$cfg_mcp_playwright" = "true" ] ;;
+      sequential-thinking) [ "\$cfg_mcp_sequential_thinking" = "true" ] ;;
+      *) return 0 ;;  # Unknown servers are enabled by default
+    esac
   }
 
   write_server_config() {
     server_name="\$1"
-    if is_server_disabled "\$server_name"; then
+    if ! is_server_enabled "\$server_name"; then
       printf "  Skipping disabled server: %s\n" "\$server_name"
       return
     fi
@@ -407,7 +460,7 @@ MCP_EOF
     for server_file in "\$mcp_servers_dir"/*.json; do
       [ -f "\$server_file" ] || continue
       server_name="\$(basename "\$server_file" .json)"
-      if is_server_disabled "\$server_name"; then
+      if ! is_server_enabled "\$server_name"; then
         continue
       fi
       if [ \$first -eq 0 ]; then

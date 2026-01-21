@@ -1,7 +1,19 @@
 {
-  "mcp": {
-    "disabled_servers": [],
-    "comment": "Add server names to disable them, e.g. ['playwright', 'jupyter']"
+  "mcp_servers": {
+    "agentic-tools": true,
+    "auggie-context": true,
+    "claude-context": true,
+    "context7": true,
+    "fetch": true,
+    "filesystem": true,
+    "git": true,
+    "github": true,
+    "graphiti": true,
+    "jupyter": true,
+    "memory": true,
+    "playwright": true,
+    "sequential-thinking": true,
+    "comment": "Set to false to skip installing specific MCP servers"
   },
   "prompts": {
     "prompt_for_confirmation": true,
