@@ -1,6 +1,6 @@
 # Basic setup scripts
 
-Personal scripts to bootstrap a new system.
+An assortment of scripts to bootstrap a new system.
 
 - `install_local.sh`: a local script to run on the target machine.
 - `install_remote.sh`: a remote script to run from local machine over SSH.
@@ -102,16 +102,69 @@ Create a `config.json` file to pre-configure installation options:
 
 Set any value to `false` to skip that component.
 
-## Download and run (GitHub)
+## Usage
 
-Local install:
+### Command Line Options
 
+Both scripts support command line options for non-interactive use:
+
+**install_local.sh:**
+```bash
+./install_local.sh [OPTIONS]
+
+Options:
+  -p, --port PORT          SSH port (default: 22)
+  -n, --name NAME          Server name for MOTD (default: hostname)
+  -k, --key-action ACTION  SSH key action: generate, add, skip
+  --pubkey KEY             Public key to install (if --key-action=add)
+  -y, --yes                Non-interactive mode, use defaults
+  -c, --config FILE        Path to config file
+  -h, --help               Show help message
+```
+
+**install_remote.sh:**
+```bash
+./install_remote.sh [OPTIONS]
+
+Options:
+  -H, --host HOST          Server address/hostname
+  -p, --port PORT          SSH port (default: 22)
+  -u, --user USER          SSH username
+  -n, --name NAME          Server name for MOTD
+  -k, --key-action ACTION  SSH key action: generate, add, skip
+  --pubkey KEY             Public key to install (if --key-action=add)
+  -y, --yes                Non-interactive mode, use defaults
+  -c, --config FILE        Path to config file
+  -h, --help               Show help message
+```
+
+### Examples
+
+```bash
+# Local install with defaults (non-interactive)
+./install_local.sh -y
+
+# Local install with custom SSH port
+./install_local.sh -p 2222 -n myserver -y
+
+# Remote install to a server
+./install_remote.sh -H myserver.com -u admin -y
+
+# Remote install with custom port, skip SSH key setup
+./install_remote.sh -H 192.168.1.100 -p 2222 -u root --key-action skip -y
+
+# Use custom config file
+./install_local.sh -c /path/to/config.json -y
+```
+
+### Download and Run (GitHub)
+
+Local install (interactive):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hletrd/setup/main/install_local.sh | sh
 ```
 
-Remote install:
-
+Remote install (interactive):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hletrd/setup/main/install_remote.sh | sh
 ```

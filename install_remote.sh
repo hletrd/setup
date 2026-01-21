@@ -5,6 +5,98 @@ set -e
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 config_file="$script_dir/config.json"
 
+# Command line option defaults (empty = use config/prompt)
+opt_server_addr=""
+opt_ssh_port=""
+opt_ssh_user=""
+opt_server_name=""
+opt_ssh_key_action=""
+opt_pubkey=""
+opt_no_prompt=""
+opt_help=""
+
+# Parse command line options
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Install development environment on a remote machine via SSH.
+
+Options:
+  -H, --host HOST          Server address/hostname (default: localhost)
+  -p, --port PORT          SSH port (default: 22)
+  -u, --user USER          SSH username (default: current user)
+  -n, --name NAME          Server name for MOTD (default: server address)
+  -k, --key-action ACTION  SSH key action: generate, add, skip (default: generate)
+  --pubkey KEY             Public key to install (required if --key-action=add)
+  -y, --yes                Non-interactive mode, use defaults without prompting
+  -c, --config FILE        Path to config file (default: ./config.json)
+  -h, --help               Show this help message
+
+Examples:
+  # Non-interactive remote install
+  $(basename "$0") -H myserver.com -u admin -y
+
+  # Specify SSH port
+  $(basename "$0") -H 192.168.1.100 -p 2222 -u root -y
+
+  # Skip SSH key setup
+  $(basename "$0") -H myserver.com -u admin --key-action skip -y
+
+  # Use custom config file
+  $(basename "$0") -c /path/to/config.json -y
+EOF
+  exit 0
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -H|--host)
+      opt_server_addr="$2"
+      shift 2
+      ;;
+    -p|--port)
+      opt_ssh_port="$2"
+      shift 2
+      ;;
+    -u|--user)
+      opt_ssh_user="$2"
+      shift 2
+      ;;
+    -n|--name)
+      opt_server_name="$2"
+      shift 2
+      ;;
+    -k|--key-action)
+      opt_ssh_key_action="$2"
+      shift 2
+      ;;
+    --pubkey)
+      opt_pubkey="$2"
+      shift 2
+      ;;
+    -y|--yes)
+      opt_no_prompt="true"
+      shift
+      ;;
+    -c|--config)
+      config_file="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      ;;
+    -*)
+      printf "Unknown option: %s\n" "$1" >&2
+      printf "Use -h or --help for usage information.\n" >&2
+      exit 1
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
 # JSON parsing helper (uses grep/sed for POSIX compatibility)
 json_get() {
   key="$1"
@@ -76,15 +168,12 @@ cfg_cli_lsd="true"
 cfg_cli_gping="true"
 
 # MCP server toggles (default all enabled)
-cfg_mcp_agentic_tools="true"
 cfg_mcp_auggie_context="true"
-cfg_mcp_claude_context="true"
 cfg_mcp_context7="true"
 cfg_mcp_fetch="true"
 cfg_mcp_filesystem="true"
 cfg_mcp_git="true"
 cfg_mcp_github="true"
-cfg_mcp_graphiti="true"
 cfg_mcp_jupyter="true"
 cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
@@ -95,6 +184,7 @@ if [ -f "$config_file" ]; then
   cfg_prompt_for_confirmation="$(json_get_bool "prompt_for_confirmation" "$config_file")"
   cfg_ssh_port="$(json_get "ssh_port" "$config_file")"
   cfg_server_address="$(json_get "server_address" "$config_file")"
+  cfg_ssh_user="$(json_get "ssh_user" "$config_file")"
   cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
   cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
   cfg_skip_zinit="$(json_get_bool "skip_zinit" "$config_file")"
@@ -128,15 +218,12 @@ if [ -f "$config_file" ]; then
   cfg_cli_gping="$(json_get_bool "gping" "$config_file")"
 
   # Load MCP server toggles
-  cfg_mcp_agentic_tools="$(json_get_bool "agentic-tools" "$config_file")"
   cfg_mcp_auggie_context="$(json_get_bool "auggie-context" "$config_file")"
-  cfg_mcp_claude_context="$(json_get_bool "claude-context" "$config_file")"
   cfg_mcp_context7="$(json_get_bool "context7" "$config_file")"
   cfg_mcp_fetch="$(json_get_bool "fetch" "$config_file")"
   cfg_mcp_filesystem="$(json_get_bool "filesystem" "$config_file")"
   cfg_mcp_git="$(json_get_bool "git" "$config_file")"
   cfg_mcp_github="$(json_get_bool "github" "$config_file")"
-  cfg_mcp_graphiti="$(json_get_bool "graphiti" "$config_file")"
   cfg_mcp_jupyter="$(json_get_bool "jupyter" "$config_file")"
   cfg_mcp_memory="$(json_get_bool "memory" "$config_file")"
   cfg_mcp_playwright="$(json_get_bool "playwright" "$config_file")"
@@ -146,6 +233,13 @@ if [ -f "$config_file" ]; then
   [ -z "$cfg_server_address" ] && cfg_server_address="localhost"
   [ -z "$cfg_ssh_key_action" ] && cfg_ssh_key_action="generate"
 fi
+
+# Apply command line overrides
+[ -n "$opt_no_prompt" ] && cfg_prompt_for_confirmation="false"
+[ -n "$opt_server_addr" ] && cfg_server_address="$opt_server_addr"
+[ -n "$opt_ssh_port" ] && cfg_ssh_port="$opt_ssh_port"
+[ -n "$opt_ssh_user" ] && cfg_ssh_user="$opt_ssh_user"
+[ -n "$opt_ssh_key_action" ] && cfg_ssh_key_action="$opt_ssh_key_action"
 
 prompt_read() {
   prompt="$1"
@@ -170,22 +264,56 @@ prompt_or_default() {
     fi
   else
     result="$default"
-    printf "%s%s\n" "$prompt" "$default"
+    # Print prompt to stderr to avoid capturing it in command substitution
+    printf "%s%s\n" "$prompt" "$default" >&2
   fi
   printf "%s" "$result"
 }
 
-default_user="$(id -un)"
+default_user="${cfg_ssh_user:-$(id -un)}"
 
-server_addr="$(prompt_or_default "Server address (default: ${cfg_server_address}): " "$cfg_server_address")"
+# Use command line options if provided, otherwise prompt/use default
+if [ -n "$opt_server_addr" ]; then
+  server_addr="$opt_server_addr"
+  printf "Server address: %s\n" "$server_addr"
+else
+  server_addr="$(prompt_or_default "Server address (default: ${cfg_server_address}): " "$cfg_server_address")"
+fi
 
-server_port="$(prompt_or_default "SSH port (default: ${cfg_ssh_port}): " "$cfg_ssh_port")"
+if [ -n "$opt_ssh_port" ]; then
+  server_port="$opt_ssh_port"
+  printf "SSH port: %s\n" "$server_port"
+else
+  server_port="$(prompt_or_default "SSH port (default: ${cfg_ssh_port}): " "$cfg_ssh_port")"
+fi
 
-ssh_user="$(prompt_or_default "SSH username (default: ${default_user}): " "$default_user")"
+if [ -n "$opt_ssh_user" ]; then
+  ssh_user="$opt_ssh_user"
+  printf "SSH user: %s\n" "$ssh_user"
+else
+  ssh_user="$(prompt_or_default "SSH username (default: ${default_user}): " "$default_user")"
+fi
 
-servername="$(prompt_or_default "Server name for MOTD (default: ${server_addr}): " "$server_addr")"
+if [ -n "$opt_server_name" ]; then
+  servername="$opt_server_name"
+  printf "Server name: %s\n" "$servername"
+else
+  servername="$(prompt_or_default "Server name for MOTD (default: ${server_addr}): " "$server_addr")"
+fi
 
-if [ "$cfg_prompt_for_confirmation" = "true" ]; then
+# Determine SSH key action
+if [ -n "$opt_ssh_key_action" ]; then
+  case "$opt_ssh_key_action" in
+    generate) key_choice="g" ;;
+    add) key_choice="a" ;;
+    skip) key_choice="s" ;;
+    *)
+      printf "Invalid key action: %s (use generate, add, or skip)\n" "$opt_ssh_key_action" >&2
+      exit 1
+      ;;
+  esac
+  printf "SSH public key setup: %s\n" "$opt_ssh_key_action"
+elif [ "$cfg_prompt_for_confirmation" = "true" ]; then
   key_choice="$(prompt_read "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: ")"
 else
   case "$cfg_ssh_key_action" in
@@ -202,10 +330,15 @@ pubkey=""
 
 case "$key_choice" in
   a|A)
-    input_pubkey="$(prompt_read "Public key to install: ")"
-    if [ -n "$input_pubkey" ]; then
-      printf "%s\n" "$input_pubkey" > "$pubkey_path"
-      pubkey="$input_pubkey"
+    if [ -n "$opt_pubkey" ]; then
+      printf "%s\n" "$opt_pubkey" > "$pubkey_path"
+      pubkey="$opt_pubkey"
+    else
+      input_pubkey="$(prompt_read "Public key to install: ")"
+      if [ -n "$input_pubkey" ]; then
+        printf "%s\n" "$input_pubkey" > "$pubkey_path"
+        pubkey="$input_pubkey"
+      fi
     fi
     ;;
   s|S)
@@ -217,9 +350,9 @@ case "$key_choice" in
       ssh-keygen -t ecdsa -b 521 -N "" -f "$key_path"
     fi
     cp "${key_path}.pub" "$pubkey_path"
-	    pubkey="$(cat "$pubkey_path")"
-	    ;;
-	esac
+    pubkey="$(cat "$pubkey_path")"
+    ;;
+esac
 	
 	remote_script_path="/tmp/setup-bootstrap.$$"
 	# Pass configuration values as environment variables to the remote script
@@ -259,15 +392,12 @@ case "$key_choice" in
 	cfg_cli_gping="$cfg_cli_gping"
 
 	# MCP server toggles
-	cfg_mcp_agentic_tools="$cfg_mcp_agentic_tools"
 	cfg_mcp_auggie_context="$cfg_mcp_auggie_context"
-	cfg_mcp_claude_context="$cfg_mcp_claude_context"
 	cfg_mcp_context7="$cfg_mcp_context7"
 	cfg_mcp_fetch="$cfg_mcp_fetch"
 	cfg_mcp_filesystem="$cfg_mcp_filesystem"
 	cfg_mcp_git="$cfg_mcp_git"
 	cfg_mcp_github="$cfg_mcp_github"
-	cfg_mcp_graphiti="$cfg_mcp_graphiti"
 	cfg_mcp_jupyter="$cfg_mcp_jupyter"
 	cfg_mcp_memory="$cfg_mcp_memory"
 	cfg_mcp_playwright="$cfg_mcp_playwright"
@@ -328,28 +458,42 @@ if ! command -v sshd >/dev/null 2>&1; then
 fi
 
 if command -v systemctl >/dev/null 2>&1; then
-  sudo -n systemctl enable sshd >/dev/null 2>&1 || sudo -n systemctl enable ssh
-  sudo -n systemctl start sshd >/dev/null 2>&1 || sudo -n systemctl start ssh
+  sudo -n systemctl enable sshd >/dev/null 2>&1 || sudo -n systemctl enable ssh >/dev/null 2>&1 || true
+  sudo -n systemctl start sshd >/dev/null 2>&1 || sudo -n systemctl start ssh >/dev/null 2>&1 || true
 fi
 
 printf "Configuring firewall for SSH...\n"
-ssh_port="$1"
+ssh_port="\$1"
 if command -v ufw >/dev/null 2>&1; then
-  sudo -n ufw allow "${ssh_port}/tcp"
+  sudo -n ufw allow "\${ssh_port}/tcp" || true
+elif command -v firewall-cmd >/dev/null 2>&1; then
+  sudo -n firewall-cmd --permanent --add-port="\${ssh_port}/tcp" 2>/dev/null || true
+  sudo -n firewall-cmd --reload 2>/dev/null || true
 elif command -v iptables >/dev/null 2>&1; then
-  if ! sudo -n iptables -C INPUT -p tcp --dport "$ssh_port" -j ACCEPT >/dev/null 2>&1; then
-    sudo -n iptables -A INPUT -p tcp --dport "$ssh_port" -j ACCEPT
+  if ! sudo -n iptables -C INPUT -p tcp --dport "\$ssh_port" -j ACCEPT 2>/dev/null; then
+    sudo -n iptables -A INPUT -p tcp --dport "\$ssh_port" -j ACCEPT 2>/dev/null || true
   fi
 fi
 
 printf "Setting passwordless sudo for current user...\n"
-current_user="$(id -un)"
+current_user="\$(id -un)"
 sudo -n mkdir -p /etc/sudoers.d
-sudo -n sh -c "echo \"${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${current_user}"
-sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
+sudo -n sh -c "echo \"\${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/\${current_user}"
+sudo -n chmod 0440 "/etc/sudoers.d/\${current_user}"
 
 printf "Installing base packages...\n"
 pkg_install zsh figlet screenfetch git curl vim
+
+printf "Installing build tools...\n"
+if command -v apt-get >/dev/null 2>&1; then
+  sudo -n apt-get install -y build-essential 2>/dev/null || true
+elif command -v dnf >/dev/null 2>&1; then
+  sudo -n dnf -y install gcc 2>/dev/null || true
+elif command -v yum >/dev/null 2>&1; then
+  sudo -n yum -y install gcc 2>/dev/null || true
+elif command -v pacman >/dev/null 2>&1; then
+  sudo -n pacman -S --noconfirm base-devel 2>/dev/null || true
+fi
 
 if [ "\$cfg_pkg_uv" = "true" ]; then
   printf "Installing uv...\n"
@@ -491,6 +635,7 @@ if [ "\$cfg_cli_gping" = "true" ]; then
 fi
 
 printf "Set up motd...\n"
+sudo -n mkdir -p /etc/update-motd.d
 sudo -n rm -f /etc/update-motd.d/01-hello
 sudo -n sh -c 'echo "#!/bin/bash" >> /etc/update-motd.d/01-hello'
 sudo -n sh -c "echo \"/usr/bin/screenfetch -d '-disk' -w 80\" >> /etc/update-motd.d/01-hello"
@@ -509,7 +654,8 @@ fi
 
 printf "Setting default shell to zsh...\n"
 if command -v zsh >/dev/null 2>&1; then
-  sudo -n chsh -s "$(command -v zsh)" "$USER"
+  current_user="\${USER:-\$(whoami)}"
+  sudo -n chsh -s "\$(command -v zsh)" "\$current_user"
 fi
 
 if [ "\$cfg_skip_zinit" = "true" ]; then
@@ -553,15 +699,12 @@ else
   is_server_enabled() {
     server_name="\$1"
     case "\$server_name" in
-      agentic-tools) [ "\$cfg_mcp_agentic_tools" = "true" ] ;;
       auggie-context) [ "\$cfg_mcp_auggie_context" = "true" ] ;;
-      claude-context) [ "\$cfg_mcp_claude_context" = "true" ] ;;
       context7) [ "\$cfg_mcp_context7" = "true" ] ;;
       fetch) [ "\$cfg_mcp_fetch" = "true" ] ;;
       filesystem) [ "\$cfg_mcp_filesystem" = "true" ] ;;
       git) [ "\$cfg_mcp_git" = "true" ] ;;
       github) [ "\$cfg_mcp_github" = "true" ] ;;
-      graphiti) [ "\$cfg_mcp_graphiti" = "true" ] ;;
       jupyter) [ "\$cfg_mcp_jupyter" = "true" ] ;;
       memory) [ "\$cfg_mcp_memory" = "true" ] ;;
       playwright) [ "\$cfg_mcp_playwright" = "true" ] ;;
@@ -698,28 +841,28 @@ MCP_EOF
 fi
 
 printf "Configuring zsh settings...\n"
-zshrc="$HOME/.zshrc"
-touch "$zshrc"
+zshrc="\$HOME/.zshrc"
+touch "\$zshrc"
 ensure_zshrc_line() {
-  line="$1"
-  if ! grep -Fqx "$line" "$zshrc"; then
-    printf "%s\n" "$line" >> "$zshrc"
+  line="\$1"
+  if ! grep -Fqx "\$line" "\$zshrc"; then
+    printf "%s\n" "\$line" >> "\$zshrc"
   fi
 }
 set_zshrc_value() {
-  key="$1"
-  value="$2"
-  if grep -q "^${key}=" "$zshrc"; then
-    tmp="${zshrc}.tmp"
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        ${key}=*) printf "%s\n" "${key}=${value}" ;;
-        *) printf "%s\n" "$line" ;;
+  key="\$1"
+  value="\$2"
+  if grep -q "^\${key}=" "\$zshrc"; then
+    tmp="\${zshrc}.tmp"
+    while IFS= read -r line || [ -n "\$line" ]; do
+      case "\$line" in
+        \${key}=*) printf "%s\n" "\${key}=\${value}" ;;
+        *) printf "%s\n" "\$line" ;;
       esac
-    done < "$zshrc" > "$tmp"
-    mv "$tmp" "$zshrc"
+    done < "\$zshrc" > "\$tmp"
+    mv "\$tmp" "\$zshrc"
   else
-    printf "%s\n" "${key}=${value}" >> "$zshrc"
+    printf "%s\n" "\${key}=\${value}" >> "\$zshrc"
   fi
 }
 # Zinit initialization
@@ -791,4 +934,9 @@ command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(hishtory init
 }
 EOF
 
-ssh -tt -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
+# Use TTY mode if available, otherwise run without TTY
+if [ -t 0 ]; then
+  ssh -tt -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
+else
+  ssh -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
+fi
