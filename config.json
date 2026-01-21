@@ -28,7 +28,7 @@
   "installation": {
     "install_directory": "",
     "skip_package_update": false,
-    "skip_oh_my_zsh": false,
+    "skip_zinit": false,
     "skip_mcp_setup": false,
     "comment": "Empty install_directory uses $HOME"
   },

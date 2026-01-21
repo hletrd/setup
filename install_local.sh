@@ -47,7 +47,7 @@ cfg_prompt_for_confirmation="true"
 cfg_ssh_port="22"
 cfg_ssh_key_action="generate"
 cfg_skip_package_update="false"
-cfg_skip_oh_my_zsh="false"
+cfg_skip_zinit="false"
 cfg_skip_mcp_setup="false"
 cfg_editor_cursor="true"
 cfg_editor_codex="true"
@@ -81,7 +81,7 @@ if [ -f "$config_file" ]; then
   cfg_ssh_port="$(json_get "ssh_port" "$config_file")"
   cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
   cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
-  cfg_skip_oh_my_zsh="$(json_get_bool "skip_oh_my_zsh" "$config_file")"
+  cfg_skip_zinit="$(json_get_bool "skip_zinit" "$config_file")"
   cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
   cfg_editor_cursor="$(json_get_bool "cursor" "$config_file")"
   cfg_editor_codex="$(json_get_bool "codex" "$config_file")"
@@ -446,30 +446,16 @@ if command -v zsh >/dev/null 2>&1; then
   sudo -n chsh -s "$(command -v zsh)" "$USER"
 fi
 
-if [ "$cfg_skip_oh_my_zsh" = "true" ]; then
-  printf "Skipping oh-my-zsh setup (disabled in config)...\n"
+if [ "$cfg_skip_zinit" = "true" ]; then
+  printf "Skipping zinit setup (disabled in config)...\n"
 else
-  printf "Setting up oh my zsh...\n"
-  if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  printf "Setting up zinit and powerlevel10k...\n"
+  ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+  if [ ! -d "$ZINIT_HOME" ]; then
+    mkdir -p "$(dirname "$ZINIT_HOME")"
+    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
   fi
-  printf "Set up oh my zsh...\n"
-
-  zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-  mkdir -p "$zsh_custom/plugins"
-  if [ ! -d "$zsh_custom/plugins/zsh-autosuggestions" ]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$zsh_custom/plugins/zsh-autosuggestions"
-  fi
-  if [ ! -d "$zsh_custom/plugins/zsh-syntax-highlighting" ]; then
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$zsh_custom/plugins/zsh-syntax-highlighting"
-  fi
-
-  omz_cmd="$HOME/.oh-my-zsh/bin/omz"
-  if [ -x "$omz_cmd" ]; then
-    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" theme set agnoster
-    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin load zsh-syntax-highlighting zsh-autosuggestions
-    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin enable zsh-syntax-highlighting zsh-autosuggestions
-  fi
+  printf "Zinit installed.\n"
 fi
 
 if [ "$cfg_pkg_nvm" = "true" ]; then
@@ -605,23 +591,25 @@ set_zshrc_value() {
     printf "%s\n" "${key}=${value}" >> "$zshrc"
   fi
 }
-set_zshrc_plugins() {
-  plugins_line="$1"
-  if grep -q "^plugins=" "$zshrc"; then
-    tmp="${zshrc}.tmp"
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        plugins=*) printf "%s\n" "$plugins_line" ;;
-        *) printf "%s\n" "$line" ;;
-      esac
-    done < "$zshrc" > "$tmp"
-    mv "$tmp" "$zshrc"
-  else
-    printf "%s\n" "$plugins_line" >> "$zshrc"
-  fi
-}
-set_zshrc_value "ZSH_THEME" "\"agnoster\""
-set_zshrc_plugins "plugins=(git zsh-syntax-highlighting zsh-autosuggestions)"
+# Zinit initialization
+ensure_zshrc_line 'ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"'
+ensure_zshrc_line '[ -f "$ZINIT_HOME/zinit.zsh" ] && source "$ZINIT_HOME/zinit.zsh"'
+
+# Powerlevel10k theme
+ensure_zshrc_line 'zinit ice depth=1; zinit light romkatv/powerlevel10k'
+
+# Zinit plugins
+ensure_zshrc_line 'zinit light zsh-users/zsh-autosuggestions'
+ensure_zshrc_line 'zinit light zsh-users/zsh-syntax-highlighting'
+
+# Powerlevel10k instant prompt (should be near top of .zshrc, but we add it here for simplicity)
+ensure_zshrc_line '# Enable Powerlevel10k instant prompt'
+ensure_zshrc_line 'if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then'
+ensure_zshrc_line '  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"'
+ensure_zshrc_line 'fi'
+ensure_zshrc_line '# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh'
+ensure_zshrc_line '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh'
+
 ensure_zshrc_line 'HISTFILE=~/.histfile'
 ensure_zshrc_line 'HISTSIZE=100000'
 ensure_zshrc_line 'SAVEHIST=100000'
