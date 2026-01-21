@@ -1,4 +1,0 @@
-"graphiti": {
-  "command": "npx",
-  "args": ["-y", "@zhangzichao2008/mcp-graphiti"]
-}

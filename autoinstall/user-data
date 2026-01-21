@@ -1,0 +1,82 @@
+#cloud-config
+autoinstall:
+  version: 1
+  interactive-sections: []
+  locale: en_US.UTF-8
+  timezone: Asia/Seoul
+  keyboard:
+    layout: us
+  updates: security
+  shutdown: reboot
+  identity:
+    hostname: ubuntu-desktop
+    username: ubuntu
+    # Password: 1
+    password: "$6$rounds=656000$FK6hO31XctxcBlUX$Ff3EToHRIiZUHmdcnlUpfN5joOL7Nx79Q.pF0KUOW3Ne22K0WbTuKOV6JMFZBt8RLdp6ZeRBrlcbUEbpbxAIk1"
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    config:
+      - id: disk0
+        type: disk
+        ptable: gpt
+        path: /dev/sda
+        wipe: superblock-recursive
+        preserve: false
+        grub_device: false
+      - id: efi-partition
+        type: partition
+        device: disk0
+        size: 1G
+        flag: boot
+        grub_device: true
+        preserve: false
+      - id: efi-format
+        type: format
+        volume: efi-partition
+        fstype: fat32
+        preserve: false
+      - id: efi-mount
+        type: mount
+        device: efi-format
+        path: /boot/efi
+      - id: swap-partition
+        type: partition
+        device: disk0
+        size: 32G
+        preserve: false
+      - id: swap-format
+        type: format
+        volume: swap-partition
+        fstype: swap
+        preserve: false
+      - id: swap-mount
+        type: mount
+        device: swap-format
+        path: none
+      - id: root-partition
+        type: partition
+        device: disk0
+        size: -1
+        preserve: false
+      - id: root-format
+        type: format
+        volume: root-partition
+        fstype: xfs
+        preserve: false
+      - id: root-mount
+        type: mount
+        device: root-format
+        path: /
+  packages:
+    - openssh-server
+  late-commands:
+    - curtin in-target --target=/target -- apt-get update
+    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop
+    - curtin in-target --target=/target -- apt-get install -y git
+    - curtin in-target --target=/target -- git clone https://github.com/hletrd/setup.git /home/ubuntu/setup
+    - curtin in-target --target=/target -- chown -R ubuntu:ubuntu /home/ubuntu/setup
+    - curtin in-target --target=/target -- chmod +x /home/ubuntu/setup/install_local.sh
+    - curtin in-target --target=/target -- su - ubuntu -c '/home/ubuntu/setup/install_local.sh'
+

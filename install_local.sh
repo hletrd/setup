@@ -318,11 +318,28 @@ case "$key_choice" in
     ;;
 esac
 
-printf "Caching sudo credentials...\n"
-sudo -v
+# Detect OS
+is_macos=""
+if [ "$(uname -s)" = "Darwin" ]; then
+  is_macos="true"
+fi
+
+# Cache sudo credentials (skip on macOS with Homebrew if not needed)
+if [ "$is_macos" = "true" ]; then
+  printf "Running on macOS - sudo may not be required for most operations...\n"
+  # Try to cache sudo, but don't fail if it doesn't work
+  sudo -v 2>/dev/null || true
+else
+  printf "Caching sudo credentials...\n"
+  sudo -v || { printf "Failed to cache sudo credentials. Some operations may fail.\n" >&2; }
+fi
 
 pkg_update() {
-  if command -v apt-get >/dev/null 2>&1; then
+  if [ "$is_macos" = "true" ] && command -v brew >/dev/null 2>&1; then
+    brew update
+    # Only upgrade formulas (not casks) to avoid sudo password prompts
+    brew upgrade --formula || true
+  elif command -v apt-get >/dev/null 2>&1; then
     sudo -n apt-get update -y
     sudo -n apt-get upgrade -y
   elif command -v dnf >/dev/null 2>&1; then
@@ -331,6 +348,9 @@ pkg_update() {
     sudo -n yum -y update
   elif command -v pacman >/dev/null 2>&1; then
     sudo -n pacman -Syu --noconfirm
+  elif command -v apk >/dev/null 2>&1; then
+    sudo -n apk update
+    sudo -n apk upgrade
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -339,7 +359,9 @@ pkg_update() {
 
 pkg_install() {
   packages="$*"
-  if command -v apt-get >/dev/null 2>&1; then
+  if [ "$is_macos" = "true" ] && command -v brew >/dev/null 2>&1; then
+    brew install $packages
+  elif command -v apt-get >/dev/null 2>&1; then
     sudo -n apt-get install -y $packages
   elif command -v dnf >/dev/null 2>&1; then
     sudo -n dnf -y install $packages
@@ -347,6 +369,8 @@ pkg_install() {
     sudo -n yum -y install $packages
   elif command -v pacman >/dev/null 2>&1; then
     sudo -n pacman -S --noconfirm $packages
+  elif command -v apk >/dev/null 2>&1; then
+    sudo -n apk add $packages
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -356,6 +380,10 @@ pkg_install() {
 openssh_package="openssh-server"
 if command -v pacman >/dev/null 2>&1; then
   openssh_package="openssh"
+elif command -v apk >/dev/null 2>&1; then
+  openssh_package="openssh"
+elif [ "$is_macos" = "true" ]; then
+  openssh_package=""  # macOS has SSH built-in
 fi
 
 if [ "$cfg_skip_package_update" = "true" ]; then
@@ -365,39 +393,61 @@ else
   pkg_update
 fi
 
-printf "Installing openssh-server if missing...\n"
-if ! command -v sshd >/dev/null 2>&1; then
-  pkg_install "$openssh_package"
-fi
-
-if command -v systemctl >/dev/null 2>&1; then
-  sudo -n systemctl enable sshd >/dev/null 2>&1 || sudo -n systemctl enable ssh >/dev/null 2>&1 || true
-  sudo -n systemctl start sshd >/dev/null 2>&1 || sudo -n systemctl start ssh >/dev/null 2>&1 || true
-fi
-
-printf "Configuring firewall for SSH...\n"
-if command -v ufw >/dev/null 2>&1; then
-  sudo -n ufw allow "${server_port}/tcp" || true
-elif command -v firewall-cmd >/dev/null 2>&1; then
-  sudo -n firewall-cmd --permanent --add-port="${server_port}/tcp" 2>/dev/null || true
-  sudo -n firewall-cmd --reload 2>/dev/null || true
-elif command -v iptables >/dev/null 2>&1; then
-  if ! sudo -n iptables -C INPUT -p tcp --dport "$server_port" -j ACCEPT 2>/dev/null; then
-    sudo -n iptables -A INPUT -p tcp --dport "$server_port" -j ACCEPT 2>/dev/null || true
+# SSH server setup (skip on macOS - has built-in SSH)
+if [ "$is_macos" != "true" ]; then
+  printf "Installing openssh-server if missing...\n"
+  if ! command -v sshd >/dev/null 2>&1; then
+    pkg_install "$openssh_package"
   fi
-fi
 
-printf "Setting passwordless sudo for current user...\n"
-current_user="$(id -un)"
-sudo -n mkdir -p /etc/sudoers.d
-sudo -n sh -c "echo \"${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${current_user}"
-sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo -n systemctl enable sshd >/dev/null 2>&1 || sudo -n systemctl enable ssh >/dev/null 2>&1 || true
+    sudo -n systemctl start sshd >/dev/null 2>&1 || sudo -n systemctl start ssh >/dev/null 2>&1 || true
+  fi
+
+  printf "Configuring firewall for SSH...\n"
+  if command -v ufw >/dev/null 2>&1; then
+    sudo -n ufw allow "${server_port}/tcp" || true
+  elif command -v firewall-cmd >/dev/null 2>&1; then
+    sudo -n firewall-cmd --permanent --add-port="${server_port}/tcp" 2>/dev/null || true
+    sudo -n firewall-cmd --reload 2>/dev/null || true
+  elif command -v iptables >/dev/null 2>&1; then
+    if ! sudo -n iptables -C INPUT -p tcp --dport "$server_port" -j ACCEPT 2>/dev/null; then
+      sudo -n iptables -A INPUT -p tcp --dport "$server_port" -j ACCEPT 2>/dev/null || true
+    fi
+  fi
+
+  printf "Setting passwordless sudo for current user...\n"
+  current_user="$(id -un)"
+  sudo -n mkdir -p /etc/sudoers.d
+  sudo -n sh -c "echo \"${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${current_user}"
+  sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
+else
+  printf "Skipping SSH server setup (macOS has built-in SSH)...\n"
+fi
 
 printf "Installing base packages...\n"
-pkg_install zsh figlet screenfetch git curl vim
+if [ "$is_macos" = "true" ]; then
+  # macOS with Homebrew
+  pkg_install zsh figlet git curl vim neofetch
+elif command -v apk >/dev/null 2>&1; then
+  # Alpine Linux - screenfetch/neofetch not available in main repos
+  pkg_install zsh figlet git curl vim
+else
+  pkg_install zsh figlet screenfetch git curl vim
+fi
 
 printf "Installing build tools...\n"
-if command -v apt-get >/dev/null 2>&1; then
+if [ "$is_macos" = "true" ]; then
+  # macOS - check for Xcode Command Line Tools
+  if ! xcode-select -p >/dev/null 2>&1; then
+    printf "Installing Xcode Command Line Tools...\n"
+    xcode-select --install 2>/dev/null || true
+    printf "Please complete the Xcode Command Line Tools installation if prompted.\n"
+  else
+    printf "Xcode Command Line Tools already installed.\n"
+  fi
+elif command -v apt-get >/dev/null 2>&1; then
   sudo -n apt-get install -y build-essential 2>/dev/null || true
 elif command -v dnf >/dev/null 2>&1; then
   sudo -n dnf -y install gcc 2>/dev/null || true
@@ -405,6 +455,8 @@ elif command -v yum >/dev/null 2>&1; then
   sudo -n yum -y install gcc 2>/dev/null || true
 elif command -v pacman >/dev/null 2>&1; then
   sudo -n pacman -S --noconfirm base-devel 2>/dev/null || true
+elif command -v apk >/dev/null 2>&1; then
+  sudo -n apk add build-base 2>/dev/null || true
 fi
 
 if [ "$cfg_pkg_uv" = "true" ]; then
@@ -546,13 +598,18 @@ if [ "$cfg_cli_gping" = "true" ]; then
   install_cargo_tool gping
 fi
 
-printf "Set up motd...\n"
-sudo -n mkdir -p /etc/update-motd.d
-sudo -n rm -f /etc/update-motd.d/01-hello
-sudo -n sh -c 'echo "#!/bin/bash" >> /etc/update-motd.d/01-hello'
-sudo -n sh -c "echo \"/usr/bin/screenfetch -d '-disk' -w 80\" >> /etc/update-motd.d/01-hello"
-sudo -n sh -c "echo \"figlet -t ${servername}\" >> /etc/update-motd.d/01-hello"
-sudo -n chmod a+x /etc/update-motd.d/01-hello
+# Set up MOTD (skip on macOS - doesn't use update-motd.d)
+if [ "$is_macos" != "true" ]; then
+  printf "Set up motd...\n"
+  sudo -n mkdir -p /etc/update-motd.d
+  sudo -n rm -f /etc/update-motd.d/01-hello
+  sudo -n sh -c 'echo "#!/bin/bash" >> /etc/update-motd.d/01-hello'
+  sudo -n sh -c "echo \"/usr/bin/screenfetch -d '-disk' -w 80\" >> /etc/update-motd.d/01-hello"
+  sudo -n sh -c "echo \"figlet -t ${servername}\" >> /etc/update-motd.d/01-hello"
+  sudo -n chmod a+x /etc/update-motd.d/01-hello
+else
+  printf "Skipping MOTD setup (not applicable on macOS)...\n"
+fi
 
 if [ -n "$pubkey" ]; then
   printf "Registering SSH public key...\n"
@@ -567,7 +624,26 @@ fi
 printf "Setting default shell to zsh...\n"
 if command -v zsh >/dev/null 2>&1; then
   current_user="${USER:-$(whoami)}"
-  sudo -n chsh -s "$(command -v zsh)" "$current_user"
+  zsh_path="$(command -v zsh)"
+  # Check if current shell is already zsh
+  current_shell=$(getent passwd "$current_user" 2>/dev/null | cut -d: -f7 || dscl . -read /Users/"$current_user" UserShell 2>/dev/null | awk '{print $2}')
+  if [ "$current_shell" = "$zsh_path" ] || [ "$current_shell" = "/bin/zsh" ]; then
+    printf "Shell is already zsh, skipping...\n"
+  elif [ "$is_macos" = "true" ]; then
+    # macOS: chsh doesn't need sudo for current user, but needs password
+    # Check if zsh is in /etc/shells
+    if ! grep -q "^${zsh_path}$" /etc/shells 2>/dev/null; then
+      sudo -n sh -c "echo '$zsh_path' >> /etc/shells" 2>/dev/null || true
+    fi
+    # On macOS, chsh requires password interactively - skip in non-interactive mode
+    if [ -t 0 ]; then
+      printf "Run 'chsh -s %s' manually if you want to change your default shell.\n" "$zsh_path"
+    else
+      printf "Skipping shell change (non-interactive mode, run 'chsh -s %s' manually).\n" "$zsh_path"
+    fi
+  else
+    sudo -n chsh -s "$zsh_path" "$current_user" || true
+  fi
 fi
 
 if [ "$cfg_skip_zinit" = "true" ]; then

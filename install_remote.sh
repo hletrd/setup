@@ -423,6 +423,9 @@ pkg_update() {
     sudo -n yum -y update
   elif command -v pacman >/dev/null 2>&1; then
     sudo -n pacman -Syu --noconfirm
+  elif command -v apk >/dev/null 2>&1; then
+    sudo -n apk update
+    sudo -n apk upgrade
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -439,11 +442,20 @@ pkg_install() {
     sudo -n yum -y install \$packages
   elif command -v pacman >/dev/null 2>&1; then
     sudo -n pacman -S --noconfirm \$packages
+  elif command -v apk >/dev/null 2>&1; then
+    sudo -n apk add \$packages
   else
     printf "No supported package manager found.\n" >&2
     return 1
   fi
 }
+
+openssh_package="openssh-server"
+if command -v pacman >/dev/null 2>&1; then
+  openssh_package="openssh"
+elif command -v apk >/dev/null 2>&1; then
+  openssh_package="openssh"
+fi
 
 if [ "\$cfg_skip_package_update" = "true" ]; then
   printf "Skipping package update (disabled in config)...\n"
@@ -454,7 +466,7 @@ fi
 
 printf "Installing openssh-server if missing...\n"
 if ! command -v sshd >/dev/null 2>&1; then
-  pkg_install openssh-server
+  pkg_install "\$openssh_package"
 fi
 
 if command -v systemctl >/dev/null 2>&1; then
@@ -482,7 +494,12 @@ sudo -n sh -c "echo \"\${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudo
 sudo -n chmod 0440 "/etc/sudoers.d/\${current_user}"
 
 printf "Installing base packages...\n"
-pkg_install zsh figlet screenfetch git curl vim
+if command -v apk >/dev/null 2>&1; then
+  # Alpine Linux - screenfetch/neofetch not available in main repos
+  pkg_install zsh figlet git curl vim
+else
+  pkg_install zsh figlet screenfetch git curl vim
+fi
 
 printf "Installing build tools...\n"
 if command -v apt-get >/dev/null 2>&1; then
@@ -493,6 +510,8 @@ elif command -v yum >/dev/null 2>&1; then
   sudo -n yum -y install gcc 2>/dev/null || true
 elif command -v pacman >/dev/null 2>&1; then
   sudo -n pacman -S --noconfirm base-devel 2>/dev/null || true
+elif command -v apk >/dev/null 2>&1; then
+  sudo -n apk add build-base 2>/dev/null || true
 fi
 
 if [ "\$cfg_pkg_uv" = "true" ]; then

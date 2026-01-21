@@ -1,73 +1,41 @@
 {
-  "mcp_servers": {
-    "agentic-tools": true,
-    "auggie-context": true,
-    "claude-context": true,
-    "context7": true,
-    "fetch": true,
-    "filesystem": true,
-    "git": true,
-    "github": true,
-    "graphiti": true,
-    "jupyter": true,
-    "memory": true,
-    "playwright": true,
-    "sequential-thinking": true,
-    "comment": "Set to false to skip installing specific MCP servers"
-  },
   "prompts": {
     "prompt_for_confirmation": true,
-    "comment": "Set to false to use all default values without prompting"
-  },
-  "defaults": {
     "ssh_port": "22",
-    "server_address": "localhost",
-    "ssh_key_action": "generate",
-    "comment": "ssh_key_action can be 'generate', 'add', or 'skip'"
+    "server_address": "",
+    "ssh_user": "",
+    "ssh_key_action": "generate"
   },
   "installation": {
-    "install_directory": "",
     "skip_package_update": false,
     "skip_zinit": false,
-    "skip_mcp_setup": false,
-    "comment": "Empty install_directory uses $HOME"
+    "skip_mcp_setup": false
   },
   "packages": {
     "nvm": true,
     "uv": true,
     "cargo": true,
     "ruff": true,
-    "ty": true,
-    "comment": "Set to false to skip installing specific packages"
+    "ty": true
   },
   "cli_tools": {
-    "hishtory": true,
     "fzf": true,
     "eza": true,
     "bat": true,
-    "delta": true,
-    "dust": true,
-    "duf": true,
     "fd": true,
     "ripgrep": true,
+    "zoxide": true,
+    "dust": true,
+    "duf": true,
     "mcfly": true,
     "sd": true,
     "choose": true,
-    "cheat": true,
     "bottom": true,
     "procs": true,
-    "zoxide": true,
-    "lsd": true,
     "gping": true,
-    "comment": "Modern CLI tool replacements. Set to false to skip."
-  },
-  "editors": {
-    "cursor": true,
-    "codex": true,
-    "opencode": true,
-    "antigravity": true,
-    "claude_desktop": true,
-    "comment": "Set to false to skip MCP config for specific editors"
+    "delta": true,
+    "hishtory": true,
+    "cheat": true,
+    "lsd": true
   }
 }
-
