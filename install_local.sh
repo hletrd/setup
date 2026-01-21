@@ -119,6 +119,11 @@ sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
 printf "Installing base packages...\n"
 pkg_install zsh figlet screenfetch git curl vim
 
+printf "Installing uv...\n"
+if ! command -v uv >/dev/null 2>&1; then
+  curl -fsSL https://astral.sh/uv/install.sh | sh
+fi
+
 printf "Set up motd...\n"
 sudo -n rm -f /etc/update-motd.d/01-hello
 sudo -n sh -c 'echo "#!/bin/bash" >> /etc/update-motd.d/01-hello'
@@ -226,6 +231,7 @@ ensure_zshrc_line 'setopt autocd'
 ensure_zshrc_line 'bindkey -e'
 ensure_zshrc_line 'export HOMEBREW_NO_ANALYTICS=1'
 ensure_zshrc_line 'DISABLE_UPDATE_PROMPT=true'
+ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
 ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
 ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
 ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
