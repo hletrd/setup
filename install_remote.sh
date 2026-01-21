@@ -2,42 +2,49 @@
 
 set -e
 
+prompt_read() {
+  prompt="$1"
+  input=""
+  if [ -t 0 ]; then
+    printf "%s" "$prompt"
+    IFS= read -r input || :
+  elif [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    printf "%s" "$prompt" > /dev/tty
+    IFS= read -r input < /dev/tty || :
+  fi
+  printf "%s" "$input"
+}
+
 default_user="$(id -un)"
 
-printf "Server address (default: localhost): "
-read -r server_addr
+server_addr="$(prompt_read "Server address (default: localhost): ")"
 if [ -z "$server_addr" ]; then
   server_addr="localhost"
 fi
 
-printf "SSH port (default: 22): "
-read -r server_port
+server_port="$(prompt_read "SSH port (default: 22): ")"
 if [ -z "$server_port" ]; then
   server_port="22"
 fi
 
-printf "SSH username (default: %s): " "$default_user"
-read -r ssh_user
+ssh_user="$(prompt_read "SSH username (default: ${default_user}): ")"
 if [ -z "$ssh_user" ]; then
   ssh_user="$default_user"
 fi
 
-printf "Server name for MOTD (default: %s): " "$server_addr"
-read -r servername
+servername="$(prompt_read "Server name for MOTD (default: ${server_addr}): ")"
 if [ -z "$servername" ]; then
   servername="$server_addr"
 fi
 
-printf "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: "
-read -r key_choice
+key_choice="$(prompt_read "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: ")"
 
 pubkey_path="./.pub"
 pubkey=""
 
 case "$key_choice" in
   a|A)
-    printf "Public key to install: "
-    read -r input_pubkey
+    input_pubkey="$(prompt_read "Public key to install: ")"
     if [ -n "$input_pubkey" ]; then
       printf "%s\n" "$input_pubkey" > "$pubkey_path"
       pubkey="$input_pubkey"
