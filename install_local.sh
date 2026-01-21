@@ -238,6 +238,39 @@ ensure_zshrc_line() {
     printf "%s\n" "$line" >> "$zshrc"
   fi
 }
+set_zshrc_value() {
+  key="$1"
+  value="$2"
+  if grep -q "^${key}=" "$zshrc"; then
+    tmp="${zshrc}.tmp"
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        ${key}=*) printf "%s\n" "${key}=${value}" ;;
+        *) printf "%s\n" "$line" ;;
+      esac
+    done < "$zshrc" > "$tmp"
+    mv "$tmp" "$zshrc"
+  else
+    printf "%s\n" "${key}=${value}" >> "$zshrc"
+  fi
+}
+set_zshrc_plugins() {
+  plugins_line="$1"
+  if grep -q "^plugins=" "$zshrc"; then
+    tmp="${zshrc}.tmp"
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        plugins=*) printf "%s\n" "$plugins_line" ;;
+        *) printf "%s\n" "$line" ;;
+      esac
+    done < "$zshrc" > "$tmp"
+    mv "$tmp" "$zshrc"
+  else
+    printf "%s\n" "$plugins_line" >> "$zshrc"
+  fi
+}
+set_zshrc_value "ZSH_THEME" "\"agnoster\""
+set_zshrc_plugins "plugins=(git zsh-syntax-highlighting zsh-autosuggestions)"
 ensure_zshrc_line 'HISTFILE=~/.histfile'
 ensure_zshrc_line 'HISTSIZE=100000'
 ensure_zshrc_line 'SAVEHIST=100000'
