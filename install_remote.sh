@@ -46,8 +46,12 @@ cfg_server_address="localhost"
 cfg_ssh_key_action="generate"
 cfg_skip_package_update="false"
 cfg_skip_oh_my_zsh="false"
-cfg_skip_nvm="false"
 cfg_skip_mcp_setup="false"
+
+# Package manager toggles (default all enabled)
+cfg_pkg_nvm="true"
+cfg_pkg_uv="true"
+cfg_pkg_cargo="true"
 
 # MCP server toggles (default all enabled)
 cfg_mcp_agentic_tools="true"
@@ -72,8 +76,12 @@ if [ -f "$config_file" ]; then
   cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
   cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
   cfg_skip_oh_my_zsh="$(json_get_bool "skip_oh_my_zsh" "$config_file")"
-  cfg_skip_nvm="$(json_get_bool "skip_nvm" "$config_file")"
   cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
+
+  # Load package manager toggles
+  cfg_pkg_nvm="$(json_get_bool "nvm" "$config_file")"
+  cfg_pkg_uv="$(json_get_bool "uv" "$config_file")"
+  cfg_pkg_cargo="$(json_get_bool "cargo" "$config_file")"
 
   # Load MCP server toggles
   cfg_mcp_agentic_tools="$(json_get_bool "agentic-tools" "$config_file")"
@@ -177,8 +185,12 @@ case "$key_choice" in
 	# Configuration passed from local config.json
 	cfg_skip_package_update="$cfg_skip_package_update"
 	cfg_skip_oh_my_zsh="$cfg_skip_oh_my_zsh"
-	cfg_skip_nvm="$cfg_skip_nvm"
 	cfg_skip_mcp_setup="$cfg_skip_mcp_setup"
+
+	# Package manager toggles
+	cfg_pkg_nvm="$cfg_pkg_nvm"
+	cfg_pkg_uv="$cfg_pkg_uv"
+	cfg_pkg_cargo="$cfg_pkg_cargo"
 
 	# MCP server toggles
 	cfg_mcp_agentic_tools="$cfg_mcp_agentic_tools"
@@ -273,9 +285,22 @@ sudo -n chmod 0440 "/etc/sudoers.d/${current_user}"
 printf "Installing base packages...\n"
 pkg_install zsh figlet screenfetch git curl vim
 
-printf "Installing uv...\n"
-if ! command -v uv >/dev/null 2>&1; then
-  curl -fsSL https://astral.sh/uv/install.sh | sh
+if [ "\$cfg_pkg_uv" = "true" ]; then
+  printf "Installing uv...\n"
+  if ! command -v uv >/dev/null 2>&1; then
+    curl -fsSL https://astral.sh/uv/install.sh | sh
+  fi
+else
+  printf "Skipping uv installation (disabled in config)...\n"
+fi
+
+if [ "\$cfg_pkg_cargo" = "true" ]; then
+  printf "Installing cargo (Rust)...\n"
+  if ! command -v cargo >/dev/null 2>&1; then
+    curl -fsSL https://sh.rustup.rs | sh -s -- -y
+  fi
+else
+  printf "Skipping cargo installation (disabled in config)...\n"
 fi
 
 printf "Set up motd...\n"
@@ -326,9 +351,7 @@ else
   fi
 fi
 
-if [ "\$cfg_skip_nvm" = "true" ]; then
-  printf "Skipping nvm and Node.js setup (disabled in config)...\n"
-else
+if [ "\$cfg_pkg_nvm" = "true" ]; then
 	printf "Setting up nvm and Node.js...\n"
 	if ! command -v bash >/dev/null 2>&1; then
 	  pkg_install bash
@@ -340,6 +363,8 @@ else
 	  printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
 	  bash -c ". \"\$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
 	fi
+else
+  printf "Skipping nvm and Node.js setup (disabled in config)...\n"
 fi
 	
 if [ "\$cfg_skip_mcp_setup" = "true" ]; then
@@ -552,6 +577,7 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line 'export VISUAL=vim'
 	ensure_zshrc_line 'alias nano=vim'
 	ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
+	ensure_zshrc_line 'export PATH="$HOME/.cargo/bin:$PATH"'
 	ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
 	ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
 	ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'

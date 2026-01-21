@@ -29,9 +29,14 @@
     "install_directory": "",
     "skip_package_update": false,
     "skip_oh_my_zsh": false,
-    "skip_nvm": false,
     "skip_mcp_setup": false,
     "comment": "Empty install_directory uses $HOME"
+  },
+  "packages": {
+    "nvm": true,
+    "uv": true,
+    "cargo": true,
+    "comment": "Set to false to skip installing specific package managers"
   },
   "editors": {
     "cursor": true,
