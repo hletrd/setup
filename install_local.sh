@@ -93,6 +93,8 @@ if [ -f "$config_file" ]; then
   cfg_pkg_nvm="$(json_get_bool "nvm" "$config_file")"
   cfg_pkg_uv="$(json_get_bool "uv" "$config_file")"
   cfg_pkg_cargo="$(json_get_bool "cargo" "$config_file")"
+  cfg_pkg_ruff="$(json_get_bool "ruff" "$config_file")"
+  cfg_pkg_ty="$(json_get_bool "ty" "$config_file")"
 
   # Load MCP server toggles
   cfg_mcp_agentic_tools="$(json_get_bool "agentic-tools" "$config_file")"
@@ -279,6 +281,20 @@ if [ "$cfg_pkg_cargo" = "true" ]; then
   fi
 else
   printf "Skipping cargo installation (disabled in config)...\n"
+fi
+
+if [ "$cfg_pkg_ruff" = "true" ]; then
+  printf "Installing ruff...\n"
+  "$HOME/.local/bin/uv" tool install ruff 2>/dev/null || uv tool install ruff
+else
+  printf "Skipping ruff installation (disabled in config)...\n"
+fi
+
+if [ "$cfg_pkg_ty" = "true" ]; then
+  printf "Installing ty...\n"
+  "$HOME/.local/bin/uv" tool install ty 2>/dev/null || uv tool install ty
+else
+  printf "Skipping ty installation (disabled in config)...\n"
 fi
 
 printf "Set up motd...\n"

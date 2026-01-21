@@ -36,7 +36,9 @@
     "nvm": true,
     "uv": true,
     "cargo": true,
-    "comment": "Set to false to skip installing specific package managers"
+    "ruff": true,
+    "ty": true,
+    "comment": "Set to false to skip installing specific packages"
   },
   "editors": {
     "cursor": true,
