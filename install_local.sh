@@ -32,21 +32,31 @@ if [ -z "$servername" ]; then
   servername="$hostname_default"
 fi
 
-input_pubkey="$(prompt_read "Public key to install (leave blank to generate): ")"
+key_choice="$(prompt_read "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: ")"
 
 pubkey_path="./.pub"
+pubkey=""
 
-if [ -z "$input_pubkey" ]; then
-  key_path="./.secret.pem"
-  if [ ! -f "$key_path" ]; then
-    ssh-keygen -t ecdsa -b 521 -N "" -f "$key_path"
-  fi
-  cp "${key_path}.pub" "$pubkey_path"
-  pubkey="$(cat "$pubkey_path")"
-else
-  printf "%s\n" "$input_pubkey" > "$pubkey_path"
-  pubkey="$input_pubkey"
-fi
+case "$key_choice" in
+  a|A)
+    input_pubkey="$(prompt_read "Public key to install: ")"
+    if [ -n "$input_pubkey" ]; then
+      printf "%s\n" "$input_pubkey" > "$pubkey_path"
+      pubkey="$input_pubkey"
+    fi
+    ;;
+  s|S)
+    pubkey=""
+    ;;
+  *)
+    key_path="./.secret.pem"
+    if [ ! -f "$key_path" ]; then
+      ssh-keygen -t ecdsa -b 521 -N "" -f "$key_path"
+    fi
+    cp "${key_path}.pub" "$pubkey_path"
+    pubkey="$(cat "$pubkey_path")"
+    ;;
+esac
 
 printf "Caching sudo credentials...\n"
 sudo -v
@@ -131,11 +141,15 @@ sudo -n sh -c "echo \"/usr/bin/screenfetch -d '-disk' -w 80\" >> /etc/update-mot
 sudo -n sh -c "echo \"figlet -t ${servername}\" >> /etc/update-motd.d/01-hello"
 sudo -n chmod a+x /etc/update-motd.d/01-hello
 
-printf "Registering SSH public key...\n"
-mkdir -p "$HOME/.ssh"
-chmod 700 "$HOME/.ssh"
-printf "%s\n" "$pubkey" >> "$HOME/.ssh/authorized_keys"
-chmod 600 "$HOME/.ssh/authorized_keys"
+if [ -n "$pubkey" ]; then
+  printf "Registering SSH public key...\n"
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  printf "%s\n" "$pubkey" >> "$HOME/.ssh/authorized_keys"
+  chmod 600 "$HOME/.ssh/authorized_keys"
+else
+  printf "Skipping SSH public key registration...\n"
+fi
 
 printf "Setting default shell to zsh...\n"
 if command -v zsh >/dev/null 2>&1; then
