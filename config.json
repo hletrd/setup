@@ -1,0 +1,34 @@
+{
+  "mcp": {
+    "disabled_servers": [],
+    "comment": "Add server names to disable them, e.g. ['playwright', 'jupyter']"
+  },
+  "prompts": {
+    "prompt_for_confirmation": true,
+    "comment": "Set to false to use all default values without prompting"
+  },
+  "defaults": {
+    "ssh_port": "22",
+    "server_address": "localhost",
+    "ssh_key_action": "generate",
+    "comment": "ssh_key_action can be 'generate', 'add', or 'skip'"
+  },
+  "installation": {
+    "install_directory": "",
+    "skip_package_update": false,
+    "skip_oh_my_zsh": false,
+    "skip_nvm": false,
+    "skip_mcp_setup": false,
+    "comment": "Empty install_directory uses $HOME"
+  },
+  "editors": {
+    "cursor": true,
+    "codex": true,
+    "codexx": true,
+    "opencode": true,
+    "antigravity": true,
+    "claude_desktop": true,
+    "comment": "Set to false to skip MCP config for specific editors"
+  }
+}
+

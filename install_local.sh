@@ -2,6 +2,82 @@
 
 set -e
 
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+config_file="$script_dir/config.json"
+
+# JSON parsing helper (uses grep/sed for POSIX compatibility)
+json_get() {
+  key="$1"
+  file="$2"
+  # Simple JSON value extraction for flat or nested keys
+  if [ -f "$file" ]; then
+    # Handle nested keys like "mcp.disabled_servers" or "prompts.prompt_for_confirmation"
+    case "$key" in
+      *.*)
+        parent="${key%%.*}"
+        child="${key#*.}"
+        sed -n "/$parent/,/}/p" "$file" | grep "\"$child\"" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        ;;
+      *)
+        grep "\"$key\"" "$file" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        ;;
+    esac
+  fi
+}
+
+json_get_bool() {
+  val="$(json_get "$1" "$2")"
+  case "$val" in
+    true|True|TRUE|1) printf "true" ;;
+    *) printf "false" ;;
+  esac
+}
+
+json_get_array() {
+  key="$1"
+  file="$2"
+  if [ -f "$file" ]; then
+    # Extract array contents between [ and ]
+    sed -n "/\"$key\"/,/]/p" "$file" | tr -d '[]"' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | grep -v "$key"
+  fi
+}
+
+# Load configuration
+cfg_prompt_for_confirmation="true"
+cfg_ssh_port="22"
+cfg_ssh_key_action="generate"
+cfg_skip_package_update="false"
+cfg_skip_oh_my_zsh="false"
+cfg_skip_nvm="false"
+cfg_skip_mcp_setup="false"
+cfg_editor_cursor="true"
+cfg_editor_codex="true"
+cfg_editor_codexx="true"
+cfg_editor_opencode="true"
+cfg_editor_antigravity="true"
+cfg_editor_claude_desktop="true"
+cfg_disabled_servers=""
+
+if [ -f "$config_file" ]; then
+  printf "Loading configuration from %s\n" "$config_file"
+  cfg_prompt_for_confirmation="$(json_get_bool "prompt_for_confirmation" "$config_file")"
+  cfg_ssh_port="$(json_get "ssh_port" "$config_file")"
+  cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
+  cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
+  cfg_skip_oh_my_zsh="$(json_get_bool "skip_oh_my_zsh" "$config_file")"
+  cfg_skip_nvm="$(json_get_bool "skip_nvm" "$config_file")"
+  cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
+  cfg_editor_cursor="$(json_get_bool "cursor" "$config_file")"
+  cfg_editor_codex="$(json_get_bool "codex" "$config_file")"
+  cfg_editor_codexx="$(json_get_bool "codexx" "$config_file")"
+  cfg_editor_opencode="$(json_get_bool "opencode" "$config_file")"
+  cfg_editor_antigravity="$(json_get_bool "antigravity" "$config_file")"
+  cfg_editor_claude_desktop="$(json_get_bool "claude_desktop" "$config_file")"
+  cfg_disabled_servers="$(json_get_array "disabled_servers" "$config_file")"
+  [ -z "$cfg_ssh_port" ] && cfg_ssh_port="22"
+  [ -z "$cfg_ssh_key_action" ] && cfg_ssh_key_action="generate"
+fi
+
 prompt_read() {
   prompt="$1"
   if [ -t 0 ]; then
@@ -14,6 +90,21 @@ prompt_read() {
   printf "%s" "$input"
 }
 
+prompt_or_default() {
+  prompt="$1"
+  default="$2"
+  if [ "$cfg_prompt_for_confirmation" = "true" ]; then
+    result="$(prompt_read "$prompt")"
+    if [ -z "$result" ]; then
+      result="$default"
+    fi
+  else
+    result="$default"
+    printf "%s%s\n" "$prompt" "$default"
+  fi
+  printf "%s" "$result"
+}
+
 hostname_default=""
 if command -v hostname >/dev/null 2>&1; then
   hostname_default="$(hostname)"
@@ -22,17 +113,21 @@ if [ -z "$hostname_default" ]; then
   hostname_default="localhost"
 fi
 
-server_port="$(prompt_read "SSH port (default: 22): ")"
-if [ -z "$server_port" ]; then
-  server_port="22"
-fi
+server_port="$(prompt_or_default "SSH port (default: ${cfg_ssh_port}): " "$cfg_ssh_port")"
 
-servername="$(prompt_read "Server name for MOTD (default: ${hostname_default}): ")"
-if [ -z "$servername" ]; then
-  servername="$hostname_default"
-fi
+servername="$(prompt_or_default "Server name for MOTD (default: ${hostname_default}): " "$hostname_default")"
 
-key_choice="$(prompt_read "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: ")"
+if [ "$cfg_prompt_for_confirmation" = "true" ]; then
+  key_choice="$(prompt_read "SSH public key setup: (g)enerate, (a)dd existing, (s)kip [default: g]: ")"
+else
+  case "$cfg_ssh_key_action" in
+    generate) key_choice="g" ;;
+    add) key_choice="a" ;;
+    skip) key_choice="s" ;;
+    *) key_choice="g" ;;
+  esac
+  printf "SSH public key setup: %s\n" "$cfg_ssh_key_action"
+fi
 
 pubkey_path="./.pub"
 pubkey=""
@@ -98,8 +193,12 @@ if command -v pacman >/dev/null 2>&1; then
   openssh_package="openssh"
 fi
 
-printf "Updating packages...\n"
-pkg_update
+if [ "$cfg_skip_package_update" = "true" ]; then
+  printf "Skipping package update (disabled in config)...\n"
+else
+  printf "Updating packages...\n"
+  pkg_update
+fi
 
 printf "Installing openssh-server if missing...\n"
 if ! command -v sshd >/dev/null 2>&1; then
@@ -156,94 +255,130 @@ if command -v zsh >/dev/null 2>&1; then
   sudo -n chsh -s "$(command -v zsh)" "$USER"
 fi
 
-printf "Setting up oh my zsh...\n"
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-fi
-printf "Set up oh my zsh...\n"
-
-zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-mkdir -p "$zsh_custom/plugins"
-if [ ! -d "$zsh_custom/plugins/zsh-autosuggestions" ]; then
-  git clone https://github.com/zsh-users/zsh-autosuggestions "$zsh_custom/plugins/zsh-autosuggestions"
-fi
-if [ ! -d "$zsh_custom/plugins/zsh-syntax-highlighting" ]; then
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$zsh_custom/plugins/zsh-syntax-highlighting"
-fi
-
-omz_cmd="$HOME/.oh-my-zsh/bin/omz"
-if [ -x "$omz_cmd" ]; then
-  ZSH="$HOME/.oh-my-zsh" "$omz_cmd" theme set agnoster
-  ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin load zsh-syntax-highlighting zsh-autosuggestions
-  ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin enable zsh-syntax-highlighting zsh-autosuggestions
-fi
-
-printf "Setting up nvm and Node.js...\n"
-if ! command -v bash >/dev/null 2>&1; then
-  pkg_install bash
-fi
-nvm_dir="$HOME/.nvm"
-curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
-if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-  bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
-  printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-  bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
-fi
-
-printf "Configuring global MCP servers...\n"
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-mcp_repo_dir="$script_dir/mcp"
-mcp_config_dir="$HOME/.config/mcp"
-mcp_servers_dir="$mcp_config_dir/servers"
-mcp_config="$mcp_config_dir/mcp.json"
-mkdir -p "$mcp_servers_dir"
-if [ -d "$mcp_repo_dir/servers" ]; then
-  for server_file in "$mcp_repo_dir"/servers/*.json; do
-    [ -f "$server_file" ] || continue
-    cp "$server_file" "$mcp_servers_dir/"
-  done
-fi
-build_mcp_config() {
-  printf "{\n  \"mcpServers\": {\n" > "$mcp_config"
-  first=1
-  for server_file in "$mcp_servers_dir"/*.json; do
-    [ -f "$server_file" ] || continue
-    if [ $first -eq 0 ]; then
-      printf ",\n" >> "$mcp_config"
-    fi
-    first=0
-    while IFS= read -r line || [ -n "$line" ]; do
-      while :; do
-        case "$line" in
-          *__HOME__*)
-            prefix=${line%%__HOME__*}
-            suffix=${line#*__HOME__}
-            line=${prefix}${HOME}${suffix}
-            ;;
-          *)
-            break
-            ;;
-        esac
-      done
-      printf "    %s\n" "$line" >> "$mcp_config"
-    done < "$server_file"
-  done
-  printf "  }\n}\n" >> "$mcp_config"
-}
-build_mcp_config
-link_mcp_config() {
-  target="$1"
-  if [ ! -e "$target" ]; then
-    mkdir -p "$(dirname "$target")"
-    ln -s "$mcp_config" "$target"
+if [ "$cfg_skip_oh_my_zsh" = "true" ]; then
+  printf "Skipping oh-my-zsh setup (disabled in config)...\n"
+else
+  printf "Setting up oh my zsh...\n"
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   fi
-}
-link_mcp_config "$HOME/.cursor/mcp.json"
-link_mcp_config "$HOME/.config/codex/mcp.json"
-link_mcp_config "$HOME/.config/codexx/mcp.json"
-link_mcp_config "$HOME/.config/opencode/mcp.json"
-link_mcp_config "$HOME/.config/antigravity/mcp.json"
-link_mcp_config "$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+  printf "Set up oh my zsh...\n"
+
+  zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+  mkdir -p "$zsh_custom/plugins"
+  if [ ! -d "$zsh_custom/plugins/zsh-autosuggestions" ]; then
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$zsh_custom/plugins/zsh-autosuggestions"
+  fi
+  if [ ! -d "$zsh_custom/plugins/zsh-syntax-highlighting" ]; then
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$zsh_custom/plugins/zsh-syntax-highlighting"
+  fi
+
+  omz_cmd="$HOME/.oh-my-zsh/bin/omz"
+  if [ -x "$omz_cmd" ]; then
+    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" theme set agnoster
+    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin load zsh-syntax-highlighting zsh-autosuggestions
+    ZSH="$HOME/.oh-my-zsh" "$omz_cmd" plugin enable zsh-syntax-highlighting zsh-autosuggestions
+  fi
+fi
+
+if [ "$cfg_skip_nvm" = "true" ]; then
+  printf "Skipping nvm and Node.js setup (disabled in config)...\n"
+else
+  printf "Setting up nvm and Node.js...\n"
+  if ! command -v bash >/dev/null 2>&1; then
+    pkg_install bash
+  fi
+  nvm_dir="$HOME/.nvm"
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
+  if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
+    bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+    printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+    bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+  fi
+fi
+
+if [ "$cfg_skip_mcp_setup" = "true" ]; then
+  printf "Skipping MCP setup (disabled in config)...\n"
+else
+  printf "Configuring global MCP servers...\n"
+  mcp_repo_dir="$script_dir/mcp"
+  mcp_config_dir="$HOME/.config/mcp"
+  mcp_servers_dir="$mcp_config_dir/servers"
+  mcp_config="$mcp_config_dir/mcp.json"
+  mkdir -p "$mcp_servers_dir"
+
+  # Check if a server is disabled
+  is_server_disabled() {
+    server_name="$1"
+    for disabled in $cfg_disabled_servers; do
+      if [ "$disabled" = "$server_name" ]; then
+        return 0
+      fi
+    done
+    return 1
+  }
+
+  if [ -d "$mcp_repo_dir/servers" ]; then
+    for server_file in "$mcp_repo_dir"/servers/*.json; do
+      [ -f "$server_file" ] || continue
+      server_name="$(basename "$server_file" .json)"
+      if is_server_disabled "$server_name"; then
+        printf "  Skipping disabled server: %s\n" "$server_name"
+        continue
+      fi
+      cp "$server_file" "$mcp_servers_dir/"
+    done
+  fi
+
+  build_mcp_config() {
+    printf "{\n  \"mcpServers\": {\n" > "$mcp_config"
+    first=1
+    for server_file in "$mcp_servers_dir"/*.json; do
+      [ -f "$server_file" ] || continue
+      server_name="$(basename "$server_file" .json)"
+      if is_server_disabled "$server_name"; then
+        continue
+      fi
+      if [ $first -eq 0 ]; then
+        printf ",\n" >> "$mcp_config"
+      fi
+      first=0
+      while IFS= read -r line || [ -n "$line" ]; do
+        while :; do
+          case "$line" in
+            *__HOME__*)
+              prefix=${line%%__HOME__*}
+              suffix=${line#*__HOME__}
+              line=${prefix}${HOME}${suffix}
+              ;;
+            *)
+              break
+              ;;
+          esac
+        done
+        printf "    %s\n" "$line" >> "$mcp_config"
+      done < "$server_file"
+    done
+    printf "  }\n}\n" >> "$mcp_config"
+  }
+  build_mcp_config
+
+  link_mcp_config() {
+    target="$1"
+    if [ ! -e "$target" ]; then
+      mkdir -p "$(dirname "$target")"
+      ln -s "$mcp_config" "$target"
+    fi
+  }
+
+  # Link MCP config to editors based on configuration
+  [ "$cfg_editor_cursor" = "true" ] && link_mcp_config "$HOME/.cursor/mcp.json"
+  [ "$cfg_editor_codex" = "true" ] && link_mcp_config "$HOME/.config/codex/mcp.json"
+  [ "$cfg_editor_codexx" = "true" ] && link_mcp_config "$HOME/.config/codexx/mcp.json"
+  [ "$cfg_editor_opencode" = "true" ] && link_mcp_config "$HOME/.config/opencode/mcp.json"
+  [ "$cfg_editor_antigravity" = "true" ] && link_mcp_config "$HOME/.config/antigravity/mcp.json"
+  [ "$cfg_editor_claude_desktop" = "true" ] && link_mcp_config "$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+fi
 
 printf "Configuring zsh settings...\n"
 zshrc="$HOME/.zshrc"

@@ -95,3 +95,9 @@ args = ["-y", "@zilliz/claude-context-mcp@latest"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["OPENAI_API_KEY", "MILVUS_ADDRESS", "MILVUS_TOKEN"]
+
+[mcp_servers.auggie-context]
+command = "npx"
+args = ["-y", "auggie-context-mcp@latest"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
