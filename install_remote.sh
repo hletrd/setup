@@ -56,7 +56,7 @@ case "$key_choice" in
     ;;
 esac
 
-remote_script=$(cat <<'EOF'
+ssh -p "$server_port" "$ssh_user@$server_addr" sh -s -- "$server_port" "$servername" "$pubkey" <<'EOF'
 set -e
 
 printf "Caching sudo credentials...\n"
@@ -264,7 +264,18 @@ build_mcp_config() {
     fi
     first=0
     while IFS= read -r line || [ -n "$line" ]; do
-      line=${line//__HOME__/$HOME}
+      while :; do
+        case "$line" in
+          *__HOME__*)
+            prefix=${line%%__HOME__*}
+            suffix=${line#*__HOME__}
+            line=${prefix}${HOME}${suffix}
+            ;;
+          *)
+            break
+            ;;
+        esac
+      done
       printf "    %s\n" "$line" >> "$mcp_config"
     done < "$server_file"
   done
@@ -335,9 +346,4 @@ ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
 ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
 ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
 ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
-EOF
-)
-
-ssh -p "$server_port" "$ssh_user@$server_addr" sh -s -- "$server_port" "$servername" "$pubkey" <<EOF
-$remote_script
 EOF
