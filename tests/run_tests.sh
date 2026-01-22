@@ -249,6 +249,174 @@ test_docker_platform() {
   return $result
 }
 
+# Test install_remote.sh with SSH-enabled container
+test_remote_ssh() {
+  image="$1"
+  platform_name="$2"
+  container_name="setup-test-${platform_name}"
+  ssh_port="2222"
+
+  log "============================================="
+  log "Testing install_remote.sh on $platform_name ($image)"
+  log "============================================="
+
+  # Clean up any existing container
+  docker rm -f "$container_name" 2>/dev/null || true
+
+  # Start container with port mapping
+  log_info "Starting $platform_name container with SSH..."
+  if ! docker run -d --platform "$DOCKER_PLATFORM" --name "$container_name" -p "${ssh_port}:22" "$image" sleep infinity; then
+    log_fail "Failed to start $platform_name container"
+    return 1
+  fi
+
+  # Wait for container to be ready
+  sleep 2
+
+  # Generate temporary SSH key for testing
+  test_key="$SCRIPT_DIR/.test_ssh_key"
+  test_key_pub="${test_key}.pub"
+  rm -f "$test_key" "$test_key_pub" 2>/dev/null || true
+  ssh-keygen -t ed25519 -f "$test_key" -N "" -q
+
+  # Install SSH server and set up user
+  log_info "Setting up SSH on $platform_name container..."
+  case "$platform_name" in
+    ubuntu-remote)
+      docker exec "$container_name" sh -c '
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -qq -y sudo curl ca-certificates openssh-server
+        useradd -m -s /bin/sh testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        mkdir -p /home/testuser/.ssh
+        chmod 700 /home/testuser/.ssh
+        mkdir -p /run/sshd
+        sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
+        sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+        sed -i "s/#PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+      '
+      ;;
+    fedora-remote)
+      docker exec "$container_name" sh -c '
+        dnf -y install sudo shadow-utils openssh-server openssh-clients python3
+        useradd -m -s /bin/sh testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        mkdir -p /home/testuser/.ssh
+        chmod 700 /home/testuser/.ssh
+        ssh-keygen -A
+        sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
+        sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+        sed -i "s/PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+      '
+      ;;
+    arch-remote)
+      docker exec "$container_name" sh -c '
+        pacman -Sy --noconfirm sudo openssh
+        useradd -m -s /bin/sh testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        mkdir -p /home/testuser/.ssh
+        chmod 700 /home/testuser/.ssh
+        ssh-keygen -A
+      '
+      ;;
+    alpine-remote)
+      docker exec "$container_name" sh -c '
+        apk add --no-cache sudo shadow bash openssh
+        useradd -m -s /bin/sh testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        mkdir -p /home/testuser/.ssh
+        chmod 700 /home/testuser/.ssh
+        ssh-keygen -A
+      '
+      ;;
+  esac
+
+  # Copy SSH public key to container
+  docker cp "$test_key_pub" "$container_name:/home/testuser/.ssh/authorized_keys"
+  docker exec "$container_name" sh -c '
+    chown -R testuser:testuser /home/testuser/.ssh
+    chmod 600 /home/testuser/.ssh/authorized_keys
+  '
+
+  # Start SSH server
+  log_info "Starting SSH server..."
+  docker exec "$container_name" /usr/sbin/sshd
+
+  # Wait for SSH to be ready
+  sleep 2
+
+  # Copy test files to container (needed for mcp folder)
+  docker cp "$REPO_DIR/mcp" "$container_name:/home/testuser/"
+  docker cp "$REPO_DIR/configs" "$container_name:/home/testuser/"
+  docker exec "$container_name" chown -R testuser /home/testuser
+
+  # Test SSH connectivity
+  log_info "Testing SSH connectivity..."
+  if ! ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+       -i "$test_key" -p "$ssh_port" testuser@localhost "echo SSH OK" >/dev/null 2>&1; then
+    log_fail "$platform_name: SSH connection failed"
+    rm -f "$test_key" "$test_key_pub" 2>/dev/null || true
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+    return 1
+  fi
+
+  # Run install_remote.sh
+  log_info "Running install_remote.sh on $platform_name..."
+  install_log="$RESULTS_DIR/${platform_name}_remote_install_$TIMESTAMP.log"
+
+  # Create a config that works for remote testing
+  cat > "$SCRIPT_DIR/test_remote_config.json" << 'EOF'
+{
+  "prompts": {
+    "prompt_for_confirmation": false,
+    "ssh_port": "2222",
+    "server_address": "localhost",
+    "ssh_user": "testuser",
+    "ssh_key_action": "skip",
+    "ssh_public_keys": []
+  },
+  "installation": {
+    "skip_package_update": false,
+    "skip_zinit": false,
+    "skip_mcp_setup": false
+  },
+  "packages": {
+    "nvm": true,
+    "uv": true,
+    "cargo": false
+  },
+  "cli_tools": {
+    "fzf": true
+  }
+}
+EOF
+
+  if sh "$REPO_DIR/install_remote.sh" \
+       -H localhost -p "$ssh_port" -u testuser \
+       -i "$test_key" --key-action skip -y \
+       -c "$SCRIPT_DIR/test_remote_config.json" > "$install_log" 2>&1; then
+    log_success "$platform_name: install_remote.sh completed"
+  else
+    log_fail "$platform_name: install_remote.sh failed (check $install_log)"
+    rm -f "$test_key" "$test_key_pub" "$SCRIPT_DIR/test_remote_config.json" 2>/dev/null || true
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+    return 1
+  fi
+
+  # Verify remote installation results
+  verify_results "$container_name" "$platform_name"
+  result=$?
+
+  # Cleanup
+  rm -f "$test_key" "$test_key_pub" "$SCRIPT_DIR/test_remote_config.json" 2>/dev/null || true
+  if [ "$KEEP_CONTAINERS" != "true" ]; then
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+  fi
+
+  return $result
+}
+
 
 # Test on macOS (local)
 test_macos() {
@@ -324,6 +492,27 @@ main() {
     # Alpine Linux
     total_tests=$((total_tests + 1))
     if test_docker_platform "$ALPINE_IMAGE" "alpine"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
+    # Remote tests with SSH
+    log "============================================="
+    log "Testing install_remote.sh with SSH containers"
+    log "============================================="
+
+    # Ubuntu remote test
+    total_tests=$((total_tests + 1))
+    if test_remote_ssh "$UBUNTU_IMAGE" "ubuntu-remote"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
+    # Fedora remote test
+    total_tests=$((total_tests + 1))
+    if test_remote_ssh "$FEDORA_IMAGE" "fedora-remote"; then
       passed_tests=$((passed_tests + 1))
     else
       failed_tests=$((failed_tests + 1))
