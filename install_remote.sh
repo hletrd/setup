@@ -602,11 +602,17 @@ fi
 
 printf "Installing build tools...\n"
 if [ "\$is_openwrt" = "true" ]; then
-  # OpenWrt - install build tools
+  # OpenWrt - install build tools and GNU utilities (needed for uv/rustup/cargo installers)
+  # Note: build-base is not available on OpenWrt, use make and gcc directly
+  # GNU tar/grep are needed because BusyBox versions lack required features
   if command -v opkg >/dev/null 2>&1; then
-    sudo -n opkg install make gcc 2>/dev/null || true
+    sudo -n opkg install make gcc tar grep 2>/dev/null || true
   else
-    sudo -n apk add build-base 2>/dev/null || true
+    sudo -n apk add make gcc tar grep 2>/dev/null || true
+  fi
+  # Fix /tmp permissions if needed (OpenWrt containers may have restrictive permissions)
+  if ! mktemp -u >/dev/null 2>&1; then
+    sudo -n chmod 1777 /tmp 2>/dev/null || true
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo -n apt-get install -y build-essential 2>/dev/null || true
