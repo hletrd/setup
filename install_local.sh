@@ -841,17 +841,22 @@ if [ "$cfg_pkg_nvm" = "true" ]; then
     fi
     if command -v npm >/dev/null 2>&1; then
       printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
     else
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
   elif command -v apk >/dev/null 2>&1; then
     # Alpine Linux - use system nodejs package (nvm requires glibc)
     printf "Installing Node.js from apk (Alpine)...\n"
-    pkg_install nodejs npm
+    # Install nodejs, npm, and all required build dependencies for native modules
+    # python3 and make are needed for node-gyp (native addon compilation)
+    # g++ is needed for C++ native modules
+    # linux-headers provides kernel headers for native modules
+    # libc6-compat provides glibc compatibility for some npm packages
+    pkg_install nodejs npm python3 make g++ linux-headers libc6-compat
     if command -v npm >/dev/null 2>&1; then
       printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
     if ! command -v bash >/dev/null 2>&1; then
