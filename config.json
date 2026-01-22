@@ -4,7 +4,8 @@
     "ssh_port": "22",
     "server_address": "",
     "ssh_user": "",
-    "ssh_key_action": "generate"
+    "ssh_key_action": "generate",
+    "ssh_public_keys": []
   },
   "installation": {
     "skip_package_update": false,

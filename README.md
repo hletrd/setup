@@ -31,26 +31,30 @@ The scripts are compatible with all major POSIX-derived operating systems:
 | **Fedora/RHEL** | dnf/yum | ✅ Fully supported |
 | **Arch Linux** | pacman | ✅ Fully supported |
 | **Alpine Linux** | apk | ✅ Supported (Node.js requires glibc) |
+| **OpenWrt** | opkg | ✅ Supported (limited packages) |
 
 ### Test Results
 
 All platforms have been tested and verified (January 2026):
 
-| Tool | macOS | Ubuntu 24.04 | Fedora | Arch Linux | Alpine |
-|------|:-----:|:------------:|:------:|:----------:|:------:|
-| uv | ✅ | ✅ | ✅ | ✅ | ✅ |
-| cargo | ✅ | ✅ | ✅ | ✅ | ✅ |
-| eza | ✅ | ✅ | ✅ | ✅ | ✅ |
-| bat | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fd | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fzf | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zinit | ✅ | ✅ | ✅ | ✅ | ✅ |
-| nvm | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| Tool | macOS | Ubuntu 24.04 | Fedora | Arch Linux | Alpine | OpenWrt |
+|------|:-----:|:------------:|:------:|:----------:|:------:|:-------:|
+| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| nvm | ✅ | ✅ | ✅ | ✅ | ✅ | N/A** |
+| Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️† | ✅ |
+| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-*Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
+*OpenWrt: uv, cargo, and Rust-based CLI tools require installing from alternative sources; not available via opkg.
+**OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
+†Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
 
 ## Features
 
@@ -112,6 +116,7 @@ Pre-configured MCP servers for AI-assisted development:
 | Server | Purpose |
 |--------|---------|
 | auggie-context | Augment context engine |
+| claude-context | Claude context management |
 | context7 | Library documentation |
 | fetch | URL fetching |
 | filesystem | File operations |
@@ -221,6 +226,7 @@ Options:
   -p, --port PORT          SSH port (default: 22)
   -u, --user USER          SSH username
   -n, --name NAME          Server name for MOTD
+  -i, --identity FILE      SSH identity file (private key) for authentication
   -k, --key-action ACTION  SSH key action: generate, add, skip
   --pubkey KEY             Public key to install (if --key-action=add)
   -y, --yes                Non-interactive mode, use defaults
@@ -317,6 +323,7 @@ setup/
 └── mcp/                      # MCP server configurations
     └── servers/
         ├── auggie-context.json
+        ├── claude-context.json
         ├── context7.json
         ├── fetch.json
         ├── filesystem.json
@@ -335,3 +342,4 @@ setup/
 - After first run, execute `p10k configure` to customize your Powerlevel10k prompt
 - On macOS, the default shell change requires manual execution: `chsh -s /bin/zsh`
 - Alpine Linux uses musl libc, so pre-built Node.js binaries are not available (nvm installs but Node.js build may fail)
+- OpenWrt has limited package availability; Node.js is installed via opkg (v8.x), and Rust-based CLI tools require manual installation

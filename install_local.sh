@@ -96,10 +96,12 @@ json_get() {
       *.*)
         parent="${key%%.*}"
         child="${key#*.}"
-        sed -n "/$parent/,/}/p" "$file" | grep "\"$child\"" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        # Use || true to prevent exit with set -e when key not found
+        sed -n "/$parent/,/}/p" "$file" | grep "\"$child\"" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1 || true
         ;;
       *)
-        grep "\"$key\"" "$file" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        # Use || true to prevent exit with set -e when key not found
+        grep "\"$key\"" "$file" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1 || true
         ;;
     esac
   fi
@@ -109,7 +111,8 @@ json_get_bool() {
   val="$(json_get "$1" "$2")"
   case "$val" in
     true|True|TRUE|1) printf "true" ;;
-    *) printf "false" ;;
+    false|False|FALSE|0) printf "false" ;;
+    *) printf "" ;;  # Return empty for missing keys to preserve defaults
   esac
 }
 
@@ -126,6 +129,7 @@ json_get_array() {
 cfg_prompt_for_confirmation="true"
 cfg_ssh_port="22"
 cfg_ssh_key_action="generate"
+cfg_ssh_public_keys=""
 cfg_skip_package_update="false"
 cfg_skip_zinit="false"
 cfg_skip_mcp_setup="false"
@@ -142,6 +146,7 @@ cfg_pkg_cargo="true"
 
 # MCP server toggles (default all enabled)
 cfg_mcp_auggie_context="true"
+cfg_mcp_claude_context="true"
 cfg_mcp_context7="true"
 cfg_mcp_fetch="true"
 cfg_mcp_filesystem="true"
@@ -152,61 +157,80 @@ cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
 cfg_mcp_sequential_thinking="true"
 
+# Helper to set config value only if non-empty
+set_if_present() {
+  var_name="$1"
+  val="$2"
+  # Use || true to prevent exit with set -e when val is empty
+  [ -n "$val" ] && eval "$var_name=\"$val\"" || true
+}
+
 if [ -f "$config_file" ]; then
   printf "Loading configuration from %s\n" "$config_file"
-  cfg_prompt_for_confirmation="$(json_get_bool "prompt_for_confirmation" "$config_file")"
-  cfg_ssh_port="$(json_get "ssh_port" "$config_file")"
-  cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
-  cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
-  cfg_skip_zinit="$(json_get_bool "skip_zinit" "$config_file")"
-  cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
-  cfg_editor_cursor="$(json_get_bool "cursor" "$config_file")"
-  cfg_editor_codex="$(json_get_bool "codex" "$config_file")"
-  cfg_editor_opencode="$(json_get_bool "opencode" "$config_file")"
-  cfg_editor_antigravity="$(json_get_bool "antigravity" "$config_file")"
-  cfg_editor_claude_desktop="$(json_get_bool "claude_desktop" "$config_file")"
+  set_if_present cfg_prompt_for_confirmation "$(json_get_bool "prompt_for_confirmation" "$config_file")"
+  set_if_present cfg_ssh_port "$(json_get "ssh_port" "$config_file")"
+  set_if_present cfg_ssh_key_action "$(json_get "ssh_key_action" "$config_file")"
+  cfg_ssh_public_keys="$(json_get_array "ssh_public_keys" "$config_file")"
+  set_if_present cfg_skip_package_update "$(json_get_bool "skip_package_update" "$config_file")"
+  set_if_present cfg_skip_zinit "$(json_get_bool "skip_zinit" "$config_file")"
+  set_if_present cfg_skip_mcp_setup "$(json_get_bool "skip_mcp_setup" "$config_file")"
+  set_if_present cfg_editor_cursor "$(json_get_bool "cursor" "$config_file")"
+  set_if_present cfg_editor_codex "$(json_get_bool "codex" "$config_file")"
+  set_if_present cfg_editor_opencode "$(json_get_bool "opencode" "$config_file")"
+  set_if_present cfg_editor_antigravity "$(json_get_bool "antigravity" "$config_file")"
+  set_if_present cfg_editor_claude_desktop "$(json_get_bool "claude_desktop" "$config_file")"
 
   # Load package manager toggles
-  cfg_pkg_nvm="$(json_get_bool "nvm" "$config_file")"
-  cfg_pkg_uv="$(json_get_bool "uv" "$config_file")"
-  cfg_pkg_cargo="$(json_get_bool "cargo" "$config_file")"
-  cfg_pkg_ruff="$(json_get_bool "ruff" "$config_file")"
-  cfg_pkg_ty="$(json_get_bool "ty" "$config_file")"
+  set_if_present cfg_pkg_nvm "$(json_get_bool "nvm" "$config_file")"
+  set_if_present cfg_pkg_uv "$(json_get_bool "uv" "$config_file")"
+  set_if_present cfg_pkg_cargo "$(json_get_bool "cargo" "$config_file")"
+  set_if_present cfg_pkg_ruff "$(json_get_bool "ruff" "$config_file")"
+  set_if_present cfg_pkg_ty "$(json_get_bool "ty" "$config_file")"
 
   # Load CLI tools toggles
-  cfg_cli_hishtory="$(json_get_bool "hishtory" "$config_file")"
-  cfg_cli_fzf="$(json_get_bool "fzf" "$config_file")"
-  cfg_cli_eza="$(json_get_bool "eza" "$config_file")"
-  cfg_cli_bat="$(json_get_bool "bat" "$config_file")"
-  cfg_cli_delta="$(json_get_bool "delta" "$config_file")"
-  cfg_cli_dust="$(json_get_bool "dust" "$config_file")"
-  cfg_cli_duf="$(json_get_bool "duf" "$config_file")"
-  cfg_cli_fd="$(json_get_bool "fd" "$config_file")"
-  cfg_cli_ripgrep="$(json_get_bool "ripgrep" "$config_file")"
-  cfg_cli_mcfly="$(json_get_bool "mcfly" "$config_file")"
-  cfg_cli_sd="$(json_get_bool "sd" "$config_file")"
-  cfg_cli_choose="$(json_get_bool "choose" "$config_file")"
-  cfg_cli_cheat="$(json_get_bool "cheat" "$config_file")"
-  cfg_cli_bottom="$(json_get_bool "bottom" "$config_file")"
-  cfg_cli_procs="$(json_get_bool "procs" "$config_file")"
-  cfg_cli_zoxide="$(json_get_bool "zoxide" "$config_file")"
-  cfg_cli_lsd="$(json_get_bool "lsd" "$config_file")"
-  cfg_cli_gping="$(json_get_bool "gping" "$config_file")"
+  set_if_present cfg_cli_hishtory "$(json_get_bool "hishtory" "$config_file")"
+  set_if_present cfg_cli_fzf "$(json_get_bool "fzf" "$config_file")"
+  set_if_present cfg_cli_eza "$(json_get_bool "eza" "$config_file")"
+  set_if_present cfg_cli_bat "$(json_get_bool "bat" "$config_file")"
+  set_if_present cfg_cli_delta "$(json_get_bool "delta" "$config_file")"
+  set_if_present cfg_cli_dust "$(json_get_bool "dust" "$config_file")"
+  set_if_present cfg_cli_duf "$(json_get_bool "duf" "$config_file")"
+  set_if_present cfg_cli_fd "$(json_get_bool "fd" "$config_file")"
+  set_if_present cfg_cli_ripgrep "$(json_get_bool "ripgrep" "$config_file")"
+  set_if_present cfg_cli_mcfly "$(json_get_bool "mcfly" "$config_file")"
+  set_if_present cfg_cli_sd "$(json_get_bool "sd" "$config_file")"
+  set_if_present cfg_cli_choose "$(json_get_bool "choose" "$config_file")"
+  set_if_present cfg_cli_cheat "$(json_get_bool "cheat" "$config_file")"
+  set_if_present cfg_cli_bottom "$(json_get_bool "bottom" "$config_file")"
+  set_if_present cfg_cli_procs "$(json_get_bool "procs" "$config_file")"
+  set_if_present cfg_cli_zoxide "$(json_get_bool "zoxide" "$config_file")"
+  set_if_present cfg_cli_lsd "$(json_get_bool "lsd" "$config_file")"
+  set_if_present cfg_cli_gping "$(json_get_bool "gping" "$config_file")"
+  set_if_present cfg_cli_lazygit "$(json_get_bool "lazygit" "$config_file")"
+  set_if_present cfg_cli_lazydocker "$(json_get_bool "lazydocker" "$config_file")"
+  set_if_present cfg_cli_tldr "$(json_get_bool "tldr" "$config_file")"
+  set_if_present cfg_cli_jq "$(json_get_bool "jq" "$config_file")"
+  set_if_present cfg_cli_yq "$(json_get_bool "yq" "$config_file")"
+  set_if_present cfg_cli_hyperfine "$(json_get_bool "hyperfine" "$config_file")"
+  set_if_present cfg_cli_tokei "$(json_get_bool "tokei" "$config_file")"
+  set_if_present cfg_cli_broot "$(json_get_bool "broot" "$config_file")"
+  set_if_present cfg_cli_atuin "$(json_get_bool "atuin" "$config_file")"
+  set_if_present cfg_cli_xh "$(json_get_bool "xh" "$config_file")"
+  set_if_present cfg_cli_difftastic "$(json_get_bool "difftastic" "$config_file")"
+  set_if_present cfg_cli_zellij "$(json_get_bool "zellij" "$config_file")"
 
   # Load MCP server toggles
-  cfg_mcp_auggie_context="$(json_get_bool "auggie-context" "$config_file")"
-  cfg_mcp_context7="$(json_get_bool "context7" "$config_file")"
-  cfg_mcp_fetch="$(json_get_bool "fetch" "$config_file")"
-  cfg_mcp_filesystem="$(json_get_bool "filesystem" "$config_file")"
-  cfg_mcp_git="$(json_get_bool "git" "$config_file")"
-  cfg_mcp_github="$(json_get_bool "github" "$config_file")"
-  cfg_mcp_jupyter="$(json_get_bool "jupyter" "$config_file")"
-  cfg_mcp_memory="$(json_get_bool "memory" "$config_file")"
-  cfg_mcp_playwright="$(json_get_bool "playwright" "$config_file")"
-  cfg_mcp_sequential_thinking="$(json_get_bool "sequential-thinking" "$config_file")"
-
-  [ -z "$cfg_ssh_port" ] && cfg_ssh_port="22"
-  [ -z "$cfg_ssh_key_action" ] && cfg_ssh_key_action="generate"
+  set_if_present cfg_mcp_auggie_context "$(json_get_bool "auggie-context" "$config_file")"
+  set_if_present cfg_mcp_claude_context "$(json_get_bool "claude-context" "$config_file")"
+  set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
+  set_if_present cfg_mcp_fetch "$(json_get_bool "fetch" "$config_file")"
+  set_if_present cfg_mcp_filesystem "$(json_get_bool "filesystem" "$config_file")"
+  set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
+  set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
+  set_if_present cfg_mcp_jupyter "$(json_get_bool "jupyter" "$config_file")"
+  set_if_present cfg_mcp_memory "$(json_get_bool "memory" "$config_file")"
+  set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
+  set_if_present cfg_mcp_sequential_thinking "$(json_get_bool "sequential-thinking" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -216,12 +240,15 @@ fi
 
 prompt_read() {
   prompt="$1"
+  input=""
   if [ -t 0 ]; then
     printf "%s" "$prompt"
-    IFS= read -r input
-  else
-    printf "%s" "$prompt" > /dev/tty
-    IFS= read -r input < /dev/tty
+    IFS= read -r input || :
+  elif [ -e /dev/tty ]; then
+    # Try to use /dev/tty, but fail gracefully if it's not available
+    if (printf "%s" "$prompt" > /dev/tty) 2>/dev/null; then
+      IFS= read -r input < /dev/tty 2>/dev/null || :
+    fi
   fi
   printf "%s" "$input"
 }
@@ -291,22 +318,33 @@ fi
 
 pubkey_path="./.pub"
 pubkey=""
+pubkeys=""
 
 case "$key_choice" in
   a|A)
     if [ -n "$opt_pubkey" ]; then
+      # Single key from command line
       printf "%s\n" "$opt_pubkey" > "$pubkey_path"
       pubkey="$opt_pubkey"
+      pubkeys="$opt_pubkey"
+    elif [ -n "$cfg_ssh_public_keys" ]; then
+      # Multiple keys from config file
+      pubkeys="$cfg_ssh_public_keys"
+      # Use first key for backward compatibility with pubkey variable
+      pubkey="$(printf "%s" "$cfg_ssh_public_keys" | head -1)"
+      printf "Using %s SSH public key(s) from config file\n" "$(printf "%s" "$cfg_ssh_public_keys" | wc -l | tr -d ' ')"
     else
       input_pubkey="$(prompt_read "Public key to install: ")"
       if [ -n "$input_pubkey" ]; then
         printf "%s\n" "$input_pubkey" > "$pubkey_path"
         pubkey="$input_pubkey"
+        pubkeys="$input_pubkey"
       fi
     fi
     ;;
   s|S)
     pubkey=""
+    pubkeys=""
     ;;
   *)
     key_path="./.secret.pem"
@@ -315,13 +353,17 @@ case "$key_choice" in
     fi
     cp "${key_path}.pub" "$pubkey_path"
     pubkey="$(cat "$pubkey_path")"
+    pubkeys="$pubkey"
     ;;
 esac
 
 # Detect OS
 is_macos=""
+is_openwrt=""
 if [ "$(uname -s)" = "Darwin" ]; then
   is_macos="true"
+elif [ -f /etc/openwrt_release ] || grep -q '^ID=.*openwrt' /etc/os-release 2>/dev/null; then
+  is_openwrt="true"
 fi
 
 # Cache sudo credentials (skip on macOS with Homebrew if not needed)
@@ -351,6 +393,10 @@ pkg_update() {
   elif command -v apk >/dev/null 2>&1; then
     sudo -n apk update
     sudo -n apk upgrade
+  elif command -v opkg >/dev/null 2>&1; then
+    # OpenWrt - create lock directory if missing and update
+    sudo -n mkdir -p /var/lock 2>/dev/null || mkdir -p /var/lock 2>/dev/null || true
+    sudo -n opkg update
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -371,6 +417,8 @@ pkg_install() {
     sudo -n pacman -S --noconfirm $packages
   elif command -v apk >/dev/null 2>&1; then
     sudo -n apk add $packages
+  elif command -v opkg >/dev/null 2>&1; then
+    sudo -n opkg install $packages
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -378,12 +426,14 @@ pkg_install() {
 }
 
 openssh_package="openssh-server"
-if command -v pacman >/dev/null 2>&1; then
+if [ "$is_macos" = "true" ]; then
+  openssh_package=""  # macOS has SSH built-in
+elif [ "$is_openwrt" = "true" ]; then
+  openssh_package="openssh-server"  # OpenWrt (both opkg and apk versions)
+elif command -v pacman >/dev/null 2>&1; then
   openssh_package="openssh"
 elif command -v apk >/dev/null 2>&1; then
-  openssh_package="openssh"
-elif [ "$is_macos" = "true" ]; then
-  openssh_package=""  # macOS has SSH built-in
+  openssh_package="openssh"  # Alpine Linux
 fi
 
 if [ "$cfg_skip_package_update" = "true" ]; then
@@ -430,6 +480,15 @@ printf "Installing base packages...\n"
 if [ "$is_macos" = "true" ]; then
   # macOS with Homebrew
   pkg_install zsh figlet git curl vim neofetch
+elif [ "$is_openwrt" = "true" ]; then
+  # OpenWrt - figlet/screenfetch not available, use minimal set
+  # Install git-http for https support, shadow-chsh for chsh command
+  if command -v opkg >/dev/null 2>&1; then
+    pkg_install zsh bash git git-http curl vim shadow-chsh
+  else
+    # OpenWrt with apk (newer versions) - git-http is a separate package
+    pkg_install zsh bash git git-http curl vim shadow-chsh
+  fi
 elif command -v apk >/dev/null 2>&1; then
   # Alpine Linux - screenfetch/neofetch not available in main repos
   pkg_install zsh figlet git curl vim
@@ -446,6 +505,13 @@ if [ "$is_macos" = "true" ]; then
     printf "Please complete the Xcode Command Line Tools installation if prompted.\n"
   else
     printf "Xcode Command Line Tools already installed.\n"
+  fi
+elif [ "$is_openwrt" = "true" ]; then
+  # OpenWrt - install build tools
+  if command -v opkg >/dev/null 2>&1; then
+    sudo -n opkg install make gcc 2>/dev/null || true
+  else
+    sudo -n apk add build-base 2>/dev/null || true
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo -n apt-get install -y build-essential 2>/dev/null || true
@@ -598,6 +664,95 @@ if [ "$cfg_cli_gping" = "true" ]; then
   install_cargo_tool gping
 fi
 
+if [ "$cfg_cli_lazygit" = "true" ]; then
+  printf "Installing lazygit...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install lazygit
+  else
+    install_cargo_tool lazygit
+  fi
+fi
+
+if [ "$cfg_cli_lazydocker" = "true" ]; then
+  printf "Installing lazydocker...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install lazydocker
+  else
+    curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+  fi
+fi
+
+if [ "$cfg_cli_tldr" = "true" ]; then
+  printf "Installing tldr...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install tldr
+  else
+    install_cargo_tool tldr tealdeer
+  fi
+fi
+
+if [ "$cfg_cli_jq" = "true" ]; then
+  printf "Installing jq...\n"
+  pkg_install jq
+fi
+
+if [ "$cfg_cli_yq" = "true" ]; then
+  printf "Installing yq...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install yq
+  else
+    # Install via pip as fallback
+    pip3 install yq 2>/dev/null || pkg_install yq || printf "Warning: yq not available\n"
+  fi
+fi
+
+if [ "$cfg_cli_hyperfine" = "true" ]; then
+  printf "Installing hyperfine...\n"
+  install_cargo_tool hyperfine
+fi
+
+if [ "$cfg_cli_tokei" = "true" ]; then
+  printf "Installing tokei...\n"
+  install_cargo_tool tokei
+fi
+
+if [ "$cfg_cli_broot" = "true" ]; then
+  printf "Installing broot...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install broot
+  else
+    install_cargo_tool broot
+  fi
+fi
+
+if [ "$cfg_cli_atuin" = "true" ]; then
+  printf "Installing atuin...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install atuin
+  else
+    install_cargo_tool atuin
+  fi
+fi
+
+if [ "$cfg_cli_xh" = "true" ]; then
+  printf "Installing xh...\n"
+  install_cargo_tool xh
+fi
+
+if [ "$cfg_cli_difftastic" = "true" ]; then
+  printf "Installing difftastic...\n"
+  install_cargo_tool difft difftastic
+fi
+
+if [ "$cfg_cli_zellij" = "true" ]; then
+  printf "Installing zellij...\n"
+  if [ "$is_macos" = "true" ]; then
+    pkg_install zellij
+  else
+    install_cargo_tool zellij
+  fi
+fi
+
 # Set up MOTD (skip on macOS - doesn't use update-motd.d)
 if [ "$is_macos" != "true" ]; then
   printf "Set up motd...\n"
@@ -611,11 +766,20 @@ else
   printf "Skipping MOTD setup (not applicable on macOS)...\n"
 fi
 
-if [ -n "$pubkey" ]; then
-  printf "Registering SSH public key...\n"
+if [ -n "$pubkeys" ]; then
+  key_count="$(printf "%s" "$pubkeys" | wc -l | tr -d ' ')"
+  printf "Registering %s SSH public key(s)...\n" "$key_count"
   mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
-  printf "%s\n" "$pubkey" >> "$HOME/.ssh/authorized_keys"
+  # Add each key on a separate line
+  printf "%s\n" "$pubkeys" | while IFS= read -r key; do
+    if [ -n "$key" ]; then
+      # Check if key already exists to avoid duplicates
+      if ! grep -qF "$key" "$HOME/.ssh/authorized_keys" 2>/dev/null; then
+        printf "%s\n" "$key" >> "$HOME/.ssh/authorized_keys"
+      fi
+    fi
+  done
   chmod 600 "$HOME/.ssh/authorized_keys"
 else
   printf "Skipping SSH public key registration...\n"
@@ -623,7 +787,7 @@ fi
 
 printf "Setting default shell to zsh...\n"
 if command -v zsh >/dev/null 2>&1; then
-  current_user="${USER:-$(whoami)}"
+  current_user="${USER:-$(id -un)}"
   zsh_path="$(command -v zsh)"
   # Check if current shell is already zsh
   current_shell=$(getent passwd "$current_user" 2>/dev/null | cut -d: -f7 || dscl . -read /Users/"$current_user" UserShell 2>/dev/null | awk '{print $2}')
@@ -660,15 +824,40 @@ fi
 
 if [ "$cfg_pkg_nvm" = "true" ]; then
   printf "Setting up nvm and Node.js...\n"
-  if ! command -v bash >/dev/null 2>&1; then
-    pkg_install bash
-  fi
-  nvm_dir="$HOME/.nvm"
-  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
-  if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-    bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
-    printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-    bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+  if [ "$is_openwrt" = "true" ]; then
+    # OpenWrt - use system packages instead of nvm (nvm doesn't work well on OpenWrt)
+    printf "Installing Node.js from system packages (OpenWrt)...\n"
+    if command -v opkg >/dev/null 2>&1; then
+      pkg_install node node-npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
+    else
+      # OpenWrt with apk (newer versions) - nodejs may not be available
+      pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
+    fi
+    if command -v npm >/dev/null 2>&1; then
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+    else
+      printf "Skipping npm package installation (Node.js not available)\n"
+    fi
+  elif command -v apk >/dev/null 2>&1; then
+    # Alpine Linux - use system nodejs package (nvm requires glibc)
+    printf "Installing Node.js from apk (Alpine)...\n"
+    pkg_install nodejs npm
+    if command -v npm >/dev/null 2>&1; then
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+    fi
+  else
+    if ! command -v bash >/dev/null 2>&1; then
+      pkg_install bash
+    fi
+    nvm_dir="$HOME/.nvm"
+    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="$nvm_dir" bash
+    if [ -s "$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
+      bash -c ". \"$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      bash -c ". \"$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+    fi
   fi
 else
   printf "Skipping nvm and Node.js setup (disabled in config)...\n"
@@ -689,6 +878,7 @@ else
     server_name="$1"
     case "$server_name" in
       auggie-context) [ "$cfg_mcp_auggie_context" = "true" ] ;;
+      claude-context) [ "$cfg_mcp_claude_context" = "true" ] ;;
       context7) [ "$cfg_mcp_context7" = "true" ] ;;
       fetch) [ "$cfg_mcp_fetch" = "true" ] ;;
       filesystem) [ "$cfg_mcp_filesystem" = "true" ] ;;
@@ -838,6 +1028,10 @@ command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
 [ -x "$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1 && ensure_zshrc_line 'alias ps="procs"'
 [ -x "$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1 && ensure_zshrc_line 'alias ping="gping"'
 [ -x "$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1 && ensure_zshrc_line 'alias lsd="lsd"'
+[ -x "$HOME/.cargo/bin/difft" ] || command -v difft >/dev/null 2>&1 && ensure_zshrc_line 'alias diff="difftastic"'
+[ -x "$HOME/.cargo/bin/xh" ] || command -v xh >/dev/null 2>&1 && ensure_zshrc_line 'alias http="xh"'
+command -v lazygit >/dev/null 2>&1 && ensure_zshrc_line 'alias lg="lazygit"'
+command -v lazydocker >/dev/null 2>&1 && ensure_zshrc_line 'alias lzd="lazydocker"'
 
 # Tool initializations
 [ -f "$HOME/.fzf.zsh" ] && ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
@@ -845,6 +1039,12 @@ command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
 [ -x "$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'alias cd="z"'
 [ -x "$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(mcfly init zsh)"'
 command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(hishtory init zsh)"'
+
+# Broot file navigator
+[ -f "$HOME/.config/broot/launcher/bash/br" ] && ensure_zshrc_line '[ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br'
+
+# Atuin shell history
+command -v atuin >/dev/null 2>&1 && ensure_zshrc_line 'eval "$(atuin init zsh)"'
 
 # Configure delta as git pager
 [ -x "$HOME/.cargo/bin/delta" ] || command -v delta >/dev/null 2>&1 && {

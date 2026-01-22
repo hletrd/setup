@@ -12,6 +12,7 @@ opt_ssh_user=""
 opt_server_name=""
 opt_ssh_key_action=""
 opt_pubkey=""
+opt_identity_file=""
 opt_no_prompt=""
 opt_help=""
 
@@ -27,6 +28,7 @@ Options:
   -p, --port PORT          SSH port (default: 22)
   -u, --user USER          SSH username (default: current user)
   -n, --name NAME          Server name for MOTD (default: server address)
+  -i, --identity FILE      SSH identity file (private key) for authentication
   -k, --key-action ACTION  SSH key action: generate, add, skip (default: generate)
   --pubkey KEY             Public key to install (required if --key-action=add)
   -y, --yes                Non-interactive mode, use defaults without prompting
@@ -42,6 +44,9 @@ Examples:
 
   # Skip SSH key setup
   $(basename "$0") -H myserver.com -u admin --key-action skip -y
+
+  # Use SSH key for authentication
+  $(basename "$0") -H myserver.com -u admin -i ~/.ssh/id_rsa --key-action skip -y
 
   # Use custom config file
   $(basename "$0") -c /path/to/config.json -y
@@ -75,6 +80,10 @@ while [ $# -gt 0 ]; do
       opt_pubkey="$2"
       shift 2
       ;;
+    -i|--identity)
+      opt_identity_file="$2"
+      shift 2
+      ;;
     -y|--yes)
       opt_no_prompt="true"
       shift
@@ -106,10 +115,10 @@ json_get() {
       *.*)
         parent="${key%%.*}"
         child="${key#*.}"
-        sed -n "/$parent/,/}/p" "$file" | grep "\"$child\"" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        sed -n "/$parent/,/}/p" "$file" | grep "\"$child\"" 2>/dev/null | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1 || true
         ;;
       *)
-        grep "\"$key\"" "$file" | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1
+        grep "\"$key\"" "$file" 2>/dev/null | sed 's/.*: *"\{0,1\}\([^",}]*\)"\{0,1\}.*/\1/' | head -1 || true
         ;;
     esac
   fi
@@ -119,7 +128,8 @@ json_get_bool() {
   val="$(json_get "$1" "$2")"
   case "$val" in
     true|True|TRUE|1) printf "true" ;;
-    *) printf "false" ;;
+    false|False|FALSE|0) printf "false" ;;
+    *) printf "" ;;  # Return empty for missing keys to preserve defaults
   esac
 }
 
@@ -127,7 +137,7 @@ json_get_array() {
   key="$1"
   file="$2"
   if [ -f "$file" ]; then
-    sed -n "/\"$key\"/,/]/p" "$file" | tr -d '[]"' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | grep -v "$key"
+    sed -n "/\"$key\"/,/]/p" "$file" 2>/dev/null | tr -d '[]"' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' | grep -v "$key" || true
   fi
 }
 
@@ -136,6 +146,7 @@ cfg_prompt_for_confirmation="true"
 cfg_ssh_port="22"
 cfg_server_address="localhost"
 cfg_ssh_key_action="generate"
+cfg_ssh_public_keys=""
 cfg_skip_package_update="false"
 cfg_skip_zinit="false"
 cfg_skip_mcp_setup="false"
@@ -166,9 +177,22 @@ cfg_cli_procs="true"
 cfg_cli_zoxide="true"
 cfg_cli_lsd="true"
 cfg_cli_gping="true"
+cfg_cli_lazygit="true"
+cfg_cli_lazydocker="true"
+cfg_cli_tldr="true"
+cfg_cli_jq="true"
+cfg_cli_yq="true"
+cfg_cli_hyperfine="true"
+cfg_cli_tokei="true"
+cfg_cli_broot="true"
+cfg_cli_atuin="true"
+cfg_cli_xh="true"
+cfg_cli_difftastic="true"
+cfg_cli_zellij="true"
 
 # MCP server toggles (default all enabled)
 cfg_mcp_auggie_context="true"
+cfg_mcp_claude_context="true"
 cfg_mcp_context7="true"
 cfg_mcp_fetch="true"
 cfg_mcp_filesystem="true"
@@ -179,59 +203,78 @@ cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
 cfg_mcp_sequential_thinking="true"
 
+# Helper to set config value only if non-empty
+set_if_present() {
+  var_name="$1"
+  val="$2"
+  if [ -n "$val" ]; then
+    eval "$var_name=\"$val\""
+  fi
+}
+
 if [ -f "$config_file" ]; then
   printf "Loading configuration from %s\n" "$config_file"
-  cfg_prompt_for_confirmation="$(json_get_bool "prompt_for_confirmation" "$config_file")"
-  cfg_ssh_port="$(json_get "ssh_port" "$config_file")"
-  cfg_server_address="$(json_get "server_address" "$config_file")"
-  cfg_ssh_user="$(json_get "ssh_user" "$config_file")"
-  cfg_ssh_key_action="$(json_get "ssh_key_action" "$config_file")"
-  cfg_skip_package_update="$(json_get_bool "skip_package_update" "$config_file")"
-  cfg_skip_zinit="$(json_get_bool "skip_zinit" "$config_file")"
-  cfg_skip_mcp_setup="$(json_get_bool "skip_mcp_setup" "$config_file")"
+  set_if_present cfg_prompt_for_confirmation "$(json_get_bool "prompt_for_confirmation" "$config_file")"
+  set_if_present cfg_ssh_port "$(json_get "ssh_port" "$config_file")"
+  set_if_present cfg_server_address "$(json_get "server_address" "$config_file")"
+  set_if_present cfg_ssh_user "$(json_get "ssh_user" "$config_file")"
+  set_if_present cfg_ssh_key_action "$(json_get "ssh_key_action" "$config_file")"
+  cfg_ssh_public_keys="$(json_get_array "ssh_public_keys" "$config_file")"
+  set_if_present cfg_skip_package_update "$(json_get_bool "skip_package_update" "$config_file")"
+  set_if_present cfg_skip_zinit "$(json_get_bool "skip_zinit" "$config_file")"
+  set_if_present cfg_skip_mcp_setup "$(json_get_bool "skip_mcp_setup" "$config_file")"
 
   # Load package manager toggles
-  cfg_pkg_nvm="$(json_get_bool "nvm" "$config_file")"
-  cfg_pkg_uv="$(json_get_bool "uv" "$config_file")"
-  cfg_pkg_cargo="$(json_get_bool "cargo" "$config_file")"
-  cfg_pkg_ruff="$(json_get_bool "ruff" "$config_file")"
-  cfg_pkg_ty="$(json_get_bool "ty" "$config_file")"
+  set_if_present cfg_pkg_nvm "$(json_get_bool "nvm" "$config_file")"
+  set_if_present cfg_pkg_uv "$(json_get_bool "uv" "$config_file")"
+  set_if_present cfg_pkg_cargo "$(json_get_bool "cargo" "$config_file")"
+  set_if_present cfg_pkg_ruff "$(json_get_bool "ruff" "$config_file")"
+  set_if_present cfg_pkg_ty "$(json_get_bool "ty" "$config_file")"
 
   # Load CLI tools toggles
-  cfg_cli_hishtory="$(json_get_bool "hishtory" "$config_file")"
-  cfg_cli_fzf="$(json_get_bool "fzf" "$config_file")"
-  cfg_cli_eza="$(json_get_bool "eza" "$config_file")"
-  cfg_cli_bat="$(json_get_bool "bat" "$config_file")"
-  cfg_cli_delta="$(json_get_bool "delta" "$config_file")"
-  cfg_cli_dust="$(json_get_bool "dust" "$config_file")"
-  cfg_cli_duf="$(json_get_bool "duf" "$config_file")"
-  cfg_cli_fd="$(json_get_bool "fd" "$config_file")"
-  cfg_cli_ripgrep="$(json_get_bool "ripgrep" "$config_file")"
-  cfg_cli_mcfly="$(json_get_bool "mcfly" "$config_file")"
-  cfg_cli_sd="$(json_get_bool "sd" "$config_file")"
-  cfg_cli_choose="$(json_get_bool "choose" "$config_file")"
-  cfg_cli_cheat="$(json_get_bool "cheat" "$config_file")"
-  cfg_cli_bottom="$(json_get_bool "bottom" "$config_file")"
-  cfg_cli_procs="$(json_get_bool "procs" "$config_file")"
-  cfg_cli_zoxide="$(json_get_bool "zoxide" "$config_file")"
-  cfg_cli_lsd="$(json_get_bool "lsd" "$config_file")"
-  cfg_cli_gping="$(json_get_bool "gping" "$config_file")"
+  set_if_present cfg_cli_hishtory "$(json_get_bool "hishtory" "$config_file")"
+  set_if_present cfg_cli_fzf "$(json_get_bool "fzf" "$config_file")"
+  set_if_present cfg_cli_eza "$(json_get_bool "eza" "$config_file")"
+  set_if_present cfg_cli_bat "$(json_get_bool "bat" "$config_file")"
+  set_if_present cfg_cli_delta "$(json_get_bool "delta" "$config_file")"
+  set_if_present cfg_cli_dust "$(json_get_bool "dust" "$config_file")"
+  set_if_present cfg_cli_duf "$(json_get_bool "duf" "$config_file")"
+  set_if_present cfg_cli_fd "$(json_get_bool "fd" "$config_file")"
+  set_if_present cfg_cli_ripgrep "$(json_get_bool "ripgrep" "$config_file")"
+  set_if_present cfg_cli_mcfly "$(json_get_bool "mcfly" "$config_file")"
+  set_if_present cfg_cli_sd "$(json_get_bool "sd" "$config_file")"
+  set_if_present cfg_cli_choose "$(json_get_bool "choose" "$config_file")"
+  set_if_present cfg_cli_cheat "$(json_get_bool "cheat" "$config_file")"
+  set_if_present cfg_cli_bottom "$(json_get_bool "bottom" "$config_file")"
+  set_if_present cfg_cli_procs "$(json_get_bool "procs" "$config_file")"
+  set_if_present cfg_cli_zoxide "$(json_get_bool "zoxide" "$config_file")"
+  set_if_present cfg_cli_lsd "$(json_get_bool "lsd" "$config_file")"
+  set_if_present cfg_cli_gping "$(json_get_bool "gping" "$config_file")"
+  set_if_present cfg_cli_lazygit "$(json_get_bool "lazygit" "$config_file")"
+  set_if_present cfg_cli_lazydocker "$(json_get_bool "lazydocker" "$config_file")"
+  set_if_present cfg_cli_tldr "$(json_get_bool "tldr" "$config_file")"
+  set_if_present cfg_cli_jq "$(json_get_bool "jq" "$config_file")"
+  set_if_present cfg_cli_yq "$(json_get_bool "yq" "$config_file")"
+  set_if_present cfg_cli_hyperfine "$(json_get_bool "hyperfine" "$config_file")"
+  set_if_present cfg_cli_tokei "$(json_get_bool "tokei" "$config_file")"
+  set_if_present cfg_cli_broot "$(json_get_bool "broot" "$config_file")"
+  set_if_present cfg_cli_atuin "$(json_get_bool "atuin" "$config_file")"
+  set_if_present cfg_cli_xh "$(json_get_bool "xh" "$config_file")"
+  set_if_present cfg_cli_difftastic "$(json_get_bool "difftastic" "$config_file")"
+  set_if_present cfg_cli_zellij "$(json_get_bool "zellij" "$config_file")"
 
   # Load MCP server toggles
-  cfg_mcp_auggie_context="$(json_get_bool "auggie-context" "$config_file")"
-  cfg_mcp_context7="$(json_get_bool "context7" "$config_file")"
-  cfg_mcp_fetch="$(json_get_bool "fetch" "$config_file")"
-  cfg_mcp_filesystem="$(json_get_bool "filesystem" "$config_file")"
-  cfg_mcp_git="$(json_get_bool "git" "$config_file")"
-  cfg_mcp_github="$(json_get_bool "github" "$config_file")"
-  cfg_mcp_jupyter="$(json_get_bool "jupyter" "$config_file")"
-  cfg_mcp_memory="$(json_get_bool "memory" "$config_file")"
-  cfg_mcp_playwright="$(json_get_bool "playwright" "$config_file")"
-  cfg_mcp_sequential_thinking="$(json_get_bool "sequential-thinking" "$config_file")"
-
-  [ -z "$cfg_ssh_port" ] && cfg_ssh_port="22"
-  [ -z "$cfg_server_address" ] && cfg_server_address="localhost"
-  [ -z "$cfg_ssh_key_action" ] && cfg_ssh_key_action="generate"
+  set_if_present cfg_mcp_auggie_context "$(json_get_bool "auggie-context" "$config_file")"
+  set_if_present cfg_mcp_claude_context "$(json_get_bool "claude-context" "$config_file")"
+  set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
+  set_if_present cfg_mcp_fetch "$(json_get_bool "fetch" "$config_file")"
+  set_if_present cfg_mcp_filesystem "$(json_get_bool "filesystem" "$config_file")"
+  set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
+  set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
+  set_if_present cfg_mcp_jupyter "$(json_get_bool "jupyter" "$config_file")"
+  set_if_present cfg_mcp_memory "$(json_get_bool "memory" "$config_file")"
+  set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
+  set_if_present cfg_mcp_sequential_thinking "$(json_get_bool "sequential-thinking" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -247,9 +290,11 @@ prompt_read() {
   if [ -t 0 ]; then
     printf "%s" "$prompt"
     IFS= read -r input || :
-  elif [ -r /dev/tty ] && [ -w /dev/tty ]; then
-    printf "%s" "$prompt" > /dev/tty
-    IFS= read -r input < /dev/tty || :
+  elif [ -e /dev/tty ]; then
+    # Try to use /dev/tty, but fail gracefully if it's not available
+    if (printf "%s" "$prompt" > /dev/tty) 2>/dev/null; then
+      IFS= read -r input < /dev/tty 2>/dev/null || :
+    fi
   fi
   printf "%s" "$input"
 }
@@ -327,22 +372,33 @@ fi
 
 pubkey_path="./.pub"
 pubkey=""
+pubkeys=""
 
 case "$key_choice" in
   a|A)
     if [ -n "$opt_pubkey" ]; then
+      # Single key from command line
       printf "%s\n" "$opt_pubkey" > "$pubkey_path"
       pubkey="$opt_pubkey"
+      pubkeys="$opt_pubkey"
+    elif [ -n "$cfg_ssh_public_keys" ]; then
+      # Multiple keys from config file
+      pubkeys="$cfg_ssh_public_keys"
+      # Use first key for backward compatibility with pubkey variable
+      pubkey="$(printf "%s" "$cfg_ssh_public_keys" | head -1)"
+      printf "Using %s SSH public key(s) from config file\n" "$(printf "%s" "$cfg_ssh_public_keys" | wc -l | tr -d ' ')"
     else
       input_pubkey="$(prompt_read "Public key to install: ")"
       if [ -n "$input_pubkey" ]; then
         printf "%s\n" "$input_pubkey" > "$pubkey_path"
         pubkey="$input_pubkey"
+        pubkeys="$input_pubkey"
       fi
     fi
     ;;
   s|S)
     pubkey=""
+    pubkeys=""
     ;;
   *)
     key_path="./.secret.pem"
@@ -351,12 +407,19 @@ case "$key_choice" in
     fi
     cp "${key_path}.pub" "$pubkey_path"
     pubkey="$(cat "$pubkey_path")"
+    pubkeys="$pubkey"
     ;;
 esac
-	
-	remote_script_path="/tmp/setup-bootstrap.$$"
-	# Pass configuration values as environment variables to the remote script
-	ssh -p "$server_port" "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 700 \"$remote_script_path\"" <<EOF
+
+# Build SSH options
+ssh_opts="-p $server_port"
+[ -n "$opt_identity_file" ] && ssh_opts="$ssh_opts -i $opt_identity_file"
+ssh_opts="$ssh_opts -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+remote_script_path="/tmp/setup-bootstrap.$$"
+# Pass configuration values as environment variables to the remote script
+# shellcheck disable=SC2086
+ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 700 \"$remote_script_path\"" <<EOF
 	set -e
 
 	# Configuration passed from local config.json
@@ -390,9 +453,22 @@ esac
 	cfg_cli_zoxide="$cfg_cli_zoxide"
 	cfg_cli_lsd="$cfg_cli_lsd"
 	cfg_cli_gping="$cfg_cli_gping"
+	cfg_cli_lazygit="$cfg_cli_lazygit"
+	cfg_cli_lazydocker="$cfg_cli_lazydocker"
+	cfg_cli_tldr="$cfg_cli_tldr"
+	cfg_cli_jq="$cfg_cli_jq"
+	cfg_cli_yq="$cfg_cli_yq"
+	cfg_cli_hyperfine="$cfg_cli_hyperfine"
+	cfg_cli_tokei="$cfg_cli_tokei"
+	cfg_cli_broot="$cfg_cli_broot"
+	cfg_cli_atuin="$cfg_cli_atuin"
+	cfg_cli_xh="$cfg_cli_xh"
+	cfg_cli_difftastic="$cfg_cli_difftastic"
+	cfg_cli_zellij="$cfg_cli_zellij"
 
 	# MCP server toggles
 	cfg_mcp_auggie_context="$cfg_mcp_auggie_context"
+	cfg_mcp_claude_context="$cfg_mcp_claude_context"
 	cfg_mcp_context7="$cfg_mcp_context7"
 	cfg_mcp_fetch="$cfg_mcp_fetch"
 	cfg_mcp_filesystem="$cfg_mcp_filesystem"
@@ -413,6 +489,12 @@ else
   distro_id=""
 fi
 
+# Detect OpenWrt specifically
+is_openwrt=""
+if [ -f /etc/openwrt_release ] || [ "\$distro_id" = "openwrt" ]; then
+  is_openwrt="true"
+fi
+
 pkg_update() {
   if command -v apt-get >/dev/null 2>&1; then
     sudo -n apt-get update -y
@@ -426,6 +508,10 @@ pkg_update() {
   elif command -v apk >/dev/null 2>&1; then
     sudo -n apk update
     sudo -n apk upgrade
+  elif command -v opkg >/dev/null 2>&1; then
+    # OpenWrt - create lock directory if missing and update
+    sudo -n mkdir -p /var/lock 2>/dev/null || mkdir -p /var/lock 2>/dev/null || true
+    sudo -n opkg update
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -444,6 +530,8 @@ pkg_install() {
     sudo -n pacman -S --noconfirm \$packages
   elif command -v apk >/dev/null 2>&1; then
     sudo -n apk add \$packages
+  elif command -v opkg >/dev/null 2>&1; then
+    sudo -n opkg install \$packages
   else
     printf "No supported package manager found.\n" >&2
     return 1
@@ -451,10 +539,12 @@ pkg_install() {
 }
 
 openssh_package="openssh-server"
-if command -v pacman >/dev/null 2>&1; then
+if [ "\$is_openwrt" = "true" ]; then
+  openssh_package="openssh-server"  # OpenWrt (both opkg and apk versions)
+elif command -v pacman >/dev/null 2>&1; then
   openssh_package="openssh"
 elif command -v apk >/dev/null 2>&1; then
-  openssh_package="openssh"
+  openssh_package="openssh"  # Alpine Linux
 fi
 
 if [ "\$cfg_skip_package_update" = "true" ]; then
@@ -494,7 +584,16 @@ sudo -n sh -c "echo \"\${current_user} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudo
 sudo -n chmod 0440 "/etc/sudoers.d/\${current_user}"
 
 printf "Installing base packages...\n"
-if command -v apk >/dev/null 2>&1; then
+if [ "\$is_openwrt" = "true" ]; then
+  # OpenWrt - figlet/screenfetch not available, use minimal set
+  # Install git-http for https support, shadow-chsh for chsh command
+  if command -v opkg >/dev/null 2>&1; then
+    pkg_install zsh bash git git-http curl vim shadow-chsh
+  else
+    # OpenWrt with apk (newer versions) - git-http is a separate package
+    pkg_install zsh bash git git-http curl vim shadow-chsh
+  fi
+elif command -v apk >/dev/null 2>&1; then
   # Alpine Linux - screenfetch/neofetch not available in main repos
   pkg_install zsh figlet git curl vim
 else
@@ -502,7 +601,14 @@ else
 fi
 
 printf "Installing build tools...\n"
-if command -v apt-get >/dev/null 2>&1; then
+if [ "\$is_openwrt" = "true" ]; then
+  # OpenWrt - install build tools
+  if command -v opkg >/dev/null 2>&1; then
+    sudo -n opkg install make gcc 2>/dev/null || true
+  else
+    sudo -n apk add build-base 2>/dev/null || true
+  fi
+elif command -v apt-get >/dev/null 2>&1; then
   sudo -n apt-get install -y build-essential 2>/dev/null || true
 elif command -v dnf >/dev/null 2>&1; then
   sudo -n dnf -y install gcc 2>/dev/null || true
@@ -653,6 +759,66 @@ if [ "\$cfg_cli_gping" = "true" ]; then
   install_cargo_tool gping
 fi
 
+if [ "\$cfg_cli_lazygit" = "true" ]; then
+  printf "Installing lazygit...\n"
+  install_cargo_tool lazygit
+fi
+
+if [ "\$cfg_cli_lazydocker" = "true" ]; then
+  printf "Installing lazydocker...\n"
+  curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+fi
+
+if [ "\$cfg_cli_tldr" = "true" ]; then
+  printf "Installing tldr...\n"
+  install_cargo_tool tldr tealdeer
+fi
+
+if [ "\$cfg_cli_jq" = "true" ]; then
+  printf "Installing jq...\n"
+  pkg_install jq
+fi
+
+if [ "\$cfg_cli_yq" = "true" ]; then
+  printf "Installing yq...\n"
+  pip3 install yq 2>/dev/null || pkg_install yq || printf "Warning: yq not available\n"
+fi
+
+if [ "\$cfg_cli_hyperfine" = "true" ]; then
+  printf "Installing hyperfine...\n"
+  install_cargo_tool hyperfine
+fi
+
+if [ "\$cfg_cli_tokei" = "true" ]; then
+  printf "Installing tokei...\n"
+  install_cargo_tool tokei
+fi
+
+if [ "\$cfg_cli_broot" = "true" ]; then
+  printf "Installing broot...\n"
+  install_cargo_tool broot
+fi
+
+if [ "\$cfg_cli_atuin" = "true" ]; then
+  printf "Installing atuin...\n"
+  install_cargo_tool atuin
+fi
+
+if [ "\$cfg_cli_xh" = "true" ]; then
+  printf "Installing xh...\n"
+  install_cargo_tool xh
+fi
+
+if [ "\$cfg_cli_difftastic" = "true" ]; then
+  printf "Installing difftastic...\n"
+  install_cargo_tool difft difftastic
+fi
+
+if [ "\$cfg_cli_zellij" = "true" ]; then
+  printf "Installing zellij...\n"
+  install_cargo_tool zellij
+fi
+
 printf "Set up motd...\n"
 sudo -n mkdir -p /etc/update-motd.d
 sudo -n rm -f /etc/update-motd.d/01-hello
@@ -662,18 +828,27 @@ sudo -n sh -c "echo \"figlet -t ${2}\" >> /etc/update-motd.d/01-hello"
 sudo -n chmod a+x /etc/update-motd.d/01-hello
 
 if [ -n "$3" ]; then
-  printf "Registering SSH public key...\n"
-  mkdir -p "$HOME/.ssh"
-  chmod 700 "$HOME/.ssh"
-  printf "%s\n" "$3" >> "$HOME/.ssh/authorized_keys"
-  chmod 600 "$HOME/.ssh/authorized_keys"
+  key_count="\$(printf \"%s\" \"\$3\" | wc -l | tr -d ' ')"
+  printf "Registering %s SSH public key(s)...\n" "\$key_count"
+  mkdir -p "\$HOME/.ssh"
+  chmod 700 "\$HOME/.ssh"
+  # Add each key on a separate line
+  printf "%s\n" "\$3" | while IFS= read -r key; do
+    if [ -n "\$key" ]; then
+      # Check if key already exists to avoid duplicates
+      if ! grep -qF "\$key" "\$HOME/.ssh/authorized_keys" 2>/dev/null; then
+        printf "%s\n" "\$key" >> "\$HOME/.ssh/authorized_keys"
+      fi
+    fi
+  done
+  chmod 600 "\$HOME/.ssh/authorized_keys"
 else
   printf "Skipping SSH public key registration...\n"
 fi
 
 printf "Setting default shell to zsh...\n"
 if command -v zsh >/dev/null 2>&1; then
-  current_user="\${USER:-\$(whoami)}"
+  current_user="\${USER:-\$(id -un)}"
   sudo -n chsh -s "\$(command -v zsh)" "\$current_user"
 fi
 
@@ -690,17 +865,42 @@ else
 fi
 
 if [ "\$cfg_pkg_nvm" = "true" ]; then
-	printf "Setting up nvm and Node.js...\n"
-	if ! command -v bash >/dev/null 2>&1; then
-	  pkg_install bash
-	fi
-	nvm_dir="\$HOME/.nvm"
-	curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="\$nvm_dir" bash
-	if [ -s "\$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-	  bash -c ". \"\$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
-	  printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-	  bash -c ". \"\$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
-	fi
+  printf "Setting up nvm and Node.js...\n"
+  if [ "\$is_openwrt" = "true" ]; then
+    # OpenWrt - use system packages instead of nvm (nvm doesn't work well on OpenWrt)
+    printf "Installing Node.js from system packages (OpenWrt)...\n"
+    if command -v opkg >/dev/null 2>&1; then
+      pkg_install node node-npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
+    else
+      # OpenWrt with apk (newer versions) - nodejs may not be available
+      pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
+    fi
+    if command -v npm >/dev/null 2>&1; then
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+    else
+      printf "Skipping npm package installation (Node.js not available)\n"
+    fi
+  elif command -v apk >/dev/null 2>&1; then
+    # Alpine Linux - use system nodejs package (nvm requires glibc)
+    printf "Installing Node.js from apk (Alpine)...\n"
+    pkg_install nodejs npm
+    if command -v npm >/dev/null 2>&1; then
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+    fi
+  else
+    if ! command -v bash >/dev/null 2>&1; then
+      pkg_install bash
+    fi
+    nvm_dir="\$HOME/.nvm"
+    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="\$nvm_dir" bash
+    if [ -s "\$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
+      bash -c ". \"\$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
+      bash -c ". \"\$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+    fi
+  fi
 else
   printf "Skipping nvm and Node.js setup (disabled in config)...\n"
 fi
@@ -719,6 +919,7 @@ else
     server_name="\$1"
     case "\$server_name" in
       auggie-context) [ "\$cfg_mcp_auggie_context" = "true" ] ;;
+      claude-context) [ "\$cfg_mcp_claude_context" = "true" ] ;;
       context7) [ "\$cfg_mcp_context7" = "true" ] ;;
       fetch) [ "\$cfg_mcp_fetch" = "true" ] ;;
       filesystem) [ "\$cfg_mcp_filesystem" = "true" ] ;;
@@ -814,6 +1015,13 @@ MCP_EOF
 }
 MCP_EOF
 
+  write_server_config "claude-context" <<'MCP_EOF'
+"claude-context": {
+  "command": "npx",
+  "args": ["-y", "@zilliz/claude-context-mcp@latest"]
+}
+MCP_EOF
+
   build_mcp_config() {
     printf "{\n  \"mcpServers\": {\n" > "\$mcp_config"
     first=1
@@ -900,7 +1108,7 @@ ensure_zshrc_line '# Enable Powerlevel10k instant prompt'
 ensure_zshrc_line 'if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then'
 ensure_zshrc_line '  source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"'
 ensure_zshrc_line 'fi'
-ensure_zshrc_line '# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh'
+ensure_zshrc_line '# To customize prompt, run \`p10k configure\` or edit ~/.p10k.zsh'
 ensure_zshrc_line '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh'
 
 ensure_zshrc_line 'HISTFILE=~/.histfile'
@@ -934,6 +1142,10 @@ command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
 [ -x "\$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1 && ensure_zshrc_line 'alias ps="procs"'
 [ -x "\$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1 && ensure_zshrc_line 'alias ping="gping"'
 [ -x "\$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1 && ensure_zshrc_line 'alias lsd="lsd"'
+[ -x "\$HOME/.cargo/bin/difft" ] || command -v difft >/dev/null 2>&1 && ensure_zshrc_line 'alias diff="difftastic"'
+[ -x "\$HOME/.cargo/bin/xh" ] || command -v xh >/dev/null 2>&1 && ensure_zshrc_line 'alias http="xh"'
+command -v lazygit >/dev/null 2>&1 && ensure_zshrc_line 'alias lg="lazygit"'
+command -v lazydocker >/dev/null 2>&1 && ensure_zshrc_line 'alias lzd="lazydocker"'
 
 # Tool initializations
 [ -f "\$HOME/.fzf.zsh" ] && ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
@@ -941,6 +1153,12 @@ command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
 [ -x "\$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'alias cd="z"'
 [ -x "\$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(mcfly init zsh)"'
 command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(hishtory init zsh)"'
+
+# Broot file navigator
+[ -f "\$HOME/.config/broot/launcher/bash/br" ] && ensure_zshrc_line '[ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br'
+
+# Atuin shell history
+command -v atuin >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(atuin init zsh)"'
 
 # Configure delta as git pager
 [ -x "\$HOME/.cargo/bin/delta" ] || command -v delta >/dev/null 2>&1 && {
@@ -954,8 +1172,9 @@ command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(hishtory init
 EOF
 
 # Use TTY mode if available, otherwise run without TTY
+# shellcheck disable=SC2086
 if [ -t 0 ]; then
-  ssh -tt -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
+  ssh -tt $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
 else
-  ssh -p "$server_port" "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkey\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
+  ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
 fi
