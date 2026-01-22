@@ -15,13 +15,13 @@
   "packages": {
     "nvm": true,
     "uv": true,
-    "cargo": false,
+    "cargo": true,
     "ruff": false,
     "ty": false
   },
   "cli_tools": {
     "fzf": true,
-    "eza": false,
+    "eza": true,
     "bat": false,
     "fd": false,
     "ripgrep": false,

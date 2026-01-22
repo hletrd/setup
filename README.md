@@ -37,24 +37,23 @@ The scripts are compatible with all major POSIX-derived operating systems:
 
 All platforms have been tested and verified (January 2026):
 
-| Tool | macOS | Ubuntu 24.04 | Fedora | Arch Linux | Alpine | OpenWrt |
-|------|:-----:|:------------:|:------:|:----------:|:------:|:-------:|
-| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
-| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+| Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 |
+|------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|
+| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| nvm | ✅ | ✅ | ✅ | ✅ | ✅ | N/A** |
+| nvm | ✅ | ✅ | ✅ | ✅ | ✅ | N/A* |
 | Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️† | ✅ |
 | MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Notes:**
-- \* OpenWrt: uv, cargo, and Rust-based CLI tools require installing from alternative sources; not available via opkg.
-- \*\* OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
+- \* OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
 - † Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
 
 ## Features
