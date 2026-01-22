@@ -32,6 +32,26 @@ The scripts are compatible with all major POSIX-derived operating systems:
 | **Arch Linux** | pacman | ✅ Fully supported |
 | **Alpine Linux** | apk | ✅ Supported (Node.js requires glibc) |
 
+### Test Results
+
+All platforms have been tested and verified (January 2026):
+
+| Tool | macOS | Ubuntu 24.04 | Fedora | Arch Linux | Alpine |
+|------|:-----:|:------------:|:------:|:----------:|:------:|
+| uv | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cargo | ✅ | ✅ | ✅ | ✅ | ✅ |
+| eza | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bat | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fd | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fzf | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zinit | ✅ | ✅ | ✅ | ✅ | ✅ |
+| nvm | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️* |
+
+*Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
+
 ## Features
 
 ### System Configuration
