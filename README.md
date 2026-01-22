@@ -52,9 +52,10 @@ All platforms have been tested and verified (January 2026):
 | Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️† | ✅ |
 | MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-*OpenWrt: uv, cargo, and Rust-based CLI tools require installing from alternative sources; not available via opkg.
-**OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
-†Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
+**Notes:**
+- \* OpenWrt: uv, cargo, and Rust-based CLI tools require installing from alternative sources; not available via opkg.
+- \*\* OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
+- † Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
 
 ## Features
 
