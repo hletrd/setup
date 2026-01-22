@@ -1,0 +1,76 @@
+[12:46:30] =============================================
+[12:46:30] Setup Repository Automated Tests
+[12:46:30] Started: 2026년  1월 22일 목요일 12시 46분 30초 KST
+[12:46:30] =============================================
+[12:46:30] =============================================
+[12:46:30] Testing on macOS (local)
+[12:46:30] =============================================
+[0;34m[INFO][0m Checking script syntax...
+[0;32m[PASS][0m macOS: Script syntax is valid
+[0;32m[PASS][0m macOS: Syntax check passed (full install skipped to avoid modifying host)
+[12:46:30] =============================================
+[12:46:30] Testing on ubuntu (ubuntu:24.04)
+[12:46:30] =============================================
+[0;34m[INFO][0m Starting ubuntu container...
+[0;34m[INFO][0m Setting up ubuntu container...
+[0;34m[INFO][0m Copying files to ubuntu container...
+[0;34m[INFO][0m Running install_local.sh on ubuntu...
+[0;32m[PASS][0m ubuntu: install_local.sh completed
+[0;34m[INFO][0m Verifying installation results for ubuntu...
+[0;32m[PASS][0m ubuntu: zsh installed
+[0;32m[PASS][0m ubuntu: fzf installed
+[0;32m[PASS][0m ubuntu: zinit installed
+[0;32m[PASS][0m ubuntu: MCP servers configured (11 configs)
+[0;32m[PASS][0m ubuntu: uv installed
+[12:54:51] =============================================
+[12:54:51] Testing on fedora (fedora:latest)
+[12:54:51] =============================================
+[0;34m[INFO][0m Starting fedora container...
+[0;34m[INFO][0m Setting up fedora container...
+[0;34m[INFO][0m Copying files to fedora container...
+[0;34m[INFO][0m Running install_local.sh on fedora...
+[0;32m[PASS][0m fedora: install_local.sh completed
+[0;34m[INFO][0m Verifying installation results for fedora...
+[0;32m[PASS][0m fedora: zsh installed
+[0;32m[PASS][0m fedora: fzf installed
+[0;32m[PASS][0m fedora: zinit installed
+[0;32m[PASS][0m fedora: MCP servers configured (11 configs)
+[0;32m[PASS][0m fedora: uv installed
+[12:56:31] =============================================
+[12:56:31] Testing on arch (archlinux:latest)
+[12:56:31] =============================================
+[0;34m[INFO][0m Starting arch container...
+[0;34m[INFO][0m Setting up arch container...
+[0;34m[INFO][0m Copying files to arch container...
+[0;34m[INFO][0m Running install_local.sh on arch...
+[0;32m[PASS][0m arch: install_local.sh completed
+[0;34m[INFO][0m Verifying installation results for arch...
+[0;32m[PASS][0m arch: zsh installed
+[0;32m[PASS][0m arch: fzf installed
+[0;32m[PASS][0m arch: zinit installed
+[0;32m[PASS][0m arch: MCP servers configured (11 configs)
+[0;32m[PASS][0m arch: uv installed
+[12:57:45] =============================================
+[12:57:45] Testing on alpine (alpine:latest)
+[12:57:45] =============================================
+[0;34m[INFO][0m Starting alpine container...
+[0;34m[INFO][0m Setting up alpine container...
+[0;34m[INFO][0m Copying files to alpine container...
+[0;34m[INFO][0m Running install_local.sh on alpine...
+[0;32m[PASS][0m alpine: install_local.sh completed
+[0;34m[INFO][0m Verifying installation results for alpine...
+[0;32m[PASS][0m alpine: zsh installed
+[0;32m[PASS][0m alpine: fzf installed
+[0;32m[PASS][0m alpine: zinit installed
+[0;32m[PASS][0m alpine: MCP servers configured (11 configs)
+[0;32m[PASS][0m alpine: uv installed
+[12:58:15] 
+[12:58:15] =============================================
+[12:58:15] Test Summary
+[12:58:15] =============================================
+[12:58:15] Total:  5
+[12:58:15] Passed: 5
+[12:58:15] Failed: 0
+[12:58:15] 
+[12:58:15] Results saved to: /Users/hletrd/git/setup/tests/results/test_results_20260122_124630.txt
+[12:58:15] Completed: 2026년  1월 22일 목요일 12시 58분 15초 KST

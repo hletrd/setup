@@ -1,0 +1,785 @@
+Loading configuration from config.json
+SSH port (default: 22): 22
+Server name for MOTD (default: localhost): localhost
+SSH public key setup: skip
+Caching sudo credentials...
+Updating packages...
+Updating and loading repositories:
+ Fedora 43 - x86_64                     100% |  46.7 KiB/s |   7.6 KiB |  00m00s
+ Fedora 43 - x86_64 - Updates           100% |  90.6 KiB/s |   6.9 KiB |  00m00s
+ Fedora 43 openh264 (From Cisco) - x86_ 100% |  24.7 KiB/s | 986.0   B |  00m00s
+Repositories loaded.
+Package                                  Arch   Version           Repository                            Size
+Upgrading:
+ coreutils                               x86_64 9.7-7.fc43        updates                            5.4 MiB
+   replacing coreutils                   x86_64 9.7-6.fc43        5690da5cccbe45b994d5f50dc0d022f1   5.4 MiB
+ coreutils-common                        x86_64 9.7-7.fc43        updates                           11.3 MiB
+   replacing coreutils-common            x86_64 9.7-6.fc43        5690da5cccbe45b994d5f50dc0d022f1  11.3 MiB
+ curl                                    x86_64 8.15.0-4.fc43     updates                          461.5 KiB
+   replacing curl                        x86_64 8.15.0-3.fc43     96bdfe01baeb4fd4864a6b348eca895e 461.5 KiB
+ glib2                                   x86_64 2.86.3-1.fc43     updates                           14.8 MiB
+   replacing glib2                       x86_64 2.86.1-5.fc43     96bdfe01baeb4fd4864a6b348eca895e  14.8 MiB
+ glibc                                   x86_64 2.42-5.fc43       updates                            6.7 MiB
+   replacing glibc                       x86_64 2.42-4.fc43       5690da5cccbe45b994d5f50dc0d022f1   6.7 MiB
+ glibc-common                            x86_64 2.42-5.fc43       updates                            1.0 MiB
+   replacing glibc-common                x86_64 2.42-4.fc43       5690da5cccbe45b994d5f50dc0d022f1   1.0 MiB
+ glibc-minimal-langpack                  x86_64 2.42-5.fc43       updates                            0.0   B
+   replacing glibc-minimal-langpack      x86_64 2.42-4.fc43       5690da5cccbe45b994d5f50dc0d022f1   0.0   B
+ gnupg2                                  x86_64 2.4.9-1.fc43      updates                            6.6 MiB
+   replacing gnupg2                      x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1   6.5 MiB
+ gnupg2-dirmngr                          x86_64 2.4.9-1.fc43      updates                          618.4 KiB
+   replacing gnupg2-dirmngr              x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1 618.4 KiB
+ gnupg2-gpg-agent                        x86_64 2.4.9-1.fc43      updates                          671.4 KiB
+   replacing gnupg2-gpg-agent            x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1 671.4 KiB
+ gnupg2-gpgconf                          x86_64 2.4.9-1.fc43      updates                          250.0 KiB
+   replacing gnupg2-gpgconf              x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1 250.0 KiB
+ gnupg2-keyboxd                          x86_64 2.4.9-1.fc43      updates                          201.4 KiB
+   replacing gnupg2-keyboxd              x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1 201.4 KiB
+ gnupg2-verify                           x86_64 2.4.9-1.fc43      updates                          348.5 KiB
+   replacing gnupg2-verify               x86_64 2.4.8-4.fc43      5690da5cccbe45b994d5f50dc0d022f1 348.5 KiB
+ libarchive                              x86_64 3.8.4-1.fc43      updates                          955.3 KiB
+   replacing libarchive                  x86_64 3.8.1-3.fc43      5690da5cccbe45b994d5f50dc0d022f1 951.1 KiB
+ libblkid                                x86_64 2.41.3-7.fc43     updates                          262.4 KiB
+   replacing libblkid                    x86_64 2.41.1-17.fc43    5690da5cccbe45b994d5f50dc0d022f1 262.4 KiB
+ libbrotli                               x86_64 1.2.0-1.fc43      updates                          865.4 KiB
+   replacing libbrotli                   x86_64 1.1.0-10.fc43     5690da5cccbe45b994d5f50dc0d022f1 833.3 KiB
+ libcurl                                 x86_64 8.15.0-4.fc43     updates                          903.2 KiB
+   replacing libcurl                     x86_64 8.15.0-3.fc43     96bdfe01baeb4fd4864a6b348eca895e 903.2 KiB
+ libgcc                                  x86_64 15.2.1-5.fc43     updates                          266.6 KiB
+   replacing libgcc                      x86_64 15.2.1-4.fc43     96bdfe01baeb4fd4864a6b348eca895e 266.6 KiB
+ libgcrypt                               x86_64 1.11.1-3.fc43     updates                            1.6 MiB
+   replacing libgcrypt                   x86_64 1.11.1-2.fc43     5690da5cccbe45b994d5f50dc0d022f1   1.6 MiB
+ libgomp                                 x86_64 15.2.1-5.fc43     updates                          541.6 KiB
+   replacing libgomp                     x86_64 15.2.1-4.fc43     96bdfe01baeb4fd4864a6b348eca895e 541.6 KiB
+ libmount                                x86_64 2.41.3-7.fc43     updates                          372.7 KiB
+   replacing libmount                    x86_64 2.41.1-17.fc43    5690da5cccbe45b994d5f50dc0d022f1 372.7 KiB
+ libsmartcols                            x86_64 2.41.3-7.fc43     updates                          180.5 KiB
+   replacing libsmartcols                x86_64 2.41.1-17.fc43    5690da5cccbe45b994d5f50dc0d022f1 180.5 KiB
+ libsolv                                 x86_64 0.7.35-3.fc43     updates                          971.4 KiB
+   replacing libsolv                     x86_64 0.7.35-1.fc43     96bdfe01baeb4fd4864a6b348eca895e 971.4 KiB
+ libstdc++                               x86_64 15.2.1-5.fc43     updates                            2.8 MiB
+   replacing libstdc++                   x86_64 15.2.1-4.fc43     96bdfe01baeb4fd4864a6b348eca895e   2.8 MiB
+ libtool-ltdl                            x86_64 2.5.4-8.fc43      updates                           70.1 KiB
+   replacing libtool-ltdl                x86_64 2.5.4-7.fc43      5690da5cccbe45b994d5f50dc0d022f1  70.1 KiB
+ libuuid                                 x86_64 2.41.3-7.fc43     updates                           37.4 KiB
+   replacing libuuid                     x86_64 2.41.1-17.fc43    5690da5cccbe45b994d5f50dc0d022f1  37.4 KiB
+ lua-libs                                x86_64 5.4.8-4.fc43      updates                          281.9 KiB
+   replacing lua-libs                    x86_64 5.4.8-3.fc43      96bdfe01baeb4fd4864a6b348eca895e 280.8 KiB
+ pam                                     x86_64 1.7.1-4.fc43      updates                            1.6 MiB
+   replacing pam                         x86_64 1.7.1-3.fc43      5690da5cccbe45b994d5f50dc0d022f1   1.6 MiB
+ pam-libs                                x86_64 1.7.1-4.fc43      updates                          126.8 KiB
+   replacing pam-libs                    x86_64 1.7.1-3.fc43      5690da5cccbe45b994d5f50dc0d022f1 126.8 KiB
+ rpm                                     x86_64 6.0.1-1.fc43      updates                            3.1 MiB
+   replacing rpm                         x86_64 6.0.0-1.fc43      5690da5cccbe45b994d5f50dc0d022f1   3.1 MiB
+ rpm-build-libs                          x86_64 6.0.1-1.fc43      updates                          264.4 KiB
+   replacing rpm-build-libs              x86_64 6.0.0-1.fc43      5690da5cccbe45b994d5f50dc0d022f1 268.4 KiB
+ rpm-libs                                x86_64 6.0.1-1.fc43      updates                          933.7 KiB
+   replacing rpm-libs                    x86_64 6.0.0-1.fc43      5690da5cccbe45b994d5f50dc0d022f1 933.7 KiB
+ rpm-sequoia                             x86_64 1.10.0-1.fc43     updates                            2.5 MiB
+   replacing rpm-sequoia                 x86_64 1.9.0-2.fc43      5690da5cccbe45b994d5f50dc0d022f1   2.5 MiB
+ rpm-sign-libs                           x86_64 6.0.1-1.fc43      updates                           39.7 KiB
+   replacing rpm-sign-libs               x86_64 6.0.0-1.fc43      5690da5cccbe45b994d5f50dc0d022f1  39.7 KiB
+ systemd-libs                            x86_64 258.3-2.fc43      updates                            2.3 MiB
+   replacing systemd-libs                x86_64 258.2-1.fc43      96bdfe01baeb4fd4864a6b348eca895e   2.3 MiB
+ systemd-standalone-sysusers             x86_64 258.3-2.fc43      updates                          293.5 KiB
+   replacing systemd-standalone-sysusers x86_64 258.2-1.fc43      96bdfe01baeb4fd4864a6b348eca895e 293.5 KiB
+ tzdata                                  noarch 2025c-1.fc43      updates                            1.6 MiB
+   replacing tzdata                      noarch 2025b-3.fc43      5690da5cccbe45b994d5f50dc0d022f1   1.6 MiB
+ util-linux-core                         x86_64 2.41.3-7.fc43     updates                            1.5 MiB
+   replacing util-linux-core             x86_64 2.41.1-17.fc43    5690da5cccbe45b994d5f50dc0d022f1   1.5 MiB
+ vim-data                                noarch 2:9.1.2086-1.fc43 updates                           10.2 KiB
+   replacing vim-data                    noarch 2:9.1.1914-1.fc43 96bdfe01baeb4fd4864a6b348eca895e  10.2 KiB
+ vim-minimal                             x86_64 2:9.1.2086-1.fc43 updates                            1.7 MiB
+   replacing vim-minimal                 x86_64 2:9.1.1914-1.fc43 96bdfe01baeb4fd4864a6b348eca895e   1.7 MiB
+ zlib-ng-compat                          x86_64 2.3.2-2.fc43      updates                          161.7 KiB
+   replacing zlib-ng-compat              x86_64 2.2.5-2.fc43      5690da5cccbe45b994d5f50dc0d022f1 137.6 KiB
+
+Transaction Summary:
+ Upgrading:         41 packages
+ Replacing:         41 packages
+
+Total size of inbound packages is 21 MiB. Need to download 21 MiB.
+After this operation, 96 KiB extra will be used (install 74 MiB, remove 74 MiB).
+[ 1/41] coreutils-0:9.7-7.fc43.x86_64   100% |  14.2 MiB/s |   1.1 MiB |  00m00s
+[ 2/41] coreutils-common-0:9.7-7.fc43.x 100% |  24.1 MiB/s |   2.1 MiB |  00m00s
+[ 3/41] curl-0:8.15.0-4.fc43.x86_64     100% |   2.5 MiB/s | 228.1 KiB |  00m00s
+[ 4/41] libcurl-0:8.15.0-4.fc43.x86_64  100% |   8.4 MiB/s | 404.4 KiB |  00m00s
+[ 5/41] glibc-0:2.42-5.fc43.x86_64      100% |  26.9 MiB/s |   2.2 MiB |  00m00s
+[ 6/41] glibc-common-0:2.42-5.fc43.x86_ 100% |   6.9 MiB/s | 326.6 KiB |  00m00s
+[ 7/41] glib2-0:2.86.3-1.fc43.x86_64    100% |  28.4 MiB/s |   3.1 MiB |  00m00s
+[ 8/41] glibc-minimal-langpack-0:2.42-5 100% |   1.3 MiB/s |  39.8 KiB |  00m00s
+[ 9/41] gnupg2-0:2.4.9-1.fc43.x86_64    100% |  29.2 MiB/s |   1.6 MiB |  00m00s
+[10/41] gnupg2-dirmngr-0:2.4.9-1.fc43.x 100% |   7.3 MiB/s | 274.8 KiB |  00m00s
+[11/41] gnupg2-gpg-agent-0:2.4.9-1.fc43 100% |   7.4 MiB/s | 273.2 KiB |  00m00s
+[12/41] gnupg2-gpgconf-0:2.4.9-1.fc43.x 100% |   3.2 MiB/s | 115.2 KiB |  00m00s
+[13/41] gnupg2-verify-0:2.4.9-1.fc43.x8 100% |   5.2 MiB/s | 171.4 KiB |  00m00s
+[14/41] gnupg2-keyboxd-0:2.4.9-1.fc43.x 100% |   2.4 MiB/s |  94.5 KiB |  00m00s
+[15/41] libuuid-0:2.41.3-7.fc43.x86_64  100% | 976.3 KiB/s |  26.4 KiB |  00m00s
+[16/41] libarchive-0:3.8.4-1.fc43.x86_6 100% |   9.6 MiB/s | 422.6 KiB |  00m00s
+[17/41] libblkid-0:2.41.3-7.fc43.x86_64 100% |   3.0 MiB/s | 123.2 KiB |  00m00s
+[18/41] libmount-0:2.41.3-7.fc43.x86_64 100% |   4.5 MiB/s | 162.7 KiB |  00m00s
+[19/41] util-linux-core-0:2.41.3-7.fc43 100% |  13.1 MiB/s | 551.0 KiB |  00m00s
+[20/41] libsmartcols-0:2.41.3-7.fc43.x8 100% |   2.0 MiB/s |  84.1 KiB |  00m00s
+[21/41] libbrotli-0:1.2.0-1.fc43.x86_64 100% |   7.6 MiB/s | 349.3 KiB |  00m00s
+[22/41] libgcc-0:15.2.1-5.fc43.x86_64   100% |   4.3 MiB/s | 135.1 KiB |  00m00s
+[23/41] libgcrypt-0:1.11.1-3.fc43.x86_6 100% |  14.2 MiB/s | 596.3 KiB |  00m00s
+[24/41] libgomp-0:15.2.1-5.fc43.x86_64  100% |   6.7 MiB/s | 375.5 KiB |  00m00s
+[25/41] libsolv-0:0.7.35-3.fc43.x86_64  100% |   7.8 MiB/s | 447.0 KiB |  00m00s
+[26/41] libstdc++-0:15.2.1-5.fc43.x86_6 100% |  15.8 MiB/s | 922.4 KiB |  00m00s
+[27/41] libtool-ltdl-0:2.5.4-8.fc43.x86 100% |   1.0 MiB/s |  36.2 KiB |  00m00s
+[28/41] lua-libs-0:5.4.8-4.fc43.x86_64  100% |   3.5 MiB/s | 133.1 KiB |  00m00s
+[29/41] pam-0:1.7.1-4.fc43.x86_64       100% |  13.4 MiB/s | 548.8 KiB |  00m00s
+[30/41] rpm-0:6.0.1-1.fc43.x86_64       100% |  13.8 MiB/s | 577.7 KiB |  00m00s
+[31/41] pam-libs-0:1.7.1-4.fc43.x86_64  100% |   1.2 MiB/s |  57.0 KiB |  00m00s
+[32/41] rpm-libs-0:6.0.1-1.fc43.x86_64  100% |   9.3 MiB/s | 401.0 KiB |  00m00s
+[33/41] rpm-sign-libs-0:6.0.1-1.fc43.x8 100% | 998.5 KiB/s |  28.0 KiB |  00m00s
+[34/41] rpm-build-libs-0:6.0.1-1.fc43.x 100% |   2.7 MiB/s | 126.8 KiB |  00m00s
+[35/41] systemd-libs-0:258.3-2.fc43.x86 100% |  17.5 MiB/s | 824.4 KiB |  00m00s
+[36/41] rpm-sequoia-0:1.10.0-1.fc43.x86 100% |  14.6 MiB/s | 944.0 KiB |  00m00s
+[37/41] systemd-standalone-sysusers-0:2 100% |   3.6 MiB/s | 146.4 KiB |  00m00s
+[38/41] vim-data-2:9.1.2086-1.fc43.noar 100% | 643.3 KiB/s |  17.4 KiB |  00m00s
+[39/41] tzdata-0:2025c-1.fc43.noarch    100% |  17.0 MiB/s | 713.9 KiB |  00m00s
+[40/41] vim-minimal-2:9.1.2086-1.fc43.x 100% |  20.3 MiB/s | 851.0 KiB |  00m00s
+[41/41] zlib-ng-compat-0:2.3.2-2.fc43.x 100% |   2.7 MiB/s |  88.8 KiB |  00m00s
+--------------------------------------------------------------------------------
+[41/41] Total                           100% |  32.4 MiB/s |  21.5 MiB |  00m01s
+Running transaction
+[ 1/84] Verify package files            100% | 235.0   B/s |  41.0   B |  00m00s
+[ 2/84] Prepare transaction             100% |   2.7 KiB/s |  82.0   B |  00m00s
+[ 3/84] Upgrading libgcc-0:15.2.1-5.fc4 100% |  16.4 MiB/s | 268.3 KiB |  00m00s
+[ 4/84] Upgrading glibc-0:2.42-5.fc43.x 100% |  82.8 MiB/s |   6.7 MiB |  00m00s
+[ 5/84] Upgrading glibc-common-0:2.42-5 100% |  40.8 MiB/s |   1.0 MiB |  00m00s
+[ 6/84] Upgrading glibc-minimal-langpac 100% | 121.1 KiB/s | 124.0   B |  00m00s
+[ 7/84] Upgrading zlib-ng-compat-0:2.3. 100% |  79.3 MiB/s | 162.5 KiB |  00m00s
+[ 8/84] Upgrading libgcrypt-0:1.11.1-3. 100% | 196.9 MiB/s |   1.6 MiB |  00m00s
+[ 9/84] Upgrading gnupg2-gpgconf-0:2.4. 100% |  18.9 MiB/s | 252.1 KiB |  00m00s
+[10/84] Upgrading libuuid-0:2.41.3-7.fc 100% |  18.8 MiB/s |  38.5 KiB |  00m00s
+[11/84] Upgrading libstdc++-0:15.2.1-5. 100% | 189.6 MiB/s |   2.8 MiB |  00m00s
+[12/84] Upgrading libblkid-0:2.41.3-7.f 100% | 128.7 MiB/s | 263.5 KiB |  00m00s
+[13/84] Upgrading libmount-0:2.41.3-7.f 100% | 182.5 MiB/s | 373.8 KiB |  00m00s
+[14/84] Upgrading lua-libs-0:5.4.8-4.fc 100% |  92.2 MiB/s | 283.3 KiB |  00m00s
+[15/84] Upgrading systemd-libs-0:258.3- 100% | 212.4 MiB/s |   2.3 MiB |  00m00s
+[16/84] Upgrading gnupg2-dirmngr-0:2.4. 100% |  18.4 MiB/s | 621.1 KiB |  00m00s
+[17/84] Upgrading gnupg2-gpg-agent-0:2. 100% |  18.3 MiB/s | 675.3 KiB |  00m00s
+[18/84] Upgrading gnupg2-keyboxd-0:2.4. 100% |   8.6 MiB/s | 202.6 KiB |  00m00s
+[19/84] Upgrading gnupg2-verify-0:2.4.9 100% |  26.3 MiB/s | 349.9 KiB |  00m00s
+[20/84] Upgrading gnupg2-0:2.4.9-1.fc43 100% | 312.6 MiB/s |   6.6 MiB |  00m00s
+[21/84] Upgrading libarchive-0:3.8.4-1. 100% | 233.7 MiB/s | 957.2 KiB |  00m00s
+[22/84] Upgrading libsmartcols-0:2.41.3 100% |  88.7 MiB/s | 181.6 KiB |  00m00s
+[23/84] Upgrading libbrotli-0:1.2.0-1.f 100% | 169.5 MiB/s | 867.7 KiB |  00m00s
+[24/84] Upgrading libcurl-0:8.15.0-4.fc 100% | 220.8 MiB/s | 904.3 KiB |  00m00s
+[25/84] Upgrading curl-0:8.15.0-4.fc43. 100% |  41.2 MiB/s | 464.0 KiB |  00m00s
+[26/84] Upgrading libgomp-0:15.2.1-5.fc 100% | 265.1 MiB/s | 543.0 KiB |  00m00s
+[27/84] Upgrading pam-libs-0:1.7.1-4.fc 100% |  42.0 MiB/s | 129.1 KiB |  00m00s
+[28/84] Upgrading rpm-sequoia-0:1.10.0- 100% | 276.6 MiB/s |   2.5 MiB |  00m00s
+[29/84] Upgrading systemd-standalone-sy 100% |  28.7 MiB/s | 294.1 KiB |  00m00s
+[30/84] Upgrading rpm-libs-0:6.0.1-1.fc 100% | 182.7 MiB/s | 935.3 KiB |  00m00s
+[31/84] Upgrading rpm-sign-libs-0:6.0.1 100% |  39.6 MiB/s |  40.6 KiB |  00m00s
+[32/84] Upgrading vim-data-2:9.1.2086-1 100% |   3.7 MiB/s |  11.3 KiB |  00m00s
+[33/84] Upgrading coreutils-common-0:9. 100% | 868.6 MiB/s |  11.3 MiB |  00m00s
+[34/84] Upgrading coreutils-0:9.7-7.fc4 100% |  52.4 MiB/s |   5.5 MiB |  00m00s
+[35/84] Upgrading rpm-0:6.0.1-1.fc43.x8 100% |  36.3 MiB/s |   2.6 MiB |  00m00s
+[36/84] Upgrading vim-minimal-2:9.1.208 100% | 108.0 MiB/s |   1.7 MiB |  00m00s
+[37/84] Upgrading rpm-build-libs-0:6.0. 100% | 129.5 MiB/s | 265.2 KiB |  00m00s
+[38/84] Upgrading libsolv-0:0.7.35-3.fc 100% | 158.4 MiB/s | 973.2 KiB |  00m00s
+[39/84] Upgrading pam-0:1.7.1-4.fc43.x8 100% |  49.5 MiB/s |   1.7 MiB |  00m00s
+[40/84] Upgrading util-linux-core-0:2.4 100% |  59.2 MiB/s |   1.5 MiB |  00m00s
+[41/84] Upgrading glib2-0:2.86.3-1.fc43 100% | 391.0 MiB/s |  14.9 MiB |  00m00s
+[42/84] Upgrading libtool-ltdl-0:2.5.4- 100% |  17.4 MiB/s |  71.2 KiB |  00m00s
+[43/84] Upgrading tzdata-0:2025c-1.fc43 100% |  29.1 MiB/s |   1.9 MiB |  00m00s
+[44/84] Removing util-linux-core-0:2.41 100% |  10.0 KiB/s | 153.0   B |  00m00s
+[45/84] Removing glib2-0:2.86.1-5.fc43. 100% |   2.3 KiB/s | 177.0   B |  00m00s
+[46/84] Removing rpm-build-libs-0:6.0.0 100% | 833.0   B/s |   5.0   B |  00m00s
+[47/84] Removing pam-0:1.7.1-3.fc43.x86 100% |  16.7 KiB/s | 343.0   B |  00m00s
+[48/84] Removing libmount-0:2.41.1-17.f 100% |   5.9 KiB/s |   6.0   B |  00m00s
+[49/84] Removing rpm-sign-libs-0:6.0.0- 100% |   1.0 KiB/s |   5.0   B |  00m00s
+[50/84] Removing gnupg2-0:2.4.8-4.fc43. 100% |   2.7 KiB/s |  96.0   B |  00m00s
+[51/84] Removing gnupg2-dirmngr-0:2.4.8 100% | 352.0   B/s |  18.0   B |  00m00s
+[52/84] Removing gnupg2-gpg-agent-0:2.4 100% | 764.0   B/s |  26.0   B |  00m00s
+[53/84] Removing gnupg2-verify-0:2.4.8- 100% |   1.5 KiB/s |   9.0   B |  00m00s
+[54/84] Removing libsolv-0:0.7.35-1.fc4 100% |   1.7 KiB/s |  12.0   B |  00m00s
+[55/84] Removing gnupg2-gpgconf-0:2.4.8 100% | 518.0   B/s |  14.0   B |  00m00s
+[56/84] Removing gnupg2-keyboxd-0:2.4.8 100% | 347.0   B/s |   8.0   B |  00m00s
+[57/84] Removing libblkid-0:2.41.1-17.f 100% |   1.0 KiB/s |   6.0   B |  00m00s
+[58/84] Removing vim-minimal-2:9.1.1914 100% | 516.0   B/s |  16.0   B |  00m00s
+[59/84] Removing rpm-0:6.0.0-1.fc43.x86 100% |  10.9 KiB/s | 301.0   B |  00m00s
+[60/84] Removing rpm-libs-0:6.0.0-1.fc4 100% |   1.6 KiB/s |  10.0   B |  00m00s
+[61/84] Removing systemd-standalone-sys 100% | 272.0   B/s |   3.0   B |  00m00s
+[62/84] Removing coreutils-0:9.7-6.fc43 100% |  21.3 KiB/s | 305.0   B |  00m00s
+[63/84] Removing systemd-libs-0:258.2-1 100% |  20.5 KiB/s |  21.0   B |  00m00s
+[64/84] Removing libstdc++-0:15.2.1-4.f 100% |  30.3 KiB/s |  31.0   B |  00m00s
+[65/84] Removing rpm-sequoia-0:1.9.0-2. 100% |   8.8 KiB/s |   9.0   B |  00m00s
+[66/84] Removing libarchive-0:3.8.1-3.f 100% |  12.7 KiB/s |  13.0   B |  00m00s
+[67/84] Removing lua-libs-0:5.4.8-3.fc4 100% |   1.6 KiB/s |   8.0   B |  00m00s
+[68/84] Removing curl-0:8.15.0-3.fc43.x 100% |   2.8 KiB/s |  17.0   B |  00m00s
+[69/84] Removing libcurl-0:8.15.0-3.fc4 100% |   6.8 KiB/s |   7.0   B |  00m00s
+[70/84] Removing libuuid-0:2.41.1-17.fc 100% |   6.8 KiB/s |   7.0   B |  00m00s
+[71/84] Removing libgcrypt-0:1.11.1-2.f 100% |  11.7 KiB/s |  12.0   B |  00m00s
+[72/84] Removing pam-libs-0:1.7.1-3.fc4 100% |  13.7 KiB/s |  14.0   B |  00m00s
+[73/84] Removing libsmartcols-0:2.41.1- 100% |   6.8 KiB/s |   7.0   B |  00m00s
+[74/84] Removing libgomp-0:15.2.1-4.fc4 100% |   8.8 KiB/s |   9.0   B |  00m00s
+[75/84] Removing libtool-ltdl-0:2.5.4-7 100% |   6.8 KiB/s |   7.0   B |  00m00s
+[76/84] Removing coreutils-common-0:9.7 100% |  11.2 KiB/s | 252.0   B |  00m00s
+[77/84] Removing vim-data-2:9.1.1914-1. 100% |   3.4 KiB/s |   7.0   B |  00m00s
+[78/84] Removing tzdata-0:2025b-3.fc43. 100% | 913.6 KiB/s |   1.8 KiB |  00m00s
+[79/84] Removing libbrotli-0:1.1.0-10.f 100% |  14.6 KiB/s |  15.0   B |  00m00s
+[80/84] Removing zlib-ng-compat-0:2.2.5 100% |   1.0 KiB/s |   5.0   B |  00m00s
+[81/84] Removing glibc-0:2.42-4.fc43.x8 100% |  12.3 KiB/s | 101.0   B |  00m00s
+[82/84] Removing glibc-minimal-langpack 100% |  19.5 KiB/s | 100.0   B |  00m00s
+[83/84] Removing glibc-common-0:2.42-4. 100% |   7.4 KiB/s |  53.0   B |  00m00s
+[84/84] Removing libgcc-0:15.2.1-4.fc43 100% |  56.0   B/s |  11.0   B |  00m00s
+Complete!
+Installing openssh-server if missing...
+Updating and loading repositories:
+Repositories loaded.
+Package             Arch   Version         Repository      Size
+Installing:
+ openssh-server     x86_64 10.0p1-6.fc43   updates      1.9 MiB
+Installing dependencies:
+ dbus               x86_64 1:1.16.0-4.fc43 fedora       0.0   B
+ dbus-broker        x86_64 37-2.fc43       fedora     387.2 KiB
+ dbus-common        noarch 1:1.16.0-4.fc43 fedora      11.2 KiB
+ device-mapper      x86_64 1.02.208-2.fc43 fedora     346.6 KiB
+ device-mapper-libs x86_64 1.02.208-2.fc43 fedora     418.2 KiB
+ expat              x86_64 2.7.3-1.fc43    updates    301.1 KiB
+ kbd                x86_64 2.8.0-3.fc43    fedora       1.4 MiB
+ kbd-legacy         noarch 2.8.0-3.fc43    fedora     571.4 KiB
+ kbd-misc           noarch 2.8.0-3.fc43    fedora       2.5 MiB
+ kmod               x86_64 34.2-2.fc43     fedora     247.2 KiB
+ libcbor            x86_64 0.12.0-6.fc43   fedora      77.8 KiB
+ libfdisk           x86_64 2.41.3-7.fc43   updates    380.4 KiB
+ liblastlog2        x86_64 2.41.3-7.fc43   updates     33.9 KiB
+ libpkgconf         x86_64 2.3.0-3.fc43    fedora      78.1 KiB
+ libseccomp         x86_64 2.6.0-2.fc43    fedora     224.9 KiB
+ openssh            x86_64 10.0p1-6.fc43   updates      1.4 MiB
+ pkgconf            x86_64 2.3.0-3.fc43    fedora      88.5 KiB
+ pkgconf-m4         noarch 2.3.0-3.fc43    fedora      14.4 KiB
+ pkgconf-pkg-config x86_64 2.3.0-3.fc43    fedora     989.0   B
+ systemd            x86_64 258.3-2.fc43    updates     12.7 MiB
+ systemd-pam        x86_64 258.3-2.fc43    updates      1.2 MiB
+ systemd-shared     x86_64 258.3-2.fc43    updates      5.0 MiB
+ util-linux         x86_64 2.41.3-7.fc43   updates      3.5 MiB
+ xkeyboard-config   noarch 2.46-1.fc43     updates     10.2 MiB
+Installing weak dependencies:
+ cryptsetup-libs    x86_64 2.8.1-1.fc43    fedora       2.6 MiB
+ diffutils          x86_64 3.12-3.fc43     fedora       1.6 MiB
+ kmod-libs          x86_64 34.2-2.fc43     fedora     135.1 KiB
+ libbpf             x86_64 2:1.6.1-3.fc43  fedora     422.8 KiB
+ libfido2           x86_64 1.16.0-3.fc43   fedora     238.5 KiB
+ libxkbcommon       x86_64 1.11.0-1.fc43   fedora     408.2 KiB
+ qrencode-libs      x86_64 4.1.1-11.fc43   fedora     164.8 KiB
+ systemd-networkd   x86_64 258.3-2.fc43    updates      2.3 MiB
+ systemd-resolved   x86_64 258.3-2.fc43    updates    733.0 KiB
+ systemd-udev       x86_64 258.3-2.fc43    updates     12.7 MiB
+
+Transaction Summary:
+ Installing:        35 packages
+
+Total size of inbound packages is 18 MiB. Need to download 18 MiB.
+After this operation, 64 MiB extra will be used (install 64 MiB, remove 0 B).
+[ 1/35] systemd-0:258.3-2.fc43.x86_64   100% |  38.3 MiB/s |   4.2 MiB |  00m00s
+[ 2/35] openssh-server-0:10.0p1-6.fc43. 100% |   5.2 MiB/s | 611.5 KiB |  00m00s
+[ 3/35] systemd-pam-0:258.3-2.fc43.x86_ 100% |  10.0 MiB/s | 420.6 KiB |  00m00s
+[ 4/35] systemd-shared-0:258.3-2.fc43.x 100% |  24.5 MiB/s |   1.8 MiB |  00m00s
+[ 5/35] dbus-1:1.16.0-4.fc43.x86_64     100% | 207.7 KiB/s |   7.5 KiB |  00m00s
+[ 6/35] dbus-broker-0:37-2.fc43.x86_64  100% |   5.5 MiB/s | 173.8 KiB |  00m00s
+[ 7/35] libseccomp-0:2.6.0-2.fc43.x86_6 100% |   2.1 MiB/s |  75.7 KiB |  00m00s
+[ 8/35] dbus-common-1:1.16.0-4.fc43.noa 100% | 443.0 KiB/s |  14.2 KiB |  00m00s
+[ 9/35] util-linux-0:2.41.3-7.fc43.x86_ 100% |  22.5 MiB/s |   1.2 MiB |  00m00s
+[10/35] expat-0:2.7.3-1.fc43.x86_64     100% |   3.2 MiB/s | 119.9 KiB |  00m00s
+[11/35] openssh-0:10.0p1-6.fc43.x86_64  100% |   1.1 MiB/s | 338.5 KiB |  00m00s
+[12/35] libfdisk-0:2.41.3-7.fc43.x86_64 100% |   4.8 MiB/s | 161.9 KiB |  00m00s
+[13/35] liblastlog2-0:2.41.3-7.fc43.x86 100% | 897.8 KiB/s |  23.3 KiB |  00m00s
+[14/35] libxkbcommon-0:1.11.0-1.fc43.x8 100% |   4.2 MiB/s | 174.3 KiB |  00m00s
+[15/35] diffutils-0:3.12-3.fc43.x86_64  100% |   9.8 MiB/s | 392.3 KiB |  00m00s
+[16/35] libbpf-2:1.6.1-3.fc43.x86_64    100% |   3.9 MiB/s | 191.0 KiB |  00m00s
+[17/35] cryptsetup-libs-0:2.8.1-1.fc43. 100% |  10.4 MiB/s | 575.3 KiB |  00m00s
+[18/35] device-mapper-0:1.02.208-2.fc43 100% |   3.0 MiB/s | 138.7 KiB |  00m00s
+[19/35] device-mapper-libs-0:1.02.208-2 100% |   2.4 MiB/s | 179.9 KiB |  00m00s
+[20/35] qrencode-libs-0:4.1.1-11.fc43.x 100% |   1.7 MiB/s |  62.3 KiB |  00m00s
+[21/35] kmod-libs-0:34.2-2.fc43.x86_64  100% |   2.1 MiB/s |  68.1 KiB |  00m00s
+[22/35] xkeyboard-config-0:2.46-1.fc43. 100% |  14.1 MiB/s | 993.6 KiB |  00m00s
+[23/35] systemd-resolved-0:258.3-2.fc43 100% |   4.2 MiB/s | 319.4 KiB |  00m00s
+[24/35] systemd-networkd-0:258.3-2.fc43 100% |   9.5 MiB/s | 774.4 KiB |  00m00s
+[25/35] kmod-0:34.2-2.fc43.x86_64       100% |   3.6 MiB/s | 132.7 KiB |  00m00s
+[26/35] kbd-0:2.8.0-3.fc43.x86_64       100% |   7.7 MiB/s | 386.1 KiB |  00m00s
+[27/35] systemd-udev-0:258.3-2.fc43.x86 100% |  37.5 MiB/s |   2.6 MiB |  00m00s
+[28/35] kbd-legacy-0:2.8.0-3.fc43.noarc 100% |  16.1 MiB/s | 578.3 KiB |  00m00s
+[29/35] kbd-misc-0:2.8.0-3.fc43.noarch  100% |  32.9 MiB/s |   1.6 MiB |  00m00s
+[30/35] pkgconf-pkg-config-0:2.3.0-3.fc 100% | 282.6 KiB/s |   9.6 KiB |  00m00s
+[31/35] pkgconf-0:2.3.0-3.fc43.x86_64   100% |   1.7 MiB/s |  44.6 KiB |  00m00s
+[32/35] pkgconf-m4-0:2.3.0-3.fc43.noarc 100% | 496.8 KiB/s |  13.9 KiB |  00m00s
+[33/35] libpkgconf-0:2.3.0-3.fc43.x86_6 100% |   1.1 MiB/s |  37.9 KiB |  00m00s
+[34/35] libfido2-0:1.16.0-3.fc43.x86_64 100% |   2.9 MiB/s |  98.5 KiB |  00m00s
+[35/35] libcbor-0:0.12.0-6.fc43.x86_64  100% |   1.1 MiB/s |  33.5 KiB |  00m00s
+--------------------------------------------------------------------------------
+[35/35] Total                           100% |  23.1 MiB/s |  18.4 MiB |  00m01s
+Running transaction
+[ 1/37] Verify package files            100% | 209.0   B/s |  35.0   B |  00m00s
+[ 2/37] Prepare transaction             100% |   1.3 KiB/s |  35.0   B |  00m00s
+[ 3/37] Installing libfdisk-0:2.41.3-7. 100% |  33.9 MiB/s | 381.6 KiB |  00m00s
+[ 4/37] Installing libseccomp-0:2.6.0-2 100% | 221.4 MiB/s | 226.8 KiB |  00m00s
+[ 5/37] Installing systemd-shared-0:258 100% | 291.3 MiB/s |   5.0 MiB |  00m00s
+[ 6/37] Installing libcbor-0:0.12.0-6.f 100% |  77.3 MiB/s |  79.2 KiB |  00m00s
+[ 7/37] Installing libpkgconf-0:2.3.0-3 100% |  77.4 MiB/s |  79.2 KiB |  00m00s
+[ 8/37] Installing pkgconf-0:2.3.0-3.fc 100% |   8.1 MiB/s |  91.0 KiB |  00m00s
+[ 9/37] Installing pkgconf-m4-0:2.3.0-3 100% |  14.5 MiB/s |  14.8 KiB |  00m00s
+[10/37] Installing pkgconf-pkg-config-0 100% | 197.0 KiB/s |   1.8 KiB |  00m00s
+[11/37] Installing kmod-0:34.2-2.fc43.x 100% |  20.6 MiB/s | 253.1 KiB |  00m00s
+[12/37] Installing kbd-misc-0:2.8.0-3.f 100% | 118.6 MiB/s |   2.6 MiB |  00m00s
+[13/37] Installing kbd-legacy-0:2.8.0-3 100% |  60.7 MiB/s | 621.4 KiB |  00m00s
+[14/37] Installing kbd-0:2.8.0-3.fc43.x 100% |  97.3 MiB/s |   1.5 MiB |  00m00s
+[15/37] Installing xkeyboard-config-0:2 100% | 490.8 MiB/s |  10.3 MiB |  00m00s
+[16/37] Installing kmod-libs-0:34.2-2.f 100% | 133.0 MiB/s | 136.2 KiB |  00m00s
+[17/37] Installing libbpf-2:1.6.1-3.fc4 100% | 206.9 MiB/s | 423.7 KiB |  00m00s
+[18/37] Installing liblastlog2-0:2.41.3 100% |   1.6 MiB/s |  36.0 KiB |  00m00s
+[19/37] Installing util-linux-0:2.41.3- 100% |  70.1 MiB/s |   3.6 MiB |  00m00s
+[20/37] Installing openssh-0:10.0p1-6.f 100% | 107.1 MiB/s |   1.4 MiB |  00m00s
+[21/37] Installing expat-0:2.7.3-1.fc43 100% |   4.9 MiB/s | 303.2 KiB |  00m00s
+>>> Running sysusers scriptlet: dbus-common-1:1.16.0-4.fc43.noarch              
+>>> Finished sysusers scriptlet: dbus-common-1:1.16.0-4.fc43.noarch             
+>>> Scriptlet output:                                                           
+>>> Creating group 'dbus' with GID 81.                                          
+>>> Creating user 'dbus' (System Message Bus) with UID 81 and GID 81.           
+>>>                                                                             
+[22/37] Installing dbus-common-1:1.16.0 100% | 208.5 KiB/s |  13.6 KiB |  00m00s
+[23/37] Installing dbus-broker-0:37-2.f 100% |  11.5 MiB/s | 389.8 KiB |  00m00s
+[24/37] Installing dbus-1:1.16.0-4.fc43 100% |   1.2 KiB/s | 124.0   B |  00m00s
+>>> Running sysusers scriptlet: systemd-0:258.3-2.fc43.x86_64                   
+>>> Finished sysusers scriptlet: systemd-0:258.3-2.fc43.x86_64                  
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-journal' with GID 190.                              
+>>>                                                                             
+>>> Running sysusers scriptlet: systemd-0:258.3-2.fc43.x86_64                   
+>>> Finished sysusers scriptlet: systemd-0:258.3-2.fc43.x86_64                  
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-oom' with GID 999.                                  
+>>> Creating user 'systemd-oom' (systemd Userspace OOM Killer) with UID 999 and 
+>>>                                                                             
+[25/37] Installing systemd-0:258.3-2.fc 100% |  45.6 MiB/s |  12.9 MiB |  00m00s
+[26/37] Installing systemd-pam-0:258.3- 100% | 231.7 MiB/s |   1.2 MiB |  00m00s
+[27/37] Installing device-mapper-0:1.02 100% |  31.1 MiB/s | 350.2 KiB |  00m00s
+[28/37] Installing device-mapper-libs-0 100% | 204.8 MiB/s | 419.4 KiB |  00m00s
+[29/37] Installing cryptsetup-libs-0:2. 100% |  22.2 MiB/s |   2.6 MiB |  00m00s
+>>> Running sysusers scriptlet: systemd-udev-0:258.3-2.fc43.x86_64              
+>>> Finished sysusers scriptlet: systemd-udev-0:258.3-2.fc43.x86_64             
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-coredump' with GID 998.                             
+>>> Creating user 'systemd-coredump' (systemd Core Dumper) with UID 998 and GID 
+>>>                                                                             
+>>> Running sysusers scriptlet: systemd-udev-0:258.3-2.fc43.x86_64              
+>>> Finished sysusers scriptlet: systemd-udev-0:258.3-2.fc43.x86_64             
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-timesync' with GID 997.                             
+>>> Creating user 'systemd-timesync' (systemd Time Synchronization) with UID 997
+>>>                                                                             
+[30/37] Installing systemd-udev-0:258.3 100% |  20.8 MiB/s |  12.8 MiB |  00m01s
+>>> Running %post scriptlet: systemd-udev-0:258.3-2.fc43.x86_64                 
+>>> Finished %post scriptlet: systemd-udev-0:258.3-2.fc43.x86_64                
+>>> Scriptlet output:                                                           
+>>> Failed to preset unit: Unit system-systemdx2dcryptsetup.slice does not exist
+>>>                                                                             
+>>> Running sysusers scriptlet: openssh-server-0:10.0p1-6.fc43.x86_64           
+>>> Finished sysusers scriptlet: openssh-server-0:10.0p1-6.fc43.x86_64          
+>>> Scriptlet output:                                                           
+>>> Creating group 'sshd' with GID 74.                                          
+>>> Creating user 'sshd' (Privilege-separated SSH) with UID 74 and GID 74.      
+>>>                                                                             
+[31/37] Installing openssh-server-0:10. 100% |  13.9 MiB/s |   1.9 MiB |  00m00s
+>>> Running %post scriptlet: openssh-server-0:10.0p1-6.fc43.x86_64              
+>>> Finished %post scriptlet: openssh-server-0:10.0p1-6.fc43.x86_64             
+>>> Scriptlet output:                                                           
+>>> Created symlink '/etc/systemd/system/multi-user.target.wants/sshd.service' 
+>>>                                                                             
+>>> Running sysusers scriptlet: systemd-networkd-0:258.3-2.fc43.x86_64          
+>>> Finished sysusers scriptlet: systemd-networkd-0:258.3-2.fc43.x86_64         
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-network' with GID 192.                              
+>>> Creating user 'systemd-network' (systemd Network Management) with UID 192 an
+>>>                                                                             
+[32/37] Installing systemd-networkd-0:2 100% |  15.2 MiB/s |   2.3 MiB |  00m00s
+>>> Running %post scriptlet: systemd-networkd-0:258.3-2.fc43.x86_64             
+>>> Finished %post scriptlet: systemd-networkd-0:258.3-2.fc43.x86_64            
+>>> Scriptlet output:                                                           
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-network-ge
+>>>                                                                             
+>>> Running sysusers scriptlet: systemd-resolved-0:258.3-2.fc43.x86_64          
+>>> Finished sysusers scriptlet: systemd-resolved-0:258.3-2.fc43.x86_64         
+>>> Scriptlet output:                                                           
+>>> Creating group 'systemd-resolve' with GID 193.                              
+>>> Creating user 'systemd-resolve' (systemd Resolver) with UID 193 and GID 193.
+>>>                                                                             
+[33/37] Installing systemd-resolved-0:2 100% |   6.9 MiB/s | 737.5 KiB |  00m00s
+>>> Running %post scriptlet: systemd-resolved-0:258.3-2.fc43.x86_64             
+>>> Finished %post scriptlet: systemd-resolved-0:258.3-2.fc43.x86_64            
+>>> Scriptlet output:                                                           
+>>> Created symlink '/etc/systemd/system/dbus-org.freedesktop.resolve1.service' 
+>>> Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-resolved.s
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-v
+>>> Created symlink '/etc/systemd/system/sockets.target.wants/systemd-resolved-m
+>>>                                                                             
+[34/37] Installing libxkbcommon-0:1.11. 100% | 100.1 MiB/s | 409.9 KiB |  00m00s
+[35/37] Installing libfido2-0:1.16.0-3. 100% | 117.2 MiB/s | 240.0 KiB |  00m00s
+[36/37] Installing qrencode-libs-0:4.1. 100% | 162.7 MiB/s | 166.6 KiB |  00m00s
+[37/37] Installing diffutils-0:3.12-3.f 100% |   1.8 MiB/s |   1.6 MiB |  00m01s
+Complete!
+Configuring firewall for SSH...
+Setting passwordless sudo for current user...
+Installing base packages...
+Updating and loading repositories:
+Repositories loaded.
+Package "curl-8.15.0-4.fc43.x86_64" is already installed.
+
+Package                               Arch   Version                 Repository                 Size
+Installing:
+ figlet                               x86_64 2.2.5-38.fc43           updates               668.9 KiB
+ git                                  x86_64 2.52.0-1.fc43           updates                56.4 KiB
+ screenfetch                          noarch 3.9.1-14.fc43           fedora                297.3 KiB
+ vim-enhanced                         x86_64 2:9.1.2086-1.fc43       updates                 4.2 MiB
+ zsh                                  x86_64 5.9-18.fc43             fedora                  7.9 MiB
+Installing dependencies:
+ abattis-cantarell-vf-fonts           noarch 0.301-15.fc43           fedora                192.7 KiB
+ adobe-mappings-cmap                  noarch 20231115-3.fc43         fedora                 15.2 MiB
+ adobe-mappings-cmap-deprecated       noarch 20231115-3.fc43         fedora                582.1 KiB
+ adobe-mappings-pdf                   noarch 20190401-10.fc43        fedora                  4.4 MiB
+ avahi-libs                           x86_64 0.9~rc2-6.fc43          fedora                171.6 KiB
+ bubblewrap                           x86_64 0.11.0-2.fc43           fedora                135.0 KiB
+ cairo                                x86_64 1.18.4-2.fc43           fedora                  1.8 MiB
+ cairo-gobject                        x86_64 1.18.4-2.fc43           fedora                 31.1 KiB
+ cups-filesystem                      noarch 1:2.4.16-4.fc43         updates                 0.0   B
+ cups-libs                            x86_64 1:2.4.16-4.fc43         updates               618.7 KiB
+ dbus-libs                            x86_64 1:1.16.0-4.fc43         fedora                345.5 KiB
+ default-fonts-core-sans              noarch 4.2-5.fc43              fedora                 11.9 KiB
+ fontconfig                           x86_64 2.17.0-3.fc43           fedora                765.9 KiB
+ fonts-filesystem                     noarch 1:2.0.5-23.fc43         fedora                  0.0   B
+ freetype                             x86_64 2.13.3-3.fc43           fedora                850.2 KiB
+ fribidi                              x86_64 1.0.16-3.fc43           fedora                190.3 KiB
+ gdk-pixbuf2                          x86_64 2.44.4-1.fc43           updates                 2.5 MiB
+ giflib                               x86_64 5.2.2-8.fc43            fedora                112.1 KiB
+ git-core                             x86_64 2.52.0-1.fc43           updates                24.0 MiB
+ git-core-doc                         noarch 2.52.0-1.fc43           updates                18.4 MiB
+ glycin-libs                          x86_64 2.0.5-1.fc43            updates                 4.4 MiB
+ glycin-loaders                       x86_64 2.0.5-1.fc43            updates                13.0 MiB
+ google-droid-sans-fonts              noarch 20200215-23.fc43        fedora                  6.3 MiB
+ google-noto-fonts-common             noarch 20251101-2.fc43         updates                17.7 KiB
+ google-noto-sans-vf-fonts            noarch 20251101-2.fc43         updates                 1.4 MiB
+ gpm-libs                             x86_64 1.20.7-52.fc43          fedora                 31.6 KiB
+ graphite2                            x86_64 1.3.14-19.fc43          fedora                191.8 KiB
+ groff-base                           x86_64 1.23.0-11.fc43          updates                 3.8 MiB
+ harfbuzz                             x86_64 11.5.1-2.fc43           updates                 2.8 MiB
+ highway                              x86_64 1.3.0-1.fc43            updates                 5.5 MiB
+ hwdata                               noarch 0.403-1.fc43            updates                 9.8 MiB
+ imlib2                               x86_64 1.12.3-3.fc43           fedora                761.4 KiB
+ jbig2dec-libs                        x86_64 0.20-7.fc43             fedora                164.9 KiB
+ jbigkit-libs                         x86_64 2.1-32.fc43             fedora                113.5 KiB
+ lcms2                                x86_64 2.16-6.fc43             fedora                433.7 KiB
+ less                                 x86_64 679-2.fc43              fedora                406.1 KiB
+ libICE                               x86_64 1.1.2-3.fc43            fedora                194.4 KiB
+ libSM                                x86_64 1.2.5-3.fc43            fedora                101.0 KiB
+ libX11                               x86_64 1.8.12-1.fc43           fedora                  1.3 MiB
+ libX11-common                        noarch 1.8.12-1.fc43           fedora                  1.2 MiB
+ libX11-xcb                           x86_64 1.8.12-1.fc43           fedora                 10.9 KiB
+ libXau                               x86_64 1.0.12-3.fc43           fedora                 72.9 KiB
+ libXcomposite                        x86_64 0.4.6-6.fc43            fedora                 40.5 KiB
+ libXext                              x86_64 1.3.6-4.fc43            fedora                 90.0 KiB
+ libXfixes                            x86_64 6.0.1-6.fc43            fedora                 26.2 KiB
+ libXft                               x86_64 2.3.8-9.fc43            fedora                164.4 KiB
+ libXinerama                          x86_64 1.1.5-9.fc43            fedora                 15.0 KiB
+ libXrender                           x86_64 0.9.12-3.fc43           fedora                 46.0 KiB
+ libXt                                x86_64 1.3.1-3.fc43            fedora                429.8 KiB
+ libaom                               x86_64 3.13.1-1.fc43           fedora                  5.0 MiB
+ libdatrie                            x86_64 0.2.13-12.fc43          fedora                 53.8 KiB
+ libdav1d                             x86_64 1.5.2-1.fc43            updates                 1.7 MiB
+ libedit                              x86_64 3.1-57.20251016cvs.fc43 updates               240.2 KiB
+ libgs                                x86_64 10.05.1-5.fc43          fedora                 23.5 MiB
+ libheif                              x86_64 1.20.2-6.fc43           fedora                  1.6 MiB
+ libijs                               x86_64 0.35-25.fc43            fedora                 61.6 KiB
+ libjpeg-turbo                        x86_64 3.1.2-1.fc43            fedora                804.9 KiB
+ libjxl                               x86_64 1:0.11.1-7.fc43         updates                 4.1 MiB
+ liblerc                              x86_64 4.0.0-9.fc43            fedora                624.1 KiB
+ libopenjph                           x86_64 0.22.0-2.fc43           fedora                466.2 KiB
+ libpaper                             x86_64 1:2.1.1-9.fc43          fedora                 48.7 KiB
+ libpng                               x86_64 2:1.6.53-1.fc43         updates               241.7 KiB
+ librsvg2                             x86_64 2.61.0-5.fc43           updates                 5.1 MiB
+ libsodium                            x86_64 1.0.21-2.fc43           updates               449.4 KiB
+ libspectre                           x86_64 0.2.12-10.fc43          fedora                 89.8 KiB
+ libthai                              x86_64 0.1.29-11.fc43          fedora                783.4 KiB
+ libtiff                              x86_64 4.7.1-1.fc43            updates               624.4 KiB
+ libvmaf                              x86_64 3.0.0-4.fc43            fedora                827.0 KiB
+ libwebp                              x86_64 1.6.0-2.fc43            fedora                956.6 KiB
+ libxcb                               x86_64 1.17.0-6.fc43           fedora                  1.1 MiB
+ lzo                                  x86_64 2.10-15.fc43            fedora                178.9 KiB
+ ncurses                              x86_64 6.5-7.20250614.fc43     fedora                609.8 KiB
+ openh264                             x86_64 2.6.0-2.fc43            fedora-cisco-openh264   1.1 MiB
+ openjpeg                             x86_64 2.5.4-1.fc43            fedora                456.3 KiB
+ openssh-clients                      x86_64 10.0p1-6.fc43           updates                 2.6 MiB
+ pango                                x86_64 1.57.0-1.fc43           fedora                  1.0 MiB
+ pciutils                             x86_64 3.14.0-2.fc43           fedora                284.1 KiB
+ pciutils-libs                        x86_64 3.14.0-2.fc43           fedora                 99.4 KiB
+ perl-AutoLoader                      noarch 5.74-520.fc43           fedora                 20.6 KiB
+ perl-B                               x86_64 1.89-520.fc43           fedora                501.3 KiB
+ perl-Carp                            noarch 1.54-520.fc43           fedora                 46.6 KiB
+ perl-Class-Struct                    noarch 0.68-520.fc43           fedora                 25.4 KiB
+ perl-Data-Dumper                     x86_64 2.191-521.fc43          fedora                115.6 KiB
+ perl-Digest                          noarch 1.20-520.fc43           fedora                 35.3 KiB
+ perl-Digest-MD5                      x86_64 2.59-520.fc43           fedora                 59.7 KiB
+ perl-DynaLoader                      x86_64 1.57-520.fc43           fedora                 32.1 KiB
+ perl-Encode                          x86_64 4:3.21-520.fc43         fedora                  4.7 MiB
+ perl-Errno                           x86_64 1.38-520.fc43           fedora                  8.4 KiB
+ perl-Error                           noarch 1:0.17030-2.fc43        fedora                 76.7 KiB
+ perl-Exporter                        noarch 5.79-520.fc43           fedora                 54.3 KiB
+ perl-Fcntl                           x86_64 1.20-520.fc43           fedora                 48.8 KiB
+ perl-File-Basename                   noarch 2.86-520.fc43           fedora                 14.0 KiB
+ perl-File-Path                       noarch 2.18-520.fc43           fedora                 63.5 KiB
+ perl-File-Temp                       noarch 1:0.231.100-520.fc43    fedora                162.3 KiB
+ perl-File-stat                       noarch 1.14-520.fc43           fedora                 12.5 KiB
+ perl-FileHandle                      noarch 2.05-520.fc43           fedora                  9.4 KiB
+ perl-Getopt-Long                     noarch 1:2.58-520.fc43         fedora                144.5 KiB
+ perl-Getopt-Std                      noarch 1.14-520.fc43           fedora                 11.2 KiB
+ perl-Git                             noarch 2.52.0-1.fc43           updates                64.4 KiB
+ perl-HTTP-Tiny                       noarch 0.090-521.fc43          fedora                154.4 KiB
+ perl-IO                              x86_64 1.55-520.fc43           fedora                147.4 KiB
+ perl-IO-Socket-IP                    noarch 0.43-521.fc43           fedora                100.3 KiB
+ perl-IO-Socket-SSL                   noarch 2.095-2.fc43            fedora                714.5 KiB
+ perl-IPC-Open3                       noarch 1.24-520.fc43           fedora                 27.7 KiB
+ perl-MIME-Base32                     noarch 1.303-24.fc43           fedora                 30.7 KiB
+ perl-MIME-Base64                     x86_64 3.16-520.fc43           fedora                 42.0 KiB
+ perl-Net-SSLeay                      x86_64 1.94-11.fc43            fedora                  1.3 MiB
+ perl-POSIX                           x86_64 2.23-520.fc43           fedora                231.4 KiB
+ perl-PathTools                       x86_64 3.94-520.fc43           fedora                180.0 KiB
+ perl-Pod-Escapes                     noarch 1:1.07-520.fc43         fedora                 24.9 KiB
+ perl-Pod-Perldoc                     noarch 3.28.01-521.fc43        fedora                163.7 KiB
+ perl-Pod-Simple                      noarch 1:3.47-3.fc43           fedora                565.3 KiB
+ perl-Pod-Usage                       noarch 4:2.05-520.fc43         fedora                 86.3 KiB
+ perl-Scalar-List-Utils               x86_64 5:1.70-1.fc43           fedora                144.9 KiB
+ perl-SelectSaver                     noarch 1.02-520.fc43           fedora                  2.2 KiB
+ perl-Socket                          x86_64 4:2.040-2.fc43          fedora                120.3 KiB
+ perl-Storable                        x86_64 1:3.37-521.fc43         fedora                231.2 KiB
+ perl-Symbol                          noarch 1.09-520.fc43           fedora                  6.8 KiB
+ perl-Term-ANSIColor                  noarch 5.01-521.fc43           fedora                 97.5 KiB
+ perl-Term-Cap                        noarch 1.18-520.fc43           fedora                 29.3 KiB
+ perl-TermReadKey                     x86_64 2.38-26.fc43            fedora                 64.0 KiB
+ perl-Text-ParseWords                 noarch 3.31-520.fc43           fedora                 13.6 KiB
+ perl-Text-Tabs+Wrap                  noarch 2024.001-520.fc43       fedora                 22.6 KiB
+ perl-Time-Local                      noarch 2:1.350-520.fc43        fedora                 69.0 KiB
+ perl-URI                             noarch 5.34-2.fc43             updates               268.0 KiB
+ perl-base                            noarch 2.27-520.fc43           fedora                 12.6 KiB
+ perl-constant                        noarch 1.33-521.fc43           fedora                 26.2 KiB
+ perl-if                              noarch 0.61.000-520.fc43       fedora                  5.8 KiB
+ perl-interpreter                     x86_64 4:5.42.0-520.fc43       fedora                118.6 KiB
+ perl-lib                             x86_64 0.65-520.fc43           fedora                  8.5 KiB
+ perl-libnet                          noarch 3.15-521.fc43           fedora                289.4 KiB
+ perl-libs                            x86_64 4:5.42.0-520.fc43       fedora                 11.5 MiB
+ perl-locale                          noarch 1.13-520.fc43           fedora                  6.1 KiB
+ perl-mro                             x86_64 1.29-520.fc43           fedora                 41.6 KiB
+ perl-overload                        noarch 1.40-520.fc43           fedora                 71.6 KiB
+ perl-overloading                     noarch 0.02-520.fc43           fedora                  4.9 KiB
+ perl-parent                          noarch 1:0.244-520.fc43        fedora                 10.3 KiB
+ perl-podlators                       noarch 1:6.0.2-520.fc43        fedora                317.5 KiB
+ perl-vars                            noarch 1.05-520.fc43           fedora                  3.9 KiB
+ pixman                               x86_64 0.46.2-2.fc43           fedora                710.3 KiB
+ rav1e-libs                           x86_64 0.8.1-2.fc43            updates                 3.1 MiB
+ shared-mime-info                     x86_64 2.4-2.fc43              fedora                  5.2 MiB
+ svt-av1-libs                         x86_64 3.1.2-1.fc43            fedora                  5.6 MiB
+ urw-base35-bookman-fonts             noarch 20200910-26.fc43        fedora                  1.4 MiB
+ urw-base35-c059-fonts                noarch 20200910-26.fc43        fedora                  1.4 MiB
+ urw-base35-d050000l-fonts            noarch 20200910-26.fc43        fedora                 84.3 KiB
+ urw-base35-fonts                     noarch 20200910-26.fc43        fedora                  5.3 KiB
+ urw-base35-fonts-common              noarch 20200910-26.fc43        fedora                 37.4 KiB
+ urw-base35-gothic-fonts              noarch 20200910-26.fc43        fedora                  1.2 MiB
+ urw-base35-nimbus-mono-ps-fonts      noarch 20200910-26.fc43        fedora                  1.0 MiB
+ urw-base35-nimbus-roman-fonts        noarch 20200910-26.fc43        fedora                  1.4 MiB
+ urw-base35-nimbus-sans-fonts         noarch 20200910-26.fc43        fedora                  2.4 MiB
+ urw-base35-p052-fonts                noarch 20200910-26.fc43        fedora                  1.5 MiB
+ urw-base35-standard-symbols-ps-fonts noarch 20200910-26.fc43        fedora                 64.9 KiB
+ urw-base35-z003-fonts                noarch 20200910-26.fc43        fedora                390.8 KiB
+ vim-common                           x86_64 2:9.1.2086-1.fc43       updates                37.0 MiB
+ vim-filesystem                       noarch 2:9.1.2086-1.fc43       updates                40.0   B
+ which                                x86_64 2.23-3.fc43             fedora                 83.5 KiB
+ xml-common                           noarch 0.6.3-67.fc43           fedora                 78.4 KiB
+ xxd                                  x86_64 2:9.1.2086-1.fc43       updates                33.2 KiB
+Installing weak dependencies:
+ perl-NDBM_File                       x86_64 1.18-520.fc43           fedora                 28.5 KiB
+ scrot                                x86_64 1.12.1-2.fc43           fedora                132.7 KiB
+
+Transaction Summary:
+ Installing:       167 packages
+
+Total size of inbound packages is 74 MiB. Need to download 74 MiB.
+After this operation, 276 MiB extra will be used (install 276 MiB, remove 0 B).
+[  1/167] figlet-0:2.2.5-38.fc43.x86_64 100% | 534.2 KiB/s | 137.8 KiB |  00m00s
+[  2/167] screenfetch-0:3.9.1-14.fc43.n 100% | 292.8 KiB/s |  77.0 KiB |  00m00s
+[  3/167] git-0:2.52.0-1.fc43.x86_64    100% | 620.7 KiB/s |  41.0 KiB |  00m00s
+[  4/167] zsh-0:5.9-18.fc43.x86_64      100% |   6.8 MiB/s |   3.3 MiB |  00m00s
+[  5/167] perl-Git-0:2.52.0-1.fc43.noar 100% | 297.4 KiB/s |  38.1 KiB |  00m00s
+[  6/167] git-core-doc-0:2.52.0-1.fc43. 100% |   8.6 MiB/s |   3.1 MiB |  00m00s
+[  7/167] git-core-0:2.52.0-1.fc43.x86_ 100% |  11.6 MiB/s |   5.2 MiB |  00m00s
+[  8/167] perl-File-Basename-0:2.86-520 100% | 178.8 KiB/s |  17.2 KiB |  00m00s
+[  9/167] perl-Getopt-Long-1:2.58-520.f 100% |   1.2 MiB/s |  63.6 KiB |  00m00s
+[ 10/167] perl-IPC-Open3-0:1.24-520.fc4 100% | 412.6 KiB/s |  23.9 KiB |  00m00s
+[ 11/167] perl-TermReadKey-0:2.38-26.fc 100% | 640.9 KiB/s |  35.2 KiB |  00m00s
+[ 12/167] perl-PathTools-0:3.94-520.fc4 100% | 991.2 KiB/s |  87.2 KiB |  00m00s
+[ 13/167] perl-lib-0:0.65-520.fc43.x86_ 100% | 249.2 KiB/s |  15.0 KiB |  00m00s
+[ 14/167] perl-interpreter-4:5.42.0-520 100% | 786.8 KiB/s |  72.4 KiB |  00m00s
+[ 15/167] less-0:679-2.fc43.x86_64      100% |   2.0 MiB/s | 195.3 KiB |  00m00s
+[ 16/167] perl-Error-1:0.17030-2.fc43.n 100% | 582.4 KiB/s |  40.2 KiB |  00m00s
+[ 17/167] perl-Exporter-0:5.79-520.fc43 100% | 467.4 KiB/s |  30.9 KiB |  00m00s
+[ 18/167] perl-constant-0:1.33-521.fc43 100% | 414.0 KiB/s |  22.8 KiB |  00m00s
+[ 19/167] perl-Carp-0:1.54-520.fc43.noa 100% | 522.0 KiB/s |  28.7 KiB |  00m00s
+[ 20/167] perl-Pod-Usage-4:2.05-520.fc4 100% | 711.1 KiB/s |  40.5 KiB |  00m00s
+[ 21/167] perl-Text-ParseWords-0:3.31-5 100% | 308.4 KiB/s |  16.3 KiB |  00m00s
+[ 22/167] perl-base-0:2.27-520.fc43.noa 100% | 300.4 KiB/s |  16.2 KiB |  00m00s
+[ 23/167] perl-overload-0:1.40-520.fc43 100% | 785.5 KiB/s |  45.6 KiB |  00m00s
+[ 24/167] perl-Fcntl-0:1.20-520.fc43.x8 100% | 620.7 KiB/s |  29.8 KiB |  00m00s
+[ 25/167] perl-Symbol-0:1.09-520.fc43.n 100% | 232.8 KiB/s |  14.2 KiB |  00m00s
+[ 26/167] perl-IO-0:1.55-520.fc43.x86_6 100% | 805.9 KiB/s |  82.2 KiB |  00m00s
+[ 27/167] perl-POSIX-0:2.23-520.fc43.x8 100% | 978.1 KiB/s |  97.8 KiB |  00m00s
+[ 28/167] perl-Errno-0:1.38-520.fc43.x8 100% | 293.0 KiB/s |  14.9 KiB |  00m00s
+[ 29/167] perl-DynaLoader-0:1.57-520.fc 100% | 530.9 KiB/s |  26.0 KiB |  00m00s
+[ 30/167] perl-Scalar-List-Utils-5:1.70 100% | 772.7 KiB/s |  75.0 KiB |  00m00s
+[ 31/167] perl-libs-4:5.42.0-520.fc43.x 100% |  14.9 MiB/s |   2.6 MiB |  00m00s
+[ 32/167] perl-vars-0:1.05-520.fc43.noa 100% | 129.9 KiB/s |  13.0 KiB |  00m00s
+[ 33/167] perl-Pod-Perldoc-0:3.28.01-52 100% | 780.6 KiB/s |  84.3 KiB |  00m00s
+[ 34/167] perl-mro-0:1.29-520.fc43.x86_ 100% | 563.7 KiB/s |  29.9 KiB |  00m00s
+[ 35/167] perl-podlators-1:6.0.2-520.fc 100% |   1.4 MiB/s | 128.3 KiB |  00m00s
+[ 36/167] perl-overloading-0:0.02-520.f 100% | 201.7 KiB/s |  12.9 KiB |  00m00s
+[ 37/167] perl-File-stat-0:1.14-520.fc4 100% | 316.0 KiB/s |  17.1 KiB |  00m00s
+[ 38/167] perl-SelectSaver-0:1.02-520.f 100% | 239.2 KiB/s |  11.7 KiB |  00m00s
+[ 39/167] perl-Socket-4:2.040-2.fc43.x8 100% | 845.3 KiB/s |  54.9 KiB |  00m00s
+[ 40/167] perl-locale-0:1.13-520.fc43.n 100% | 221.4 KiB/s |  13.5 KiB |  00m00s
+[ 41/167] perl-File-Temp-1:0.231.100-52 100% | 983.8 KiB/s |  59.0 KiB |  00m00s
+[ 42/167] perl-HTTP-Tiny-0:0.090-521.fc 100% |   1.1 MiB/s |  56.3 KiB |  00m00s
+[ 43/167] perl-parent-1:0.244-520.fc43. 100% | 172.1 KiB/s |  14.8 KiB |  00m00s
+[ 44/167] perl-Pod-Simple-1:3.47-3.fc43 100% |   1.8 MiB/s | 219.9 KiB |  00m00s
+[ 45/167] perl-Term-ANSIColor-0:5.01-52 100% | 546.8 KiB/s |  47.6 KiB |  00m00s
+[ 46/167] perl-Term-Cap-0:1.18-520.fc43 100% | 384.8 KiB/s |  21.9 KiB |  00m00s
+[ 47/167] perl-Class-Struct-0:0.68-520. 100% | 459.9 KiB/s |  22.1 KiB |  00m00s
+[ 48/167] perl-File-Path-0:2.18-520.fc4 100% | 674.1 KiB/s |  35.1 KiB |  00m00s
+[ 49/167] perl-MIME-Base64-0:3.16-520.f 100% | 619.0 KiB/s |  29.7 KiB |  00m00s
+[ 50/167] perl-IO-Socket-SSL-0:2.095-2. 100% |   2.3 MiB/s | 231.5 KiB |  00m00s
+[ 51/167] perl-Net-SSLeay-0:1.94-11.fc4 100% |   3.7 MiB/s | 374.8 KiB |  00m00s
+[ 52/167] perl-Time-Local-2:1.350-520.f 100% | 636.6 KiB/s |  34.4 KiB |  00m00s
+[ 53/167] perl-Pod-Escapes-1:1.07-520.f 100% | 366.3 KiB/s |  19.8 KiB |  00m00s
+[ 54/167] perl-if-0:0.61.000-520.fc43.n 100% | 245.7 KiB/s |  14.0 KiB |  00m00s
+[ 55/167] perl-Text-Tabs+Wrap-0:2024.00 100% | 360.6 KiB/s |  21.6 KiB |  00m00s
+[ 56/167] perl-IO-Socket-IP-0:0.43-521. 100% | 793.6 KiB/s |  42.1 KiB |  00m00s
+[ 57/167] perl-AutoLoader-0:5.74-520.fc 100% | 379.4 KiB/s |  21.2 KiB |  00m00s
+[ 58/167] ncurses-0:6.5-7.20250614.fc43 100% |   4.0 MiB/s | 426.2 KiB |  00m00s
+[ 59/167] gpm-libs-0:1.20.7-52.fc43.x86 100% | 183.8 KiB/s |  20.0 KiB |  00m00s
+[ 60/167] vim-enhanced-2:9.1.2086-1.fc4 100% |  10.5 MiB/s |   2.0 MiB |  00m00s
+[ 61/167] which-0:2.23-3.fc43.x86_64    100% | 521.7 KiB/s |  41.7 KiB |  00m00s
+[ 62/167] vim-common-2:9.1.2086-1.fc43. 100% |  25.0 MiB/s |   8.1 MiB |  00m00s
+[ 63/167] pciutils-libs-0:3.14.0-2.fc43 100% | 555.1 KiB/s |  52.2 KiB |  00m00s
+[ 64/167] pciutils-0:3.14.0-2.fc43.x86_ 100% | 897.3 KiB/s | 124.7 KiB |  00m00s
+[ 65/167] perl-Getopt-Std-0:1.14-520.fc 100% | 280.4 KiB/s |  15.7 KiB |  00m00s
+[ 66/167] perl-Storable-1:3.37-521.fc43 100% | 849.6 KiB/s |  98.5 KiB |  00m00s
+[ 67/167] perl-Encode-4:3.21-520.fc43.x 100% |   8.0 MiB/s |   1.1 MiB |  00m00s
+[ 68/167] groff-base-0:1.23.0-11.fc43.x 100% |   8.5 MiB/s |   1.1 MiB |  00m00s
+[ 69/167] perl-Data-Dumper-0:2.191-521. 100% | 970.1 KiB/s |  56.3 KiB |  00m00s
+[ 70/167] perl-URI-0:5.34-2.fc43.noarch 100% |   1.6 MiB/s | 149.3 KiB |  00m00s
+[ 71/167] perl-MIME-Base32-0:1.303-24.f 100% | 407.0 KiB/s |  20.4 KiB |  00m00s
+[ 72/167] perl-libnet-0:3.15-521.fc43.n 100% |   1.4 MiB/s | 128.3 KiB |  00m00s
+[ 73/167] perl-Digest-MD5-0:2.59-520.fc 100% | 617.7 KiB/s |  35.8 KiB |  00m00s
+[ 74/167] perl-B-0:1.89-520.fc43.x86_64 100% |   1.5 MiB/s | 177.7 KiB |  00m00s
+[ 75/167] perl-FileHandle-0:2.05-520.fc 100% | 221.4 KiB/s |  15.5 KiB |  00m00s
+[ 76/167] perl-Digest-0:1.20-520.fc43.n 100% | 442.6 KiB/s |  24.8 KiB |  00m00s
+[ 77/167] vim-filesystem-2:9.1.2086-1.f 100% | 294.5 KiB/s |  15.3 KiB |  00m00s
+[ 78/167] hwdata-0:0.403-1.fc43.noarch  100% |   9.5 MiB/s |   1.7 MiB |  00m00s
+[ 79/167] libsodium-0:1.0.21-2.fc43.x86 100% |   1.2 MiB/s | 198.2 KiB |  00m00s
+[ 80/167] xxd-2:9.1.2086-1.fc43.x86_64  100% | 304.8 KiB/s |  31.1 KiB |  00m00s
+[ 81/167] scrot-0:1.12.1-2.fc43.x86_64  100% |   1.0 MiB/s |  86.2 KiB |  00m00s
+[ 82/167] libedit-0:3.1-57.20251016cvs. 100% |   1.1 MiB/s | 105.2 KiB |  00m00s
+[ 83/167] openssh-clients-0:10.0p1-6.fc 100% |   6.7 MiB/s | 746.3 KiB |  00m00s
+[ 84/167] libXcomposite-0:0.4.6-6.fc43. 100% | 447.5 KiB/s |  24.2 KiB |  00m00s
+[ 85/167] imlib2-0:1.12.3-3.fc43.x86_64 100% |   3.2 MiB/s | 260.5 KiB |  00m00s
+[ 86/167] libX11-0:1.8.12-1.fc43.x86_64 100% |   5.5 MiB/s | 655.6 KiB |  00m00s
+[ 87/167] libXext-0:1.3.6-4.fc43.x86_64 100% | 797.1 KiB/s |  39.1 KiB |  00m00s
+[ 88/167] libXfixes-0:6.0.1-6.fc43.x86_ 100% | 373.9 KiB/s |  19.1 KiB |  00m00s
+[ 89/167] libXinerama-0:1.1.5-9.fc43.x8 100% | 239.9 KiB/s |  14.2 KiB |  00m00s
+[ 90/167] freetype-0:2.13.3-3.fc43.x86_ 100% |   3.6 MiB/s | 412.1 KiB |  00m00s
+[ 91/167] cairo-0:1.18.4-2.fc43.x86_64  100% |   5.7 MiB/s | 729.3 KiB |  00m00s
+[ 92/167] giflib-0:5.2.2-8.fc43.x86_64  100% | 780.5 KiB/s |  52.3 KiB |  00m00s
+[ 93/167] libX11-xcb-0:1.8.12-1.fc43.x8 100% | 202.4 KiB/s |  11.5 KiB |  00m00s
+[ 94/167] libjpeg-turbo-0:3.1.2-1.fc43. 100% |   2.7 MiB/s | 236.8 KiB |  00m00s
+[ 95/167] libheif-0:1.20.2-6.fc43.x86_6 100% |   5.6 MiB/s | 578.1 KiB |  00m00s
+[ 96/167] libspectre-0:0.2.12-10.fc43.x 100% | 752.5 KiB/s |  44.4 KiB |  00m00s
+[ 97/167] libwebp-0:1.6.0-2.fc43.x86_64 100% |   2.4 MiB/s | 324.2 KiB |  00m00s
+[ 98/167] libxcb-0:1.17.0-6.fc43.x86_64 100% |   1.7 MiB/s | 237.7 KiB |  00m00s
+[ 99/167] openjpeg-0:2.5.4-1.fc43.x86_6 100% |   1.5 MiB/s | 192.2 KiB |  00m00s
+[100/167] libXrender-0:0.9.12-3.fc43.x8 100% | 419.9 KiB/s |  26.9 KiB |  00m00s
+[101/167] libX11-common-0:1.8.12-1.fc43 100% |   1.4 MiB/s | 175.9 KiB |  00m00s
+[102/167] fontconfig-0:2.17.0-3.fc43.x8 100% |   2.4 MiB/s | 272.2 KiB |  00m00s
+[103/167] lzo-0:2.10-15.fc43.x86_64     100% | 788.8 KiB/s |  69.4 KiB |  00m00s
+[104/167] pixman-0:0.46.2-2.fc43.x86_64 100% |   2.2 MiB/s | 292.5 KiB |  00m00s
+[105/167] libaom-0:3.13.1-1.fc43.x86_64 100% |  11.7 MiB/s |   1.9 MiB |  00m00s
+[106/167] libopenjph-0:0.22.0-2.fc43.x8 100% |   1.0 MiB/s | 154.4 KiB |  00m00s
+[107/167] svt-av1-libs-0:3.1.2-1.fc43.x 100% |  12.6 MiB/s |   2.0 MiB |  00m00s
+[108/167] libXau-0:1.0.12-3.fc43.x86_64 100% | 348.4 KiB/s |  33.4 KiB |  00m00s
+[109/167] libgs-0:10.05.1-5.fc43.x86_64 100% |  12.1 MiB/s |   3.5 MiB |  00m00s
+[110/167] default-fonts-core-sans-0:4.2 100% | 185.7 KiB/s |  29.9 KiB |  00m00s
+[111/167] fonts-filesystem-1:2.0.5-23.f 100% |  53.6 KiB/s |   8.7 KiB |  00m00s
+[112/167] xml-common-0:0.6.3-67.fc43.no 100% | 517.4 KiB/s |  31.0 KiB |  00m00s
+[113/167] libvmaf-0:3.0.0-4.fc43.x86_64 100% |   2.3 MiB/s | 196.6 KiB |  00m00s
+[114/167] adobe-mappings-cmap-0:2023111 100% |  15.8 MiB/s |   2.2 MiB |  00m00s
+[115/167] adobe-mappings-cmap-deprecate 100% | 931.6 KiB/s | 102.5 KiB |  00m00s
+[116/167] adobe-mappings-pdf-0:20190401 100% |   4.3 MiB/s | 619.3 KiB |  00m00s
+[117/167] google-droid-sans-fonts-0:202 100% |  14.2 MiB/s |   2.7 MiB |  00m00s
+[118/167] jbig2dec-libs-0:0.20-7.fc43.x 100% | 445.9 KiB/s |  74.0 KiB |  00m00s
+[119/167] lcms2-0:2.16-6.fc43.x86_64    100% |   1.1 MiB/s | 182.8 KiB |  00m00s
+[120/167] libijs-0:0.35-25.fc43.x86_64  100% | 502.0 KiB/s |  29.1 KiB |  00m00s
+[121/167] libXt-0:1.3.1-3.fc43.x86_64   100% |   1.6 MiB/s | 179.2 KiB |  00m00s
+[122/167] libpaper-1:2.1.1-9.fc43.x86_6 100% | 422.1 KiB/s |  26.6 KiB |  00m00s
+[123/167] urw-base35-fonts-0:20200910-2 100% | 145.3 KiB/s |   9.9 KiB |  00m00s
+[124/167] libSM-0:1.2.5-3.fc43.x86_64   100% | 834.4 KiB/s |  44.2 KiB |  00m00s
+[125/167] abattis-cantarell-vf-fonts-0: 100% |   1.5 MiB/s | 120.1 KiB |  00m00s
+[126/167] libICE-0:1.1.2-3.fc43.x86_64  100% | 723.6 KiB/s |  78.1 KiB |  00m00s
+[127/167] urw-base35-bookman-fonts-0:20 100% |   7.3 MiB/s | 845.2 KiB |  00m00s
+[128/167] urw-base35-c059-fonts-0:20200 100% |   6.9 MiB/s | 872.9 KiB |  00m00s
+[129/167] urw-base35-d050000l-fonts-0:2 100% | 759.7 KiB/s |  75.2 KiB |  00m00s
+[130/167] urw-base35-fonts-common-0:202 100% | 396.8 KiB/s |  20.6 KiB |  00m00s
+[131/167] urw-base35-gothic-fonts-0:202 100% |   5.2 MiB/s | 640.8 KiB |  00m00s
+[132/167] urw-base35-nimbus-mono-ps-fon 100% |   6.6 MiB/s | 793.8 KiB |  00m00s
+[133/167] urw-base35-nimbus-roman-fonts 100% |   7.2 MiB/s | 853.1 KiB |  00m00s
+[134/167] urw-base35-standard-symbols-p 100% |   1.2 MiB/s |  57.7 KiB |  00m00s
+[135/167] urw-base35-nimbus-sans-fonts- 100% |   9.9 MiB/s |   1.3 MiB |  00m00s
+[136/167] urw-base35-p052-fonts-0:20200 100% |   6.6 MiB/s | 972.1 KiB |  00m00s
+[137/167] perl-NDBM_File-0:1.18-520.fc4 100% | 353.4 KiB/s |  22.6 KiB |  00m00s
+[138/167] urw-base35-z003-fonts-0:20200 100% |   2.0 MiB/s | 274.9 KiB |  00m00s
+[139/167] libdav1d-0:1.5.2-1.fc43.x86_6 100% |   5.5 MiB/s | 637.4 KiB |  00m00s
+[140/167] rav1e-libs-0:0.8.1-2.fc43.x86 100% |  11.7 MiB/s |   1.1 MiB |  00m00s
+[141/167] cups-filesystem-1:2.4.16-4.fc 100% | 236.7 KiB/s |  13.0 KiB |  00m00s
+[142/167] cups-libs-1:2.4.16-4.fc43.x86 100% |   2.3 MiB/s | 261.6 KiB |  00m00s
+[143/167] avahi-libs-0:0.9~rc2-6.fc43.x 100% | 711.6 KiB/s |  69.0 KiB |  00m00s
+[144/167] dbus-libs-1:1.16.0-4.fc43.x86 100% |   1.5 MiB/s | 148.3 KiB |  00m00s
+[145/167] libpng-2:1.6.53-1.fc43.x86_64 100% |   1.2 MiB/s | 123.9 KiB |  00m00s
+[146/167] libtiff-0:4.7.1-1.fc43.x86_64 100% |   2.0 MiB/s | 222.4 KiB |  00m00s
+[147/167] jbigkit-libs-0:2.1-32.fc43.x8 100% | 901.5 KiB/s |  53.2 KiB |  00m00s
+[148/167] liblerc-0:4.0.0-9.fc43.x86_64 100% |   2.4 MiB/s | 215.1 KiB |  00m00s
+[149/167] gdk-pixbuf2-0:2.44.4-1.fc43.x 100% |   4.8 MiB/s | 484.9 KiB |  00m00s
+[150/167] shared-mime-info-0:2.4-2.fc43 100% |   3.7 MiB/s | 399.7 KiB |  00m00s
+[151/167] libjxl-1:0.11.1-7.fc43.x86_64 100% |  10.9 MiB/s |   1.2 MiB |  00m00s
+[152/167] cairo-gobject-0:1.18.4-2.fc43 100% | 332.0 KiB/s |  16.9 KiB |  00m00s
+[153/167] librsvg2-0:2.61.0-5.fc43.x86_ 100% |   7.6 MiB/s |   1.9 MiB |  00m00s
+[154/167] pango-0:1.57.0-1.fc43.x86_64  100% |   1.8 MiB/s | 353.4 KiB |  00m00s
+[155/167] fribidi-0:1.0.16-3.fc43.x86_6 100% | 952.2 KiB/s |  53.3 KiB |  00m00s
+[156/167] libXft-0:2.3.8-9.fc43.x86_64  100% | 850.0 KiB/s |  72.2 KiB |  00m00s
+[157/167] libthai-0:0.1.29-11.fc43.x86_ 100% |   2.6 MiB/s | 210.3 KiB |  00m00s
+[158/167] libdatrie-0:0.2.13-12.fc43.x8 100% | 627.4 KiB/s |  32.0 KiB |  00m00s
+[159/167] harfbuzz-0:11.5.1-2.fc43.x86_ 100% |  10.9 MiB/s |   1.1 MiB |  00m00s
+[160/167] graphite2-0:1.3.14-19.fc43.x8 100% |   1.1 MiB/s |  95.6 KiB |  00m00s
+[161/167] google-noto-fonts-common-0:20 100% | 314.8 KiB/s |  17.3 KiB |  00m00s
+[162/167] google-noto-sans-vf-fonts-0:2 100% |   5.3 MiB/s | 614.5 KiB |  00m00s
+[163/167] highway-0:1.3.0-1.fc43.x86_64 100% |   6.5 MiB/s | 694.5 KiB |  00m00s
+[164/167] glycin-libs-0:2.0.5-1.fc43.x8 100% |  13.3 MiB/s |   1.6 MiB |  00m00s
+[165/167] glycin-loaders-0:2.0.5-1.fc43 100% |  15.4 MiB/s |   2.8 MiB |  00m00s
+[166/167] bubblewrap-0:0.11.0-2.fc43.x8 100% | 427.8 KiB/s |  65.5 KiB |  00m00s
+[167/167] openh264-0:2.6.0-2.fc43.x86_6   0% |   0.0   B/s |   0.0   B |  00m15s
+>>> Curl error (7): Could not connect to server for https://codecs.fedoraproject
+>>> Curl error (7): Could not connect to server for https://codecs.fedoraproject
+>>> Curl error (7): Could not connect to server for https://codecs.fedoraproject
+>>> Curl error (7): Could not connect to server for https://codecs.fedoraproject
+>>> No more mirrors to try - All mirrors were already tried without success     
+--------------------------------------------------------------------------------
+[167/167] Total                         100% |   3.5 MiB/s |  73.1 MiB |  00m21s
+Failed to download packages
+ Librepo error: Cannot download Packages/o/openh264-2.6.0-2.fc43.x86_64.rpm: All mirrors were tried

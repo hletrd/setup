@@ -1,0 +1,42 @@
+{
+  "prompts": {
+    "prompt_for_confirmation": false,
+    "ssh_port": "22",
+    "server_address": "",
+    "ssh_user": "",
+    "ssh_key_action": "skip",
+    "ssh_public_keys": []
+  },
+  "installation": {
+    "skip_package_update": false,
+    "skip_zinit": false,
+    "skip_mcp_setup": false
+  },
+  "packages": {
+    "nvm": true,
+    "uv": true,
+    "cargo": false,
+    "ruff": false,
+    "ty": false
+  },
+  "cli_tools": {
+    "fzf": true,
+    "eza": false,
+    "bat": false,
+    "fd": false,
+    "ripgrep": false,
+    "zoxide": false,
+    "dust": false,
+    "duf": false,
+    "mcfly": false,
+    "sd": false,
+    "choose": false,
+    "bottom": false,
+    "procs": false,
+    "gping": false,
+    "delta": false,
+    "hishtory": false,
+    "cheat": false,
+    "lsd": false
+  }
+}

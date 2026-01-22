@@ -1134,47 +1134,94 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line '[ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"'
 
 # Modern CLI tool aliases (only add if the tool is installed)
-[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias ls="eza"'
-[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias ll="eza -l"'
-[ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1 && ensure_zshrc_line 'alias la="eza -la"'
-[ -x "\$HOME/.cargo/bin/bat" ] || command -v bat >/dev/null 2>&1 && ensure_zshrc_line 'alias cat="bat"'
-[ -x "\$HOME/.cargo/bin/dust" ] || command -v dust >/dev/null 2>&1 && ensure_zshrc_line 'alias du="dust"'
-command -v duf >/dev/null 2>&1 && ensure_zshrc_line 'alias df="duf"'
-[ -x "\$HOME/.cargo/bin/fd" ] || command -v fd >/dev/null 2>&1 && ensure_zshrc_line 'alias find="fd"'
-[ -x "\$HOME/.cargo/bin/rg" ] || command -v rg >/dev/null 2>&1 && ensure_zshrc_line 'alias grep="rg"'
-[ -x "\$HOME/.cargo/bin/sd" ] || command -v sd >/dev/null 2>&1 && ensure_zshrc_line 'alias sed="sd"'
-[ -x "\$HOME/.cargo/bin/choose" ] || command -v choose >/dev/null 2>&1 && ensure_zshrc_line 'alias cut="choose"'
-[ -x "\$HOME/.cargo/bin/btm" ] || command -v btm >/dev/null 2>&1 && ensure_zshrc_line 'alias top="btm"'
-[ -x "\$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1 && ensure_zshrc_line 'alias ps="procs"'
-[ -x "\$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1 && ensure_zshrc_line 'alias ping="gping"'
-[ -x "\$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1 && ensure_zshrc_line 'alias lsd="lsd"'
-[ -x "\$HOME/.cargo/bin/difft" ] || command -v difft >/dev/null 2>&1 && ensure_zshrc_line 'alias diff="difftastic"'
-[ -x "\$HOME/.cargo/bin/xh" ] || command -v xh >/dev/null 2>&1 && ensure_zshrc_line 'alias http="xh"'
-command -v lazygit >/dev/null 2>&1 && ensure_zshrc_line 'alias lg="lazygit"'
-command -v lazydocker >/dev/null 2>&1 && ensure_zshrc_line 'alias lzd="lazydocker"'
+# Use if-then instead of && to prevent set -e failures
+if [ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias ls="eza"'
+  ensure_zshrc_line 'alias ll="eza -l"'
+  ensure_zshrc_line 'alias la="eza -la"'
+fi
+if [ -x "\$HOME/.cargo/bin/bat" ] || command -v bat >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias cat="bat"'
+fi
+if [ -x "\$HOME/.cargo/bin/dust" ] || command -v dust >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias du="dust"'
+fi
+if command -v duf >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias df="duf"'
+fi
+if [ -x "\$HOME/.cargo/bin/fd" ] || command -v fd >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias find="fd"'
+fi
+if [ -x "\$HOME/.cargo/bin/rg" ] || command -v rg >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias grep="rg"'
+fi
+if [ -x "\$HOME/.cargo/bin/sd" ] || command -v sd >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias sed="sd"'
+fi
+if [ -x "\$HOME/.cargo/bin/choose" ] || command -v choose >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias cut="choose"'
+fi
+if [ -x "\$HOME/.cargo/bin/btm" ] || command -v btm >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias top="btm"'
+fi
+if [ -x "\$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias ps="procs"'
+fi
+if [ -x "\$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias ping="gping"'
+fi
+if [ -x "\$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias lsd="lsd"'
+fi
+if [ -x "\$HOME/.cargo/bin/difft" ] || command -v difft >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias diff="difftastic"'
+fi
+if [ -x "\$HOME/.cargo/bin/xh" ] || command -v xh >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias http="xh"'
+fi
+if command -v lazygit >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias lg="lazygit"'
+fi
+if command -v lazydocker >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias lzd="lazydocker"'
+fi
 
 # Tool initializations
-[ -f "\$HOME/.fzf.zsh" ] && ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
-[ -x "\$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(zoxide init zsh)"'
-[ -x "\$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1 && ensure_zshrc_line 'alias cd="z"'
-[ -x "\$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(mcfly init zsh)"'
-command -v hishtory >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(hishtory init zsh)"'
+if [ -f "\$HOME/.fzf.zsh" ]; then
+  ensure_zshrc_line '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+fi
+if [ -x "\$HOME/.cargo/bin/zoxide" ] || command -v zoxide >/dev/null 2>&1; then
+  ensure_zshrc_line 'eval "\$(zoxide init zsh)"'
+  ensure_zshrc_line 'alias cd="z"'
+fi
+if [ -x "\$HOME/.cargo/bin/mcfly" ] || command -v mcfly >/dev/null 2>&1; then
+  ensure_zshrc_line 'eval "\$(mcfly init zsh)"'
+fi
+if command -v hishtory >/dev/null 2>&1; then
+  ensure_zshrc_line 'eval "\$(hishtory init zsh)"'
+fi
 
 # Broot file navigator
-[ -f "\$HOME/.config/broot/launcher/bash/br" ] && ensure_zshrc_line '[ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br'
+if [ -f "\$HOME/.config/broot/launcher/bash/br" ]; then
+  ensure_zshrc_line '[ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br'
+fi
 
 # Atuin shell history
-command -v atuin >/dev/null 2>&1 && ensure_zshrc_line 'eval "\$(atuin init zsh)"'
+if command -v atuin >/dev/null 2>&1; then
+  ensure_zshrc_line 'eval "\$(atuin init zsh)"'
+fi
 
 # Configure delta as git pager
-[ -x "\$HOME/.cargo/bin/delta" ] || command -v delta >/dev/null 2>&1 && {
+if [ -x "\$HOME/.cargo/bin/delta" ] || command -v delta >/dev/null 2>&1; then
   git config --global core.pager delta
   git config --global interactive.diffFilter "delta --color-only"
   git config --global delta.navigate true
   git config --global delta.side-by-side true
   git config --global merge.conflictstyle diff3
   git config --global diff.colorMoved default
-}
+fi
+
+printf "\nInstallation complete!\n"
 EOF
 
 # Use TTY mode if available, otherwise run without TTY
