@@ -58,7 +58,8 @@ check_docker() {
   return 0
 }
 
-# Create minimal test config for faster testing
+# Create test config
+# Enable cargo and eza to verify Rust-based CLI tools work via installer
 create_test_config() {
   cat > "$SCRIPT_DIR/test_config.json" << 'EOF'
 {
@@ -78,13 +79,13 @@ create_test_config() {
   "packages": {
     "nvm": true,
     "uv": true,
-    "cargo": false,
+    "cargo": true,
     "ruff": false,
     "ty": false
   },
   "cli_tools": {
     "fzf": true,
-    "eza": false,
+    "eza": true,
     "bat": false,
     "fd": false,
     "ripgrep": false,
@@ -152,6 +153,22 @@ verify_results() {
     log_success "$platform: uv installed"
   else
     log_fail "$platform: uv not found"
+    errors=$((errors + 1))
+  fi
+
+  # Check cargo
+  if docker exec -u testuser "$container" sh -c '~/.cargo/bin/cargo --version >/dev/null 2>&1'; then
+    log_success "$platform: cargo installed"
+  else
+    log_fail "$platform: cargo not found"
+    errors=$((errors + 1))
+  fi
+
+  # Check eza (Rust-based CLI tool installed via cargo)
+  if docker exec -u testuser "$container" sh -c '~/.cargo/bin/eza --version >/dev/null 2>&1'; then
+    log_success "$platform: eza installed"
+  else
+    log_fail "$platform: eza not found"
     errors=$((errors + 1))
   fi
 
@@ -461,13 +478,13 @@ test_remote_ssh() {
   "packages": {
     "nvm": true,
     "uv": true,
-    "cargo": false,
+    "cargo": true,
     "ruff": false,
     "ty": false
   },
   "cli_tools": {
     "fzf": true,
-    "eza": false,
+    "eza": true,
     "bat": false,
     "fd": false,
     "ripgrep": false,
@@ -483,7 +500,18 @@ test_remote_ssh() {
     "delta": false,
     "hishtory": false,
     "cheat": false,
-    "lsd": false
+    "lsd": false,
+    "lazygit": false,
+    "lazydocker": false,
+    "tldr": false,
+    "jq": false,
+    "yq": false,
+    "hyperfine": false,
+    "tokei": false,
+    "broot": false,
+    "atuin": false,
+    "xh": false,
+    "difftastic": false
   }
 }
 EOF
