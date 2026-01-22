@@ -25,6 +25,7 @@ UBUNTU_IMAGE="ubuntu:24.04"
 FEDORA_IMAGE="fedora:latest"
 ARCH_IMAGE="archlinux:latest"
 ALPINE_IMAGE="alpine:latest"
+OPENWRT_IMAGE="openwrt/rootfs:x86_64-24.10.5"
 
 mkdir -p "$RESULTS_DIR"
 
@@ -170,9 +171,9 @@ test_docker_platform() {
   # Clean up any existing container
   docker rm -f "$container_name" 2>/dev/null || true
 
-  # Start container
+  # Start container with explicit DNS to avoid resolution issues
   log_info "Starting $platform_name container..."
-  if ! docker run -d --platform "$DOCKER_PLATFORM" --name "$container_name" "$image" sleep infinity; then
+  if ! docker run -d --platform "$DOCKER_PLATFORM" --dns 8.8.8.8 --dns 1.1.1.1 --name "$container_name" "$image" sleep infinity; then
     log_fail "Failed to start $platform_name container"
     return 1
   fi
@@ -213,6 +214,16 @@ test_docker_platform() {
         echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
       '
       ;;
+    openwrt)
+      docker exec "$container_name" sh -c '
+        # Create required directories for opkg
+        mkdir -p /var/lock /var/run
+        opkg update
+        opkg install sudo shadow-useradd bash curl ca-certificates
+        useradd -m -s /bin/sh testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+      '
+      ;;
   esac
 
   # Copy files to container
@@ -227,8 +238,21 @@ test_docker_platform() {
   log_info "Running install_local.sh on $platform_name..."
   install_log="$RESULTS_DIR/${platform_name}_install_$TIMESTAMP.log"
 
-  if docker exec -u testuser "$container_name" sh -c '
+  # Set environment variables based on platform to prevent interactive prompts
+  # Build docker exec command conditionally to avoid empty -e flag
+  case "$platform_name" in
+    ubuntu|openwrt)
+      env_flag="-e DEBIAN_FRONTEND=noninteractive"
+      ;;
+    *)
+      env_flag=""
+      ;;
+  esac
+
+  # shellcheck disable=SC2086
+  if docker exec -u testuser $env_flag "$container_name" sh -c '
     cd /home/testuser
+    export DEBIAN_FRONTEND=noninteractive
     sh install_local.sh --key-action skip -c config.json -y 2>&1
   ' > "$install_log" 2>&1; then
     log_success "$platform_name: install_local.sh completed"
@@ -253,8 +277,8 @@ test_docker_platform() {
 test_remote_ssh() {
   image="$1"
   platform_name="$2"
+  ssh_port="${3:-2222}"
   container_name="setup-test-${platform_name}"
-  ssh_port="2222"
 
   log "============================================="
   log "Testing install_remote.sh on $platform_name ($image)"
@@ -263,9 +287,9 @@ test_remote_ssh() {
   # Clean up any existing container
   docker rm -f "$container_name" 2>/dev/null || true
 
-  # Start container with port mapping
+  # Start container with port mapping and explicit DNS
   log_info "Starting $platform_name container with SSH..."
-  if ! docker run -d --platform "$DOCKER_PLATFORM" --name "$container_name" -p "${ssh_port}:22" "$image" sleep infinity; then
+  if ! docker run -d --platform "$DOCKER_PLATFORM" --dns 8.8.8.8 --dns 1.1.1.1 --name "$container_name" -p "${ssh_port}:22" "$image" sleep infinity; then
     log_fail "Failed to start $platform_name container"
     return 1
   fi
@@ -276,8 +300,18 @@ test_remote_ssh() {
   # Generate temporary SSH key for testing
   test_key="$SCRIPT_DIR/.test_ssh_key"
   test_key_pub="${test_key}.pub"
+  # Force remove existing keys and generate new ones
   rm -f "$test_key" "$test_key_pub" 2>/dev/null || true
-  ssh-keygen -t ed25519 -f "$test_key" -N "" -q
+  if ! ssh-keygen -t ed25519 -f "$test_key" -N "" -q 2>/dev/null; then
+    log_fail "$platform_name: Failed to generate SSH test key"
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+    return 1
+  fi
+  if [ ! -f "$test_key_pub" ]; then
+    log_fail "$platform_name: SSH public key was not generated"
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+    return 1
+  fi
 
   # Install SSH server and set up user
   log_info "Setting up SSH on $platform_name container..."
@@ -286,12 +320,13 @@ test_remote_ssh() {
       docker exec "$container_name" sh -c '
         export DEBIAN_FRONTEND=noninteractive
         apt-get update -qq
-        apt-get install -qq -y sudo curl ca-certificates openssh-server
+        apt-get install -qq -y sudo curl ca-certificates openssh-server python3
         useradd -m -s /bin/sh testuser
         echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
         mkdir -p /home/testuser/.ssh
         chmod 700 /home/testuser/.ssh
         mkdir -p /run/sshd
+        ssh-keygen -A
         sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
         sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
         sed -i "s/#PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
@@ -312,22 +347,49 @@ test_remote_ssh() {
       ;;
     arch-remote)
       docker exec "$container_name" sh -c '
-        pacman -Sy --noconfirm sudo openssh
+        pacman -Sy --noconfirm sudo openssh python
         useradd -m -s /bin/sh testuser
         echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
         mkdir -p /home/testuser/.ssh
         chmod 700 /home/testuser/.ssh
         ssh-keygen -A
+        sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
+        sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+        sed -i "s/PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
       '
       ;;
     alpine-remote)
       docker exec "$container_name" sh -c '
-        apk add --no-cache sudo shadow bash openssh
+        apk add --no-cache sudo shadow bash openssh python3
         useradd -m -s /bin/sh testuser
+        # Unlock the account for SSH key auth (Alpine creates locked accounts by default)
+        # Using * instead of ! allows key-based auth without a password
+        usermod -p "*" testuser
         echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
         mkdir -p /home/testuser/.ssh
         chmod 700 /home/testuser/.ssh
         ssh-keygen -A
+        sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
+        sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+        sed -i "s/PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+      '
+      ;;
+    openwrt-remote)
+      docker exec "$container_name" sh -c '
+        # Create required directories for opkg
+        mkdir -p /var/lock /var/run
+        opkg update
+        opkg install sudo shadow-useradd shadow-usermod bash curl ca-certificates openssh-server openssh-keygen python3
+        useradd -m -s /bin/sh testuser
+        # Unlock the account for SSH key auth (OpenWrt creates locked accounts by default)
+        usermod -p "*" testuser
+        echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        mkdir -p /home/testuser/.ssh
+        chmod 700 /home/testuser/.ssh
+        ssh-keygen -A
+        sed -i "s/#PermitRootLogin.*/PermitRootLogin yes/" /etc/ssh/sshd_config
+        sed -i "s/#PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+        sed -i "s/PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
       '
       ;;
   esac
@@ -339,23 +401,36 @@ test_remote_ssh() {
     chmod 600 /home/testuser/.ssh/authorized_keys
   '
 
-  # Start SSH server
+  # Start SSH server (handle different paths across distros)
   log_info "Starting SSH server..."
-  docker exec "$container_name" /usr/sbin/sshd
+  if ! docker exec "$container_name" sh -c 'if [ -x /usr/sbin/sshd ]; then /usr/sbin/sshd; elif [ -x /usr/bin/sshd ]; then /usr/bin/sshd; else echo "sshd not found" >&2; exit 1; fi' 2>/dev/null; then
+    log_fail "$platform_name: Failed to start SSH server"
+    rm -f "$test_key" "$test_key_pub" 2>/dev/null || true
+    docker rm -f "$container_name" >/dev/null 2>&1 || true
+    return 1
+  fi
 
-  # Wait for SSH to be ready
-  sleep 2
+  # Wait for SSH to be ready (increased wait time for slower containers)
+  sleep 3
 
   # Copy test files to container (needed for mcp folder)
   docker cp "$REPO_DIR/mcp" "$container_name:/home/testuser/"
   docker cp "$REPO_DIR/configs" "$container_name:/home/testuser/"
   docker exec "$container_name" chown -R testuser /home/testuser
 
-  # Test SSH connectivity
+  # Test SSH connectivity with retry
   log_info "Testing SSH connectivity..."
-  if ! ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-       -i "$test_key" -p "$ssh_port" testuser@localhost "echo SSH OK" >/dev/null 2>&1; then
-    log_fail "$platform_name: SSH connection failed"
+  ssh_ok=false
+  for attempt in 1 2 3; do
+    if ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 \
+         -i "$test_key" -p "$ssh_port" testuser@localhost "echo SSH OK" >/dev/null 2>&1; then
+      ssh_ok=true
+      break
+    fi
+    sleep 2
+  done
+  if [ "$ssh_ok" = "false" ]; then
+    log_fail "$platform_name: SSH connection failed after 3 attempts"
     rm -f "$test_key" "$test_key_pub" 2>/dev/null || true
     docker rm -f "$container_name" >/dev/null 2>&1 || true
     return 1
@@ -366,11 +441,13 @@ test_remote_ssh() {
   install_log="$RESULTS_DIR/${platform_name}_remote_install_$TIMESTAMP.log"
 
   # Create a config that works for remote testing
-  cat > "$SCRIPT_DIR/test_remote_config.json" << 'EOF'
+  # Note: hishtory must be explicitly disabled because install_remote.sh defaults it to true,
+  # and hishtory install hangs waiting for network sync in test environments
+  cat > "$SCRIPT_DIR/test_remote_config.json" << EOF
 {
   "prompts": {
     "prompt_for_confirmation": false,
-    "ssh_port": "2222",
+    "ssh_port": "$ssh_port",
     "server_address": "localhost",
     "ssh_user": "testuser",
     "ssh_key_action": "skip",
@@ -384,10 +461,29 @@ test_remote_ssh() {
   "packages": {
     "nvm": true,
     "uv": true,
-    "cargo": false
+    "cargo": false,
+    "ruff": false,
+    "ty": false
   },
   "cli_tools": {
-    "fzf": true
+    "fzf": true,
+    "eza": false,
+    "bat": false,
+    "fd": false,
+    "ripgrep": false,
+    "zoxide": false,
+    "dust": false,
+    "duf": false,
+    "mcfly": false,
+    "sd": false,
+    "choose": false,
+    "bottom": false,
+    "procs": false,
+    "gping": false,
+    "delta": false,
+    "hishtory": false,
+    "cheat": false,
+    "lsd": false
   }
 }
 EOF
@@ -497,6 +593,14 @@ main() {
       failed_tests=$((failed_tests + 1))
     fi
 
+    # OpenWrt local test (using OpenWrt 24.10.5 with opkg)
+    total_tests=$((total_tests + 1))
+    if test_docker_platform "$OPENWRT_IMAGE" "openwrt"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
     # Remote tests with SSH
     log "============================================="
     log "Testing install_remote.sh with SSH containers"
@@ -504,7 +608,7 @@ main() {
 
     # Ubuntu remote test
     total_tests=$((total_tests + 1))
-    if test_remote_ssh "$UBUNTU_IMAGE" "ubuntu-remote"; then
+    if test_remote_ssh "$UBUNTU_IMAGE" "ubuntu-remote" "2222"; then
       passed_tests=$((passed_tests + 1))
     else
       failed_tests=$((failed_tests + 1))
@@ -512,7 +616,31 @@ main() {
 
     # Fedora remote test
     total_tests=$((total_tests + 1))
-    if test_remote_ssh "$FEDORA_IMAGE" "fedora-remote"; then
+    if test_remote_ssh "$FEDORA_IMAGE" "fedora-remote" "2223"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
+    # Arch remote test
+    total_tests=$((total_tests + 1))
+    if test_remote_ssh "$ARCH_IMAGE" "arch-remote" "2224"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
+    # Alpine remote test
+    total_tests=$((total_tests + 1))
+    if test_remote_ssh "$ALPINE_IMAGE" "alpine-remote" "2225"; then
+      passed_tests=$((passed_tests + 1))
+    else
+      failed_tests=$((failed_tests + 1))
+    fi
+
+    # OpenWrt remote test (using OpenWrt 24.10.5 with opkg)
+    total_tests=$((total_tests + 1))
+    if test_remote_ssh "$OPENWRT_IMAGE" "openwrt-remote" "2226"; then
       passed_tests=$((passed_tests + 1))
     else
       failed_tests=$((failed_tests + 1))

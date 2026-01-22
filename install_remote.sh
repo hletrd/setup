@@ -497,10 +497,10 @@ fi
 
 pkg_update() {
   if command -v apt-get >/dev/null 2>&1; then
-    sudo -n apt-get update -y
-    sudo -n apt-get upgrade -y
+    sudo -n DEBIAN_FRONTEND=noninteractive apt-get update -y
+    sudo -n DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
   elif command -v dnf >/dev/null 2>&1; then
-    sudo -n dnf -y upgrade --refresh
+    sudo -n dnf -y --setopt=install_weak_deps=False upgrade --refresh
   elif command -v yum >/dev/null 2>&1; then
     sudo -n yum -y update
   elif command -v pacman >/dev/null 2>&1; then
@@ -521,9 +521,9 @@ pkg_update() {
 pkg_install() {
   packages="\$*"
   if command -v apt-get >/dev/null 2>&1; then
-    sudo -n apt-get install -y \$packages
+    sudo -n DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \$packages
   elif command -v dnf >/dev/null 2>&1; then
-    sudo -n dnf -y install \$packages
+    sudo -n dnf -y --setopt=install_weak_deps=False install \$packages
   elif command -v yum >/dev/null 2>&1; then
     sudo -n yum -y install \$packages
   elif command -v pacman >/dev/null 2>&1; then
@@ -615,7 +615,7 @@ if [ "\$is_openwrt" = "true" ]; then
     sudo -n chmod 1777 /tmp 2>/dev/null || true
   fi
 elif command -v apt-get >/dev/null 2>&1; then
-  sudo -n apt-get install -y build-essential 2>/dev/null || true
+  sudo -n DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" build-essential 2>/dev/null || true
 elif command -v dnf >/dev/null 2>&1; then
   sudo -n dnf -y install gcc 2>/dev/null || true
 elif command -v yum >/dev/null 2>&1; then

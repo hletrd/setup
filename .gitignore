@@ -7,3 +7,6 @@
 /tests/.test_ssh_key
 /tests/.test_ssh_key.pub
 /tests/test_remote_config.json
+
+# ISO files
+*.iso
