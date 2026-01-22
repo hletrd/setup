@@ -479,21 +479,30 @@ fi
 printf "Installing base packages...\n"
 if [ "$is_macos" = "true" ]; then
   # macOS with Homebrew
-  pkg_install zsh figlet git curl vim neofetch
+  pkg_install zsh figlet git curl vim neovim neofetch
 elif [ "$is_openwrt" = "true" ]; then
   # OpenWrt - figlet/screenfetch not available, use minimal set
   # Install git-http for https support, shadow-chsh for chsh command
+  # neovim may not be available on all OpenWrt builds
   if command -v opkg >/dev/null 2>&1; then
     pkg_install zsh bash git git-http curl vim shadow-chsh
+    pkg_install neovim 2>/dev/null || printf "Note: neovim not available via opkg\n"
   else
     # OpenWrt with apk (newer versions) - git-http is a separate package
-    pkg_install zsh bash git git-http curl vim shadow-chsh
+    pkg_install zsh bash git git-http curl vim neovim shadow-chsh
   fi
 elif command -v apk >/dev/null 2>&1; then
   # Alpine Linux - screenfetch/neofetch not available in main repos
-  pkg_install zsh figlet git curl vim
+  pkg_install zsh figlet git curl vim neovim
+elif command -v dnf >/dev/null 2>&1; then
+  # Fedora/RHEL - neovim available in repos
+  pkg_install zsh figlet screenfetch git curl vim neovim
+elif command -v pacman >/dev/null 2>&1; then
+  # Arch Linux - neovim available in repos
+  pkg_install zsh figlet screenfetch git curl vim neovim
 else
-  pkg_install zsh figlet screenfetch git curl vim
+  # Ubuntu/Debian and others
+  pkg_install zsh figlet screenfetch git curl vim neovim
 fi
 
 printf "Installing build tools...\n"
@@ -1015,9 +1024,11 @@ ensure_zshrc_line 'setopt autocd'
 ensure_zshrc_line 'bindkey -e'
 ensure_zshrc_line 'export HOMEBREW_NO_ANALYTICS=1'
 ensure_zshrc_line 'DISABLE_UPDATE_PROMPT=true'
-ensure_zshrc_line 'export EDITOR=vim'
-ensure_zshrc_line 'export VISUAL=vim'
-ensure_zshrc_line 'alias nano=vim'
+ensure_zshrc_line 'export EDITOR=nvim'
+ensure_zshrc_line 'export VISUAL=nvim'
+ensure_zshrc_line 'alias nano=nvim'
+ensure_zshrc_line 'alias vi=nvim'
+ensure_zshrc_line 'alias vim=nvim'
 ensure_zshrc_line 'export PATH="$HOME/.local/bin:$PATH"'
 ensure_zshrc_line 'export PATH="$HOME/.cargo/bin:$PATH"'
 ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
