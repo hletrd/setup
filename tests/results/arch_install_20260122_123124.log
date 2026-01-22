@@ -1,0 +1,9 @@
+Loading configuration from config.json
+SSH port (default: 22): 22
+Server name for MOTD (default: localhost): localhost
+SSH public key setup: skip
+Caching sudo credentials...
+install_local.sh: line 376: sudo: command not found
+Failed to cache sudo credentials. Some operations may fail.
+Updating packages...
+install_local.sh: line 392: sudo: command not found
