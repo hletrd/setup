@@ -1,3 +1,9 @@
 /.secret.pem
 /.secret.pem.pub
 /.pub
+
+# Test artifacts
+/tests/results/
+/tests/.test_ssh_key
+/tests/.test_ssh_key.pub
+/tests/test_remote_config.json
