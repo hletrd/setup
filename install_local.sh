@@ -685,7 +685,9 @@ if [ "$cfg_cli_lazygit" = "true" ]; then
   if [ "$is_macos" = "true" ]; then
     pkg_install lazygit
   else
-    install_cargo_tool lazygit
+    if ! pkg_install lazygit; then
+      curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazygit/master/scripts/install_update_linux.sh | bash || printf "Warning: lazygit installation failed\n"
+    fi
   fi
 fi
 

@@ -768,7 +768,9 @@ fi
 
 if [ "\$cfg_cli_lazygit" = "true" ]; then
   printf "Installing lazygit...\n"
-  install_cargo_tool lazygit
+  if ! pkg_install lazygit; then
+    curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazygit/master/scripts/install_update_linux.sh | bash || printf "Warning: lazygit installation failed\n"
+  fi
 fi
 
 if [ "\$cfg_cli_lazydocker" = "true" ]; then
