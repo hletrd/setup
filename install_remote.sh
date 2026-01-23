@@ -288,7 +288,8 @@ prompt_read() {
   prompt="$1"
   input=""
   if [ -t 0 ]; then
-    printf "%s" "$prompt"
+    # Use /dev/tty to ensure prompt is displayed immediately (unbuffered)
+    printf "%s" "$prompt" > /dev/tty
     IFS= read -r input || :
   elif [ -e /dev/tty ]; then
     # Try to use /dev/tty, but fail gracefully if it's not available
