@@ -343,3 +343,5 @@ setup/
 - On macOS, the default shell change requires manual execution: `chsh -s /bin/zsh`
 - Alpine Linux uses musl libc, so pre-built Node.js binaries are not available (nvm installs but Node.js build may fail)
 - OpenWrt has limited package availability; Node.js is installed via opkg (v8.x), and Rust-based CLI tools require manual installation
+- On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with zerobrew/cargo-installed ncurses-based tools (e.g., tmux)
+- If zerobrew (`zb`) is installed, `brew` is aliased to `zb` for convenience
