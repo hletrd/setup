@@ -601,6 +601,50 @@ else
   pkg_install zsh figlet screenfetch git curl vim
 fi
 
+printf "Installing Powerline fonts...\n"
+if [ "\$is_openwrt" = "true" ]; then
+  # OpenWrt - manual installation
+  printf "Installing Powerline fonts manually on OpenWrt...\n"
+  font_dir="\$HOME/.local/share/fonts"
+  mkdir -p "\$font_dir"
+  if command -v git >/dev/null 2>&1; then
+    git clone --depth=1 https://github.com/powerline/fonts.git /tmp/powerline-fonts 2>/dev/null || true
+    if [ -d /tmp/powerline-fonts ]; then
+      find /tmp/powerline-fonts -name "*.otf" -o -name "*.ttf" | while read -r font; do
+        cp "\$font" "\$font_dir/" 2>/dev/null || true
+      done
+      rm -rf /tmp/powerline-fonts
+    fi
+  fi
+elif command -v apt-get >/dev/null 2>&1; then
+  # Ubuntu/Debian
+  pkg_install fonts-powerline 2>/dev/null || true
+elif command -v dnf >/dev/null 2>&1; then
+  # Fedora/RHEL
+  pkg_install powerline-fonts 2>/dev/null || true
+elif command -v yum >/dev/null 2>&1; then
+  # Older RHEL/CentOS
+  pkg_install powerline-fonts 2>/dev/null || true
+elif command -v pacman >/dev/null 2>&1; then
+  # Arch Linux
+  pkg_install powerline-fonts 2>/dev/null || true
+elif command -v apk >/dev/null 2>&1; then
+  # Alpine Linux - manual installation
+  printf "Installing Powerline fonts manually on Alpine...\n"
+  font_dir="\$HOME/.local/share/fonts"
+  mkdir -p "\$font_dir"
+  if command -v git >/dev/null 2>&1; then
+    git clone --depth=1 https://github.com/powerline/fonts.git /tmp/powerline-fonts 2>/dev/null || true
+    if [ -d /tmp/powerline-fonts ]; then
+      find /tmp/powerline-fonts -name "*.otf" -o -name "*.ttf" | while read -r font; do
+        cp "\$font" "\$font_dir/" 2>/dev/null || true
+      done
+      rm -rf /tmp/powerline-fonts
+      fc-cache -f "\$font_dir" 2>/dev/null || true
+    fi
+  fi
+fi
+
 printf "Installing build tools...\n"
 if [ "\$is_openwrt" = "true" ]; then
   # OpenWrt - install build tools and GNU utilities (needed for uv/rustup/cargo installers)
