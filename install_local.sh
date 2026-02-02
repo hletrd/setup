@@ -1086,6 +1086,11 @@ ensure_zshrc_line 'export NVM_DIR="$HOME/.nvm"'
 ensure_zshrc_line '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
 ensure_zshrc_line '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
 
+# Set TERMINFO for macOS to fix terminfo database lookup with zerobrew/cargo ncurses
+if [ "$is_macos" = "true" ]; then
+  ensure_zshrc_line 'export TERMINFO=/usr/share/terminfo'
+fi
+
 # Modern CLI tool aliases (only add if the tool is installed)
 # Use if-then instead of && to prevent set -e failures
 if [ -x "$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1; then
@@ -1137,6 +1142,9 @@ if command -v lazygit >/dev/null 2>&1; then
 fi
 if command -v lazydocker >/dev/null 2>&1; then
   ensure_zshrc_line 'alias lzd="lazydocker"'
+fi
+if command -v zb >/dev/null 2>&1; then
+  ensure_zshrc_line 'alias brew="zb"'
 fi
 
 # Tool initializations
