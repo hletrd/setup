@@ -48,13 +48,12 @@ All platforms have been tested and verified (January 2026):
 | zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| nvm | ✅ | ✅ | ✅ | ✅ | ✅ | N/A* |
-| Node.js | ✅ | ✅ | ✅ | ✅ | ⚠️† | ✅ |
+| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
+| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Notes:**
-- \* OpenWrt uses system Node.js from opkg instead of nvm (nvm doesn't work well on OpenWrt).
-- † Alpine Linux uses musl libc, so pre-built Node.js binaries are not available. nvm installs successfully, but Node.js compilation requires Python.
+- \* Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have).
 
 ## Features
 
@@ -76,7 +75,7 @@ All platforms have been tested and verified (January 2026):
 ### Package Managers
 | Package | Description |
 |---------|-------------|
-| **nvm** | Node Version Manager with latest LTS Node.js |
+| **fnm** | Fast Node Manager with latest LTS Node.js |
 | **uv** | Fast Python package manager by Astral |
 | **cargo** | Rust toolchain via rustup |
 
@@ -154,7 +153,7 @@ Create a `config.json` file to pre-configure installation options:
     "skip_mcp_setup": false
   },
   "packages": {
-    "nvm": true,
+    "fnm": true,
     "uv": true,
     "cargo": true,
     "ruff": true,
@@ -341,7 +340,7 @@ setup/
 - The scripts create `/etc/sudoers.d/$USER` to grant passwordless sudo for the current user
 - After first run, execute `p10k configure` to customize your Powerlevel10k prompt
 - On macOS, the default shell change requires manual execution: `chsh -s /bin/zsh`
-- Alpine Linux uses musl libc, so pre-built Node.js binaries are not available (nvm installs but Node.js build may fail)
-- OpenWrt has limited package availability; Node.js is installed via opkg (v8.x), and Rust-based CLI tools require manual installation
+- Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have)
+- OpenWrt has limited package availability; Rust-based CLI tools require manual installation
 - On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with zerobrew/cargo-installed ncurses-based tools (e.g., tmux)
 - If zerobrew (`zb`) is installed, `brew` is aliased to `zb` for convenience

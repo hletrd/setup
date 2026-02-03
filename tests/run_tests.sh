@@ -77,7 +77,7 @@ create_test_config() {
     "skip_mcp_setup": false
   },
   "packages": {
-    "nvm": true,
+    "fnm": true,
     "uv": true,
     "cargo": true,
     "ruff": false,
@@ -101,7 +101,13 @@ create_test_config() {
     "delta": false,
     "hishtory": false,
     "cheat": false,
-    "lsd": false
+    "lsd": false,
+    "tokei": false,
+    "broot": false,
+    "atuin": false,
+    "xh": false,
+    "difftastic": false,
+    "zellij": false
   }
 }
 EOF
@@ -351,7 +357,7 @@ test_remote_ssh() {
       ;;
     fedora-remote)
       docker exec "$container_name" sh -c '
-        dnf -y install sudo shadow-utils openssh-server openssh-clients python3
+        dnf -y install sudo shadow-utils openssh-server openssh-clients python3 openssl-devel perl
         useradd -m -s /bin/sh testuser
         echo "testuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
         mkdir -p /home/testuser/.ssh
@@ -377,7 +383,7 @@ test_remote_ssh() {
       ;;
     alpine-remote)
       docker exec "$container_name" sh -c '
-        apk add --no-cache sudo shadow bash openssh python3
+        apk add --no-cache sudo shadow bash openssh python3 perl
         useradd -m -s /bin/sh testuser
         # Unlock the account for SSH key auth (Alpine creates locked accounts by default)
         # Using * instead of ! allows key-based auth without a password
@@ -396,7 +402,7 @@ test_remote_ssh() {
         # Create required directories for opkg
         mkdir -p /var/lock /var/run
         opkg update
-        opkg install sudo shadow-useradd shadow-usermod bash curl ca-certificates openssh-server openssh-keygen python3
+        opkg install sudo shadow-useradd shadow-usermod bash curl ca-certificates openssh-server openssh-keygen python3 perl
         useradd -m -s /bin/sh testuser
         # Unlock the account for SSH key auth (OpenWrt creates locked accounts by default)
         usermod -p "*" testuser
@@ -476,7 +482,7 @@ test_remote_ssh() {
     "skip_mcp_setup": false
   },
   "packages": {
-    "nvm": true,
+    "fnm": true,
     "uv": true,
     "cargo": true,
     "ruff": false,
@@ -511,7 +517,8 @@ test_remote_ssh() {
     "broot": false,
     "atuin": false,
     "xh": false,
-    "difftastic": false
+    "difftastic": false,
+    "zellij": false
   }
 }
 EOF

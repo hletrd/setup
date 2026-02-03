@@ -13,7 +13,7 @@
     "skip_mcp_setup": false
   },
   "packages": {
-    "nvm": true,
+    "fnm": true,
     "uv": true,
     "cargo": true,
     "ruff": true,

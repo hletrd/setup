@@ -152,7 +152,7 @@ cfg_skip_zinit="false"
 cfg_skip_mcp_setup="false"
 
 # Package manager toggles (default all enabled)
-cfg_pkg_nvm="true"
+cfg_pkg_fnm="true"
 cfg_pkg_uv="true"
 cfg_pkg_cargo="true"
 cfg_pkg_ruff="true"
@@ -225,7 +225,7 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_skip_mcp_setup "$(json_get_bool "skip_mcp_setup" "$config_file")"
 
   # Load package manager toggles
-  set_if_present cfg_pkg_nvm "$(json_get_bool "nvm" "$config_file")"
+  set_if_present cfg_pkg_fnm "$(json_get_bool "fnm" "$config_file")"
   set_if_present cfg_pkg_uv "$(json_get_bool "uv" "$config_file")"
   set_if_present cfg_pkg_cargo "$(json_get_bool "cargo" "$config_file")"
   set_if_present cfg_pkg_ruff "$(json_get_bool "ruff" "$config_file")"
@@ -429,7 +429,7 @@ ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 7
 	cfg_skip_mcp_setup="$cfg_skip_mcp_setup"
 
 	# Package manager toggles
-	cfg_pkg_nvm="$cfg_pkg_nvm"
+	cfg_pkg_fnm="$cfg_pkg_fnm"
 	cfg_pkg_uv="$cfg_pkg_uv"
 	cfg_pkg_cargo="$cfg_pkg_cargo"
 	cfg_pkg_ruff="$cfg_pkg_ruff"
@@ -917,10 +917,10 @@ else
   printf "Zinit installed.\n"
 fi
 
-if [ "\$cfg_pkg_nvm" = "true" ]; then
-  printf "Setting up nvm and Node.js...\n"
+if [ "\$cfg_pkg_fnm" = "true" ]; then
+  printf "Setting up fnm and Node.js...\n"
   if [ "\$is_openwrt" = "true" ]; then
-    # OpenWrt - use system packages instead of nvm (nvm doesn't work well on OpenWrt)
+    # OpenWrt - use system packages instead of fnm (fnm doesn't work well on OpenWrt)
     printf "Installing Node.js from system packages (OpenWrt)...\n"
     if command -v opkg >/dev/null 2>&1; then
       pkg_install node node-npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
@@ -935,7 +935,7 @@ if [ "\$cfg_pkg_nvm" = "true" ]; then
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
   elif command -v apk >/dev/null 2>&1; then
-    # Alpine Linux - use system nodejs package (nvm requires glibc)
+    # Alpine Linux - use system nodejs package (fnm requires glibc)
     printf "Installing Node.js from apk (Alpine)...\n"
     pkg_install nodejs npm
     if command -v npm >/dev/null 2>&1; then
@@ -943,19 +943,29 @@ if [ "\$cfg_pkg_nvm" = "true" ]; then
       npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
-    if ! command -v bash >/dev/null 2>&1; then
-      pkg_install bash
+    # Install fnm (Fast Node Manager)
+    fnm_dir="\$HOME/.local/share/fnm"
+    if [ "\$is_macos" = "true" ]; then
+      # macOS - use Homebrew
+      brew install fnm
+    else
+      # Linux - install unzip (required by fnm installer) and fnm via curl script
+      pkg_install unzip
+      curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "\$fnm_dir" --skip-shell
     fi
-    nvm_dir="\$HOME/.nvm"
-    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null NVM_DIR="\$nvm_dir" bash
-    if [ -s "\$nvm_dir/nvm.sh" ] && command -v bash >/dev/null 2>&1; then
-      bash -c ". \"\$nvm_dir/nvm.sh\" && nvm install --lts --latest-npm && nvm alias default 'lts/*' && nvm use --lts"
+    # Setup fnm and install Node.js LTS
+    export PATH="\$fnm_dir:\$PATH"
+    if command -v fnm >/dev/null 2>&1; then
+      eval "\$(fnm env --shell bash)"
+      fnm install --lts
+      fnm default lts-latest
+      fnm use lts-latest
       printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      bash -c ". \"\$nvm_dir/nvm.sh\" && nvm use --lts >/dev/null && npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex
     fi
   fi
 else
-  printf "Skipping nvm and Node.js setup (disabled in config)...\n"
+  printf "Skipping fnm and Node.js setup (disabled in config)...\n"
 fi
 	
 if [ "\$cfg_skip_mcp_setup" = "true" ]; then
@@ -1176,9 +1186,7 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line 'alias nano=vim'
 	ensure_zshrc_line 'export PATH="\$HOME/.local/bin:\$PATH"'
 	ensure_zshrc_line 'export PATH="\$HOME/.cargo/bin:\$PATH"'
-	ensure_zshrc_line 'export NVM_DIR="\$HOME/.nvm"'
-	ensure_zshrc_line '[ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"'
-	ensure_zshrc_line '[ -s "\$NVM_DIR/bash_completion" ] && . "\$NVM_DIR/bash_completion"'
+	ensure_zshrc_line 'eval "\$(fnm env --use-on-cd --shell zsh)"'
 
 # Set TERMINFO for macOS to fix terminfo database lookup with zerobrew/cargo ncurses
 if [ "\$is_macos" = "true" ]; then

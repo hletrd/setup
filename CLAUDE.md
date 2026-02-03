@@ -23,7 +23,7 @@ setup/
 
 - **Shell Scripts**: All scripts use POSIX `sh` for maximum compatibility
 - **Supported Platforms**: macOS (Homebrew), Ubuntu/Debian (apt), Fedora/RHEL (dnf/yum), Arch (pacman), Alpine (apk), OpenWrt (opkg)
-- **Package Managers Installed**: nvm (Node.js), uv (Python), cargo (Rust), Homebrew (macOS)
+- **Package Managers Installed**: fnm (Node.js), uv (Python), cargo (Rust), Homebrew (macOS)
 - **Tools Installed**: zsh, zinit, fzf, eza, bat, fd, ripgrep, zoxide, delta, neovim, and 20+ CLI tools
 
 ## Coding Conventions
