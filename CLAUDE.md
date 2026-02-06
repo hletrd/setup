@@ -95,9 +95,14 @@ To add a new CLI tool to the installation scripts:
 ### @add-mcp-server
 To add a new MCP server configuration:
 1. Create JSON snippet in `mcp/servers/` (e.g., `myserver.json`)
-2. Format: `"name": { "command": "npx", "args": [...], "env": {...} }`
-3. Use `__HOME__` placeholder for home directory paths
-4. Update `configs/codex/config.toml` with corresponding `[mcp_servers.name]` section
+2. Format: `"name": { "command": "...", "args": [...], "env": {...} }`
+3. Use `__HOME__` placeholder for home directory paths in JSON snippets
+4. Add `cfg_mcp_<name>` toggle variable in both `install_local.sh` and `install_remote.sh`:
+   - Default value (e.g., `cfg_mcp_myserver="true"`)
+   - Config loading via `set_if_present cfg_mcp_myserver "$(json_get_bool "myserver" "$config_file")"`
+   - Case entry in `is_server_enabled()` function
+5. In `install_remote.sh`, also add: config passthrough variable and inline `write_server_config` heredoc
+6. Update `configs/codex/config.toml` with corresponding `[mcp_servers.name]` section
 
 ### @testing
 Running and modifying tests:
