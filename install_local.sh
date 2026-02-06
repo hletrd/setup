@@ -153,6 +153,7 @@ cfg_mcp_filesystem="true"
 cfg_mcp_git="true"
 cfg_mcp_github="true"
 cfg_mcp_jupyter="true"
+cfg_mcp_memora="true"
 cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
 cfg_mcp_sequential_thinking="true"
@@ -228,6 +229,7 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
   set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
   set_if_present cfg_mcp_jupyter "$(json_get_bool "jupyter" "$config_file")"
+  set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
   set_if_present cfg_mcp_memory "$(json_get_bool "memory" "$config_file")"
   set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
   set_if_present cfg_mcp_sequential_thinking "$(json_get_bool "sequential-thinking" "$config_file")"
@@ -966,6 +968,7 @@ else
       git) [ "$cfg_mcp_git" = "true" ] ;;
       github) [ "$cfg_mcp_github" = "true" ] ;;
       jupyter) [ "$cfg_mcp_jupyter" = "true" ] ;;
+      memora) [ "$cfg_mcp_memora" = "true" ] ;;
       memory) [ "$cfg_mcp_memory" = "true" ] ;;
       playwright) [ "$cfg_mcp_playwright" = "true" ] ;;
       sequential-thinking) [ "$cfg_mcp_sequential_thinking" = "true" ] ;;

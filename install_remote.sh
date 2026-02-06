@@ -199,6 +199,7 @@ cfg_mcp_filesystem="true"
 cfg_mcp_git="true"
 cfg_mcp_github="true"
 cfg_mcp_jupyter="true"
+cfg_mcp_memora="true"
 cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
 cfg_mcp_sequential_thinking="true"
@@ -272,6 +273,7 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
   set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
   set_if_present cfg_mcp_jupyter "$(json_get_bool "jupyter" "$config_file")"
+  set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
   set_if_present cfg_mcp_memory "$(json_get_bool "memory" "$config_file")"
   set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
   set_if_present cfg_mcp_sequential_thinking "$(json_get_bool "sequential-thinking" "$config_file")"
@@ -476,6 +478,7 @@ ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 7
 	cfg_mcp_git="$cfg_mcp_git"
 	cfg_mcp_github="$cfg_mcp_github"
 	cfg_mcp_jupyter="$cfg_mcp_jupyter"
+	cfg_mcp_memora="$cfg_mcp_memora"
 	cfg_mcp_memory="$cfg_mcp_memory"
 	cfg_mcp_playwright="$cfg_mcp_playwright"
 	cfg_mcp_sequential_thinking="$cfg_mcp_sequential_thinking"
@@ -989,6 +992,7 @@ else
       git) [ "\$cfg_mcp_git" = "true" ] ;;
       github) [ "\$cfg_mcp_github" = "true" ] ;;
       jupyter) [ "\$cfg_mcp_jupyter" = "true" ] ;;
+      memora) [ "\$cfg_mcp_memora" = "true" ] ;;
       memory) [ "\$cfg_mcp_memory" = "true" ] ;;
       playwright) [ "\$cfg_mcp_playwright" = "true" ] ;;
       sequential-thinking) [ "\$cfg_mcp_sequential_thinking" = "true" ] ;;
@@ -1082,6 +1086,18 @@ MCP_EOF
 "claude-context": {
   "command": "npx",
   "args": ["-y", "@zilliz/claude-context-mcp@latest"]
+}
+MCP_EOF
+
+  write_server_config "memora" <<'MCP_EOF'
+"memora": {
+  "command": "memora-server",
+  "args": [],
+  "env": {
+    "MEMORA_DB_PATH": "__HOME__/.local/share/memora/memories.db",
+    "MEMORA_ALLOW_ANY_TAG": "1",
+    "MEMORA_GRAPH_PORT": "8765"
+  }
 }
 MCP_EOF
 

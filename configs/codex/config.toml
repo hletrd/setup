@@ -101,3 +101,14 @@ command = "npx"
 args = ["-y", "auggie-context-mcp@latest"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
+
+[mcp_servers.memora]
+command = "memora-server"
+args = []
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.memora.env]
+MEMORA_DB_PATH = "$HOME/.local/share/memora/memories.db"
+MEMORA_ALLOW_ANY_TAG = "1"
+MEMORA_GRAPH_PORT = "8765"
