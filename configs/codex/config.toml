@@ -1,30 +1,42 @@
-model = "gpt-5.3-codex"
+# oh-my-codex top-level settings (must be before any [table])
+notify = ["node", "__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/oh-my-codex/scripts/notify-hook.js"]
 model_reasoning_effort = "xhigh"
-approval_policy = "never"
-sandbox_mode = "danger-full-access"
+developer_instructions = "You have oh-my-codex installed. Use /prompts:architect, /prompts:executor, /prompts:planner for specialized agent roles. Workflow skills via $name: $ralph, $autopilot, $plan. AGENTS.md is your orchestration brain."
 
-project_root_markers = [
-  ".git",
-  ".hg",
-  ".sl",
-  ".codex",
-  "package.json",
-  "pnpm-workspace.yaml",
-  "turbo.json",
-  "nx.json",
-  "pyproject.toml",
-  "poetry.lock",
-  "requirements.txt",
-  "Pipfile",
-  "go.mod",
-  "Cargo.toml",
-  "pom.xml",
-  "build.gradle",
-]
+model = "gpt-5.3-codex"
+[projects."__HOME__"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/computerprogramming2026"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/nas-ops"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/rb-y1"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/burstpick"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/aloha-2"]
+trust_level = "trusted"
+
+[projects."__HOME__/git"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/G2"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/xylolabs-panel-demo"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/setup"]
+trust_level = "trusted"
 
 [mcp_servers.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "$HOME"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "__HOME__"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 
@@ -41,50 +53,33 @@ startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["CONTEXT7_API_KEY"]
 
-[mcp_servers.context-mode]
-command = "npx"
-args = ["-y", "context-mode"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
 startup_timeout_sec = 30
 tool_timeout_sec = 180
 
-[mcp_servers.playwright.env]
-PLAYWRIGHT_BROWSERS_PATH = "0"
-
-[mcp_servers.agentic-tools]
-command = "npx"
-args = ["-y", "@pimzino/agentic-tools-mcp"]
+[mcp_servers.fetch]
+command = "uvx"
+args = ["mcp-server-fetch"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 
-[mcp_servers.graphiti]
+[mcp_servers.websearch]
 command = "npx"
-args = ["-y", "@zhangzichao2008/mcp-graphiti"]
+args = ["-y", "exa-mcp-server"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
-env_vars = [
-  "NEO4J_URI",
-  "NEO4J_USER",
-  "NEO4J_PASSWORD",
-  "NEO4J_DATABASE",
-  "EMBEDDING_API_KEY",
-  "EMBEDDING_API_URL",
-  "EMBEDDING_MODEL",
-]
+env_vars = ["EXA_API_KEY"]
 
 [mcp_servers.memora]
-command = "memora-server"
-args = []
+command = "__HOME__/.local/bin/uvx"
+args = ["--from", "git+https://github.com/agentic-mcp-tools/memora.git", "memora-server"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 
 [mcp_servers.memora.env]
-MEMORA_DB_PATH = "$HOME/.local/share/memora/memories.db"
+MEMORA_DB_PATH = "__HOME__/.local/share/memora/memories.db"
 MEMORA_ALLOW_ANY_TAG = "1"
 MEMORA_GRAPH_PORT = "8765"
 
@@ -93,71 +88,90 @@ MEMORA_GRAPH_PORT = "8765"
 [profiles.architect]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.code-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-read"
 
 [profiles.security-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-read"
 
 [profiles.planner]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-read"
 
 [profiles.debugger]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.refactorer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.tdd]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.docs-writer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "high"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.perf-optimization-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.pro-photographer-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
 
 [profiles.product-marketer-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-read"
 
 [profiles.ui-ux-designer-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
+[features]
+collab = true
+child_agents_md = true
+
+# ============================================================
+# oh-my-codex (OMX) Configuration
+# Managed by omx setup - manual edits preserved on next setup
+# ============================================================
+
+# OMX State Management MCP Server
+[mcp_servers.omx_state]
+command = "node"
+args = ["__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/oh-my-codex/dist/mcp/state-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+# OMX Project Memory MCP Server
+[mcp_servers.omx_memory]
+command = "node"
+args = ["__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/oh-my-codex/dist/mcp/memory-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+# OMX Code Intelligence MCP Server (LSP diagnostics, AST search)
+[mcp_servers.omx_code_intel]
+command = "node"
+args = ["__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/oh-my-codex/dist/mcp/code-intel-server.js"]
+enabled = true
+startup_timeout_sec = 10
+
+# OMX Trace MCP Server (agent flow timeline & statistics)
+[mcp_servers.omx_trace]
+command = "node"
+args = ["__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/oh-my-codex/dist/mcp/trace-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+# OMX TUI StatusLine (Codex CLI v0.101.0+)
+[tui]
+status_line = ["model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit"]
+
+# ============================================================
+# End oh-my-codex
