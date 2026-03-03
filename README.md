@@ -79,6 +79,12 @@ All platforms have been tested and verified (January 2026):
 | **uv** | Fast Python package manager by Astral |
 | **cargo** | Rust toolchain via rustup |
 
+### AI CLI Stack (Default)
+- Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
+- Auto-run `omx setup --force --verbose` when `omx` is available
+- Auto-run `omc install --force --skip-claude-check` when `omc` is available
+- Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
+
 ### Python Tools (via uv tool install)
 | Tool | Description |
 |------|-------------|
@@ -91,16 +97,16 @@ All tools are configurable via `config.json`. Installed via cargo for cross-plat
 | Tool | Replaces | Alias | Description |
 |------|----------|-------|-------------|
 | eza | ls | `ls`, `ll`, `la` | Modern ls replacement |
-| bat | cat | `cat` | Cat with syntax highlighting |
+| bat | cat | - | Cat with syntax highlighting |
 | dust | du | `du` | Intuitive disk usage |
 | duf | df | `df` | Better disk free utility |
 | fd | find | `find` | Fast and user-friendly find |
-| ripgrep | grep | `grep` | Ultra-fast grep |
-| sd | sed | `sed` | Intuitive find & replace |
+| ripgrep | grep | - | Ultra-fast grep |
+| sd | sed | - | Intuitive find & replace |
 | choose | cut/awk | `cut` | Human-friendly cut |
 | bottom | top/htop | `top` | Graphical process viewer |
 | procs | ps | `ps` | Modern process viewer |
-| gping | ping | `ping` | Ping with graph |
+| gping | ping | - | Ping with graph |
 | zoxide | cd | `z` | Smarter cd command |
 | mcfly | Ctrl+R | - | Intelligent history search |
 | fzf | - | - | Fuzzy finder |
@@ -114,17 +120,14 @@ Pre-configured MCP servers for AI-assisted development:
 
 | Server | Purpose |
 |--------|---------|
-| auggie-context | Augment context engine |
-| claude-context | Claude context management |
 | context7 | Library documentation |
+| context-mode | Context compression MCP (`npx -y context-mode`) |
 | fetch | URL fetching |
 | filesystem | File operations |
 | git | Git operations |
 | github | GitHub API integration |
-| jupyter | Jupyter notebook integration |
-| memory | Persistent memory |
 | playwright | Browser automation |
-| sequential-thinking | Reasoning chains |
+| memora | Persistent memory graph |
 
 ### Editor Integration
 MCP configuration is automatically symlinked to supported editors:
@@ -321,17 +324,14 @@ setup/
 │   └── opencode/
 └── mcp/                      # MCP server configurations
     └── servers/
-        ├── auggie-context.json
-        ├── claude-context.json
         ├── context7.json
+        ├── context-mode.json
         ├── fetch.json
         ├── filesystem.json
         ├── git.json
         ├── github.json
-        ├── jupyter.json
-        ├── memory.json
+        ├── memora.json
         ├── playwright.json
-        └── sequential-thinking.json
 ```
 
 ## Notes

@@ -26,6 +26,13 @@ setup/
 - **Package Managers Installed**: fnm (Node.js), uv (Python), cargo (Rust), Homebrew (macOS)
 - **Tools Installed**: zsh, zinit, fzf, eza, bat, fd, ripgrep, zoxide, delta, neovim, and 20+ CLI tools
 
+## Knowledge Base (Current Defaults)
+
+- **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
+- **AI bootstrap hooks**: run `omx setup --force --verbose` and `omc install --force --skip-claude-check` when available
+- **Default MCP servers**: `context7`, `context-mode`, `fetch`, `filesystem`, `git`, `github`, `memora`, `playwright`
+- **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
+
 ## Coding Conventions
 
 ### Shell Script Standards
@@ -118,4 +125,3 @@ Creating Ubuntu autoinstall ISOs:
 - Run `./create-autoinstall-iso.sh <source.iso>` to create bootable ISO
 - Requires `xorriso` and `p7zip` installed
 - Default credentials: username `ubuntu`, password `1`
-
