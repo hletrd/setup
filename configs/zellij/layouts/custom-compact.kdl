@@ -1,0 +1,16 @@
+layout {
+    pane
+    pane size=1 split_direction="vertical" {
+        pane size=5 {
+            borderless true
+            command "bash"
+            args "-c" "tput civis; printf ' mm0 '; exec sleep infinity"
+        }
+        pane {
+            borderless true
+            plugin location="compact-bar" {
+                hide_session_name true
+            }
+        }
+    }
+}

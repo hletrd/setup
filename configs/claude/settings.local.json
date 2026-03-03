@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(npm install)",
+      "Bash(ZDOTDIR=/dev/null /bin/zsh -c 'export PATH=\"\"__HOME__/.local/state/fnm_multishells/82986_1770039651602/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:$PATH\"\" && cd \"\"$HOME/.claude/plugins/cache/omc/oh-my-claudecode/3.9.6\"\" && npm install')",
+      "Bash(chmod:*)",
+      "Bash(node -e:*)",
+      "Bash(npm install:*)",
+      "Bash(gh auth token:*)",
+      "Bash(echo:*)"
+    ]
+  }
+}
