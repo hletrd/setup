@@ -1,65 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "__HOME__/git/augment-opencode/plugin",
     "oh-my-opencode@latest"
   ],
   "model": "augment/claude-opus-4-6",
   "mcp": {
-    "fetch": {
-      "type": "local",
-      "command": ["uvx", "mcp-server-fetch", "--ignore-robots-txt"],
-      "enabled": true,
-      "environment": {
-        "PATH": "__HOME__/.local/bin:/opt/zerobrew/prefix/bin:/usr/local/bin:/usr/bin:/bin"
-      }
-    },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "enabled": true
-    },
-    "filesystem": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "__HOME__"],
-      "enabled": true,
-      "environment": {
-        "PATH": "__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/bin:/opt/zerobrew/prefix/bin:/usr/local/bin:/usr/bin:/bin"
-      }
-    },
-    "git": {
-      "type": "local",
-      "command": ["uvx", "mcp-server-git"],
-      "enabled": true,
-      "environment": {
-        "PATH": "__HOME__/.local/bin:/opt/zerobrew/prefix/bin:/usr/local/bin:/usr/bin:/bin"
-      }
-    },
-    "basic-memory": {
-      "type": "local",
-      "command": ["basic-memory", "mcp"],
-      "enabled": true,
-      "environment": {
-        "PATH": "__HOME__/.local/bin:/opt/zerobrew/prefix/bin:/usr/local/bin:/usr/bin:/bin"
-      }
-    },
-    "playwright": {
-      "type": "local",
-      "command": ["npx", "-y", "@playwright/mcp@latest"],
-      "enabled": true,
-      "environment": {
-        "PATH": "__HOME__/.local/share/fnm/node-versions/v24.13.0/installation/bin:/opt/zerobrew/prefix/bin:/usr/local/bin:/usr/bin:/bin"
-      }
-    },
-    "memora": {
-      "type": "local",
-      "command": ["memora-server"],
-      "enabled": true,
-      "environment": {
-        "MEMORA_DB_PATH": "~/.local/share/memora/memories.db",
-        "MEMORA_ALLOW_ANY_TAG": "1",
-        "MEMORA_GRAPH_PORT": "8765"
-      }
     }
   }
 }

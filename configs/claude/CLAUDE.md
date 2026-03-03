@@ -48,7 +48,7 @@ Before writing `package.json`, `Cargo.toml`, `pyproject.toml`, or equivalent: ve
 
 ## Context Directory Fallback
 
-- If a project does not have a project-level `CLAUDE.md`, check for a `.context/` directory at the project root.
+- If a project does not have a project-level `CLAUDE.md`, check for a `.context/` directory at project root.
 - If `.context/` exists, read markdown files in this order:
   1. `.context/README.md`
   2. `.context/project/`

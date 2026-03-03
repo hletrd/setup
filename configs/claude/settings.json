@@ -32,38 +32,11 @@
         "@upstash/context7-mcp@latest"
       ]
     },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "__HOME__"
-      ]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp@latest"
-      ]
-    },
-    "git": {
-      "command": "uvx",
-      "args": [
-        "mcp-server-git"
-      ]
-    },
     "auggie-context": {
       "command": "npx",
       "args": [
         "-y",
         "auggie-context-mcp@latest"
-      ]
-    },
-    "fetch": {
-      "command": "uvx",
-      "args": [
-        "mcp-server-fetch"
       ]
     }
   },

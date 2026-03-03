@@ -34,18 +34,6 @@ trust_level = "trusted"
 [projects."__HOME__/git/setup"]
 trust_level = "trusted"
 
-[mcp_servers.filesystem]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "__HOME__"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
-[mcp_servers.git]
-command = "uvx"
-args = ["mcp-server-git"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "@upstash/context7-mcp@latest"]
@@ -53,35 +41,12 @@ startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["CONTEXT7_API_KEY"]
 
-[mcp_servers.playwright]
-command = "npx"
-args = ["-y", "@playwright/mcp@latest"]
-startup_timeout_sec = 30
-tool_timeout_sec = 180
-
-[mcp_servers.fetch]
-command = "uvx"
-args = ["mcp-server-fetch"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
 [mcp_servers.websearch]
 command = "npx"
 args = ["-y", "exa-mcp-server"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["EXA_API_KEY"]
-
-[mcp_servers.memora]
-command = "__HOME__/.local/bin/uvx"
-args = ["--from", "git+https://github.com/agentic-mcp-tools/memora.git", "memora-server"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
-[mcp_servers.memora.env]
-MEMORA_DB_PATH = "__HOME__/.local/share/memora/memories.db"
-MEMORA_ALLOW_ANY_TAG = "1"
-MEMORA_GRAPH_PORT = "8765"
 
 # ── Agent Profiles ──────────────────────────────────────────────
 
