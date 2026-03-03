@@ -952,9 +952,15 @@ printf "Installing global AI assistant rules and user config backups...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+claude_config_src="$script_dir/configs/claude/config.json"
+claude_settings_src="$script_dir/configs/claude/settings.json"
+claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
+claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
 gitconfig_src="$script_dir/configs/git/gitconfig"
 zshrc_src="$script_dir/configs/zsh/zshrc"
 p10k_src="$script_dir/configs/zsh/p10k.zsh"
+zellij_config_src="$script_dir/configs/zellij/config.kdl"
+zellij_layout_src="$script_dir/configs/zellij/layouts/custom-compact.kdl"
 
 if [ -f "$gitconfig_src" ] && [ ! -f "$HOME/.gitconfig" ]; then
   cp "$gitconfig_src" "$HOME/.gitconfig"
@@ -966,6 +972,39 @@ fi
 
 if [ -f "$p10k_src" ] && [ ! -f "$HOME/.p10k.zsh" ]; then
   cp "$p10k_src" "$HOME/.p10k.zsh"
+fi
+
+if [ -f "$claude_config_src" ] || [ -f "$claude_settings_src" ] || [ -f "$claude_settings_local_src" ] || [ -f "$claude_statusline_src" ]; then
+  mkdir -p "$HOME/.claude"
+fi
+
+if [ -f "$claude_config_src" ] && [ ! -f "$HOME/.claude/config.json" ]; then
+  cp "$claude_config_src" "$HOME/.claude/config.json"
+fi
+
+if [ -f "$claude_settings_src" ] && [ ! -f "$HOME/.claude/settings.json" ]; then
+  cp "$claude_settings_src" "$HOME/.claude/settings.json"
+fi
+
+if [ -f "$claude_settings_local_src" ] && [ ! -f "$HOME/.claude/settings.local.json" ]; then
+  cp "$claude_settings_local_src" "$HOME/.claude/settings.local.json"
+fi
+
+if [ -f "$claude_statusline_src" ] && [ ! -f "$HOME/.claude/statusline-command.sh" ]; then
+  cp "$claude_statusline_src" "$HOME/.claude/statusline-command.sh"
+  chmod +x "$HOME/.claude/statusline-command.sh"
+fi
+
+if [ -f "$zellij_config_src" ] || [ -f "$zellij_layout_src" ]; then
+  mkdir -p "$HOME/.config/zellij/layouts"
+fi
+
+if [ -f "$zellij_config_src" ] && [ ! -f "$HOME/.config/zellij/config.kdl" ]; then
+  cp "$zellij_config_src" "$HOME/.config/zellij/config.kdl"
+fi
+
+if [ -f "$zellij_layout_src" ] && [ ! -f "$HOME/.config/zellij/layouts/custom-compact.kdl" ]; then
+  cp "$zellij_layout_src" "$HOME/.config/zellij/layouts/custom-compact.kdl"
 fi
 
 if [ -f "$claude_rules_src" ]; then

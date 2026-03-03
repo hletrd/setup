@@ -1267,9 +1267,15 @@ printf "Installing global AI assistant rules and user config backups on remote h
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+claude_config_src="$script_dir/configs/claude/config.json"
+claude_settings_src="$script_dir/configs/claude/settings.json"
+claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
+claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
 gitconfig_src="$script_dir/configs/git/gitconfig"
 zshrc_src="$script_dir/configs/zsh/zshrc"
 p10k_src="$script_dir/configs/zsh/p10k.zsh"
+zellij_config_src="$script_dir/configs/zellij/config.kdl"
+zellij_layout_src="$script_dir/configs/zellij/layouts/custom-compact.kdl"
 
 if [ -f "$gitconfig_src" ]; then
   # shellcheck disable=SC2086
@@ -1284,6 +1290,36 @@ fi
 if [ -f "$p10k_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.p10k.zsh" ]; then cat > "$HOME/.p10k.zsh"; else cat >/dev/null; fi' < "$p10k_src"
+fi
+
+if [ -f "$claude_config_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/config.json" ]; then cat > "$HOME/.claude/config.json"; else cat >/dev/null; fi' < "$claude_config_src"
+fi
+
+if [ -f "$claude_settings_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/settings.json" ]; then cat > "$HOME/.claude/settings.json"; else cat >/dev/null; fi' < "$claude_settings_src"
+fi
+
+if [ -f "$claude_settings_local_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/settings.local.json" ]; then cat > "$HOME/.claude/settings.local.json"; else cat >/dev/null; fi' < "$claude_settings_local_src"
+fi
+
+if [ -f "$claude_statusline_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/statusline-command.sh" ]; then cat > "$HOME/.claude/statusline-command.sh" && chmod +x "$HOME/.claude/statusline-command.sh"; else cat >/dev/null; fi' < "$claude_statusline_src"
+fi
+
+if [ -f "$zellij_config_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/zellij"; if [ ! -f "$HOME/.config/zellij/config.kdl" ]; then cat > "$HOME/.config/zellij/config.kdl"; else cat >/dev/null; fi' < "$zellij_config_src"
+fi
+
+if [ -f "$zellij_layout_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/zellij/layouts"; if [ ! -f "$HOME/.config/zellij/layouts/custom-compact.kdl" ]; then cat > "$HOME/.config/zellij/layouts/custom-compact.kdl"; else cat >/dev/null; fi' < "$zellij_layout_src"
 fi
 
 if [ -f "$claude_rules_src" ] || [ -f "$codex_rules_src" ] || [ -f "$opencode_rules_src" ]; then
