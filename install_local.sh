@@ -948,9 +948,26 @@ if command -v omc >/dev/null 2>&1; then
   omc install --force --quiet --skip-claude-check >/dev/null 2>&1 || printf "Warning: omc install failed; run 'omc install --force --skip-claude-check' manually\n"
 fi
 
-printf "Installing Codex and OpenCode global rules...\n"
+printf "Installing global AI assistant rules...\n"
+claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+
+if [ -f "$claude_rules_src" ]; then
+  mkdir -p "$HOME/.claude"
+  claude_target="$HOME/.claude/CLAUDE.md"
+  if [ -f "$claude_target" ] && grep -q '<!-- OMC:END -->' "$claude_target"; then
+    tmp_file="${claude_target}.tmp"
+    sed '/<!-- OMC:END -->/q' "$claude_target" > "$tmp_file"
+    printf "\n" >> "$tmp_file"
+    cat "$claude_rules_src" >> "$tmp_file"
+    mv "$tmp_file" "$claude_target"
+  else
+    cp "$claude_rules_src" "$claude_target"
+  fi
+else
+  printf "Warning: Claude rules file not found: %s\n" "$claude_rules_src"
+fi
 
 if [ -f "$codex_rules_src" ]; then
   mkdir -p "$HOME/.codex"

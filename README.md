@@ -83,6 +83,10 @@ All platforms have been tested and verified (January 2026):
 - Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
 - Auto-run `omx setup --force --verbose` when `omx` is available
 - Auto-run `omc install --force --skip-claude-check` when `omc` is available
+- Auto-install backed-up global rules:
+  - `configs/claude/CLAUDE.md` -> `~/.claude/CLAUDE.md` (preserves OMC-generated block when present)
+  - `configs/codex/AGENTS.md` -> `~/.codex/AGENTS.md`
+  - `configs/opencode/AGENTS.md` -> `~/.config/opencode/AGENTS.md`
 - Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
 
 ### Python Tools (via uv tool install)

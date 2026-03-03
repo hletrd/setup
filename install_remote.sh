@@ -1263,13 +1263,36 @@ else
   ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
 fi
 
-printf "Installing Codex and OpenCode global rules on remote host...\n"
+printf "Installing global AI assistant rules on remote host...\n"
+claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
 
-if [ -f "$codex_rules_src" ] || [ -f "$opencode_rules_src" ]; then
+if [ -f "$claude_rules_src" ] || [ -f "$codex_rules_src" ] || [ -f "$opencode_rules_src" ]; then
   # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.codex\" \"\$HOME/.config/opencode\""
+  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.claude\" \"\$HOME/.codex\" \"\$HOME/.config/opencode\""
+fi
+
+if [ -f "$claude_rules_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.claude/CLAUDE.user-rules.md\"" < "$claude_rules_src"
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" '
+    target="$HOME/.claude/CLAUDE.md"
+    rules="$HOME/.claude/CLAUDE.user-rules.md"
+    if [ -f "$target" ] && grep -q "<!-- OMC:END -->" "$target"; then
+      tmp_file="${target}.tmp"
+      sed "/<!-- OMC:END -->/q" "$target" > "$tmp_file"
+      printf "\n" >> "$tmp_file"
+      cat "$rules" >> "$tmp_file"
+      mv "$tmp_file" "$target"
+    else
+      cp "$rules" "$target"
+    fi
+    rm -f "$rules"
+  '
+else
+  printf "Warning: Claude rules file not found: %s\n" "$claude_rules_src"
 fi
 
 if [ -f "$codex_rules_src" ]; then
