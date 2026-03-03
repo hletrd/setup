@@ -191,18 +191,14 @@ cfg_cli_difftastic="true"
 cfg_cli_zellij="true"
 
 # MCP server toggles (default all enabled)
-cfg_mcp_auggie_context="true"
-cfg_mcp_claude_context="true"
 cfg_mcp_context7="true"
+cfg_mcp_context_mode="true"
 cfg_mcp_fetch="true"
 cfg_mcp_filesystem="true"
 cfg_mcp_git="true"
 cfg_mcp_github="true"
-cfg_mcp_jupyter="true"
 cfg_mcp_memora="true"
-cfg_mcp_memory="true"
 cfg_mcp_playwright="true"
-cfg_mcp_sequential_thinking="true"
 
 # Helper to set config value only if non-empty
 set_if_present() {
@@ -265,18 +261,14 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_cli_zellij "$(json_get_bool "zellij" "$config_file")"
 
   # Load MCP server toggles
-  set_if_present cfg_mcp_auggie_context "$(json_get_bool "auggie-context" "$config_file")"
-  set_if_present cfg_mcp_claude_context "$(json_get_bool "claude-context" "$config_file")"
   set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
+  set_if_present cfg_mcp_context_mode "$(json_get_bool "context-mode" "$config_file")"
   set_if_present cfg_mcp_fetch "$(json_get_bool "fetch" "$config_file")"
   set_if_present cfg_mcp_filesystem "$(json_get_bool "filesystem" "$config_file")"
   set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
   set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
-  set_if_present cfg_mcp_jupyter "$(json_get_bool "jupyter" "$config_file")"
   set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
-  set_if_present cfg_mcp_memory "$(json_get_bool "memory" "$config_file")"
   set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
-  set_if_present cfg_mcp_sequential_thinking "$(json_get_bool "sequential-thinking" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -470,18 +462,14 @@ ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 7
 	cfg_cli_zellij="$cfg_cli_zellij"
 
 	# MCP server toggles
-	cfg_mcp_auggie_context="$cfg_mcp_auggie_context"
-	cfg_mcp_claude_context="$cfg_mcp_claude_context"
 	cfg_mcp_context7="$cfg_mcp_context7"
+	cfg_mcp_context_mode="$cfg_mcp_context_mode"
 	cfg_mcp_fetch="$cfg_mcp_fetch"
 	cfg_mcp_filesystem="$cfg_mcp_filesystem"
 	cfg_mcp_git="$cfg_mcp_git"
 	cfg_mcp_github="$cfg_mcp_github"
-	cfg_mcp_jupyter="$cfg_mcp_jupyter"
 	cfg_mcp_memora="$cfg_mcp_memora"
-	cfg_mcp_memory="$cfg_mcp_memory"
 	cfg_mcp_playwright="$cfg_mcp_playwright"
-	cfg_mcp_sequential_thinking="$cfg_mcp_sequential_thinking"
 
 	printf "Caching sudo credentials...\n"
 	sudo -v
@@ -932,8 +920,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
     fi
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
     else
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
@@ -942,8 +930,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
     printf "Installing Node.js from apk (Alpine)...\n"
     pkg_install nodejs npm
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
     # Install fnm (Fast Node Manager)
@@ -963,12 +951,22 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       fnm install --lts
       fnm default lts-latest
       fnm use lts-latest
-      printf "Installing Claude Code, OpenCode, and Codex CLIs...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus
     fi
   fi
 else
   printf "Skipping fnm and Node.js setup (disabled in config)...\n"
+fi
+
+if command -v omx >/dev/null 2>&1; then
+  printf "Configuring oh-my-codex defaults...\n"
+  omx setup --force --verbose >/dev/null 2>&1 || printf "Warning: omx setup failed; run 'omx setup --force --verbose' manually\n"
+fi
+
+if command -v omc >/dev/null 2>&1; then
+  printf "Configuring oh-my-claudecode defaults...\n"
+  omc install --force --quiet --skip-claude-check >/dev/null 2>&1 || printf "Warning: omc install failed; run 'omc install --force --skip-claude-check' manually\n"
 fi
 	
 if [ "\$cfg_skip_mcp_setup" = "true" ]; then
@@ -984,18 +982,14 @@ else
   is_server_enabled() {
     server_name="\$1"
     case "\$server_name" in
-      auggie-context) [ "\$cfg_mcp_auggie_context" = "true" ] ;;
-      claude-context) [ "\$cfg_mcp_claude_context" = "true" ] ;;
       context7) [ "\$cfg_mcp_context7" = "true" ] ;;
+      context-mode) [ "\$cfg_mcp_context_mode" = "true" ] ;;
       fetch) [ "\$cfg_mcp_fetch" = "true" ] ;;
       filesystem) [ "\$cfg_mcp_filesystem" = "true" ] ;;
       git) [ "\$cfg_mcp_git" = "true" ] ;;
       github) [ "\$cfg_mcp_github" = "true" ] ;;
-      jupyter) [ "\$cfg_mcp_jupyter" = "true" ] ;;
       memora) [ "\$cfg_mcp_memora" = "true" ] ;;
-      memory) [ "\$cfg_mcp_memory" = "true" ] ;;
       playwright) [ "\$cfg_mcp_playwright" = "true" ] ;;
-      sequential-thinking) [ "\$cfg_mcp_sequential_thinking" = "true" ] ;;
       *) return 0 ;;  # Unknown servers are enabled by default
     esac
   }
@@ -1023,16 +1017,6 @@ MCP_EOF
 }
 MCP_EOF
 
-  write_server_config "memory" <<'MCP_EOF'
-"memory": {
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-memory"],
-  "env": {
-    "MEMORY_FILE_PATH": "__HOME__/.config/mcp/memory.jsonl"
-  }
-}
-MCP_EOF
-
   write_server_config "github" <<'MCP_EOF'
 "github": {
   "command": "npx",
@@ -1047,24 +1031,10 @@ MCP_EOF
 }
 MCP_EOF
 
-  write_server_config "sequential-thinking" <<'MCP_EOF'
-"sequential-thinking": {
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-}
-MCP_EOF
-
   write_server_config "playwright" <<'MCP_EOF'
 "playwright": {
   "command": "npx",
   "args": ["-y", "@playwright/mcp@latest"]
-}
-MCP_EOF
-
-  write_server_config "jupyter" <<'MCP_EOF'
-"jupyter": {
-  "command": "uvx",
-  "args": ["mcp-server-jupyter", "stdio"]
 }
 MCP_EOF
 
@@ -1075,17 +1045,10 @@ MCP_EOF
 }
 MCP_EOF
 
-  write_server_config "auggie-context" <<'MCP_EOF'
-"auggie-context": {
+  write_server_config "context-mode" <<'MCP_EOF'
+"context-mode": {
   "command": "npx",
-  "args": ["-y", "auggie-context-mcp@latest"]
-}
-MCP_EOF
-
-  write_server_config "claude-context" <<'MCP_EOF'
-"claude-context": {
-  "command": "npx",
-  "args": ["-y", "@zilliz/claude-context-mcp@latest"]
+  "args": ["-y", "context-mode"]
 }
 MCP_EOF
 
@@ -1200,6 +1163,7 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line 'export EDITOR=vim'
 	ensure_zshrc_line 'export VISUAL=vim'
 	ensure_zshrc_line 'alias nano=vim'
+	ensure_zshrc_line 'alias codex="codex --dangerously-bypass-approvals-and-sandbox"'
 	ensure_zshrc_line 'export PATH="\$HOME/.local/bin:\$PATH"'
 	ensure_zshrc_line 'export PATH="\$HOME/.cargo/bin:\$PATH"'
 	ensure_zshrc_line 'eval "\$(fnm env --use-on-cd --shell zsh)"'
@@ -1216,9 +1180,6 @@ if [ -x "\$HOME/.cargo/bin/eza" ] || command -v eza >/dev/null 2>&1; then
   ensure_zshrc_line 'alias ll="eza -l"'
   ensure_zshrc_line 'alias la="eza -la"'
 fi
-if [ -x "\$HOME/.cargo/bin/bat" ] || command -v bat >/dev/null 2>&1; then
-  ensure_zshrc_line 'alias cat="bat"'
-fi
 if [ -x "\$HOME/.cargo/bin/dust" ] || command -v dust >/dev/null 2>&1; then
   ensure_zshrc_line 'alias du="dust"'
 fi
@@ -1228,12 +1189,6 @@ fi
 if [ -x "\$HOME/.cargo/bin/fd" ] || command -v fd >/dev/null 2>&1; then
   ensure_zshrc_line 'alias find="fd"'
 fi
-if [ -x "\$HOME/.cargo/bin/rg" ] || command -v rg >/dev/null 2>&1; then
-  ensure_zshrc_line 'alias grep="rg"'
-fi
-if [ -x "\$HOME/.cargo/bin/sd" ] || command -v sd >/dev/null 2>&1; then
-  ensure_zshrc_line 'alias sed="sd"'
-fi
 if [ -x "\$HOME/.cargo/bin/choose" ] || command -v choose >/dev/null 2>&1; then
   ensure_zshrc_line 'alias cut="choose"'
 fi
@@ -1242,9 +1197,6 @@ if [ -x "\$HOME/.cargo/bin/btm" ] || command -v btm >/dev/null 2>&1; then
 fi
 if [ -x "\$HOME/.cargo/bin/procs" ] || command -v procs >/dev/null 2>&1; then
   ensure_zshrc_line 'alias ps="procs"'
-fi
-if [ -x "\$HOME/.cargo/bin/gping" ] || command -v gping >/dev/null 2>&1; then
-  ensure_zshrc_line 'alias ping="gping"'
 fi
 if [ -x "\$HOME/.cargo/bin/lsd" ] || command -v lsd >/dev/null 2>&1; then
   ensure_zshrc_line 'alias lsd="lsd"'
@@ -1309,4 +1261,27 @@ if [ -t 0 ]; then
   ssh -tt $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc" < /dev/tty
 else
   ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
+fi
+
+printf "Installing Codex and OpenCode global rules on remote host...\n"
+codex_rules_src="$script_dir/configs/codex/AGENTS.md"
+opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+
+if [ -f "$codex_rules_src" ] || [ -f "$opencode_rules_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.codex\" \"\$HOME/.config/opencode\""
+fi
+
+if [ -f "$codex_rules_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.codex/AGENTS.md\"" < "$codex_rules_src"
+else
+  printf "Warning: Codex rules file not found: %s\n" "$codex_rules_src"
+fi
+
+if [ -f "$opencode_rules_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.config/opencode/AGENTS.md\"" < "$opencode_rules_src"
+else
+  printf "Warning: OpenCode rules file not found: %s\n" "$opencode_rules_src"
 fi
