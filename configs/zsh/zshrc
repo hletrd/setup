@@ -1,0 +1,96 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Zinit initialization
+ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+[ -f "$ZINIT_HOME/zinit.zsh" ] && source "$ZINIT_HOME/zinit.zsh"
+
+# Zinit plugins
+zinit ice depth=1; zinit light romkatv/powerlevel10k
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-syntax-highlighting
+
+# History configuration
+HISTFILE=~/.histfile
+HISTSIZE=100000
+SAVEHIST=100000
+
+# Shell options
+setopt autocd
+bindkey -e
+
+# Completion
+autoload -Uz compinit
+compinit
+
+# Environment variables
+export EDITOR=vim
+export VISUAL=vim
+
+# PATH configuration
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Load local environment
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+# fnm (fast node manager)
+command -v fnm >/dev/null && eval "$(fnm env --use-on-cd)"
+
+# Docker CLI (macOS Docker Desktop)
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+fpath=($HOME/.docker/completions $fpath)
+
+# FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Modern CLI tool aliases (only if tools exist)
+command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
+#command -v bat >/dev/null # && alias cat="bat"
+command -v fd >/dev/null && alias find="fd"
+#command -v rg >/dev/null # && alias grep="rg"
+command -v dust >/dev/null && alias du="dust"
+command -v duf >/dev/null && alias df="duf"
+command -v btm >/dev/null && alias top="btm"
+#command -v procs >/dev/null && alias ps="procs"
+#command -v sd >/dev/null # && alias sed="sd"
+#command -v gping >/dev/null && alias ping="gping"
+command -v difft >/dev/null && alias diff="difft"
+command -v xh >/dev/null && alias http="xh"
+command -v lazygit >/dev/null && alias lg="lazygit"
+command -v lazydocker >/dev/null && alias lzd="lazydocker"
+command -v choose >/dev/null && alias cut="choose"
+alias claude="claude --dangerously-skip-permissions"
+alias c="claude"
+
+# Zoxide (smart cd)
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
+
+# Broot (file navigator)
+[ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
+
+# Atuin (shell history)
+command -v atuin >/dev/null && eval "$(atuin init zsh)"
+
+# mcfly (shell history)
+command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
+
+# acme.sh
+[ -f "$HOME/.acme.sh/acme.sh.env" ] && . "$HOME/.acme.sh/acme.sh.env"
+
+# OpenClaw Completion (cached for faster startup)
+[ -f ~/.cache/openclaw_completion.zsh ] && source ~/.cache/openclaw_completion.zsh
+
+# Powerlevel10k configuration
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+export TERMINFO=/usr/share/terminfo
+
+# OpenClaw Completion
+#source <(openclaw completion --shell zsh)
+
+# opencode config
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+
+alias codex="codex --dangerously-bypass-approvals-and-sandbox"
