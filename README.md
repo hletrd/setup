@@ -17,7 +17,7 @@ A comprehensive collection of scripts to bootstrap and configure new systems wit
 | Directory | Description |
 |-----------|-------------|
 | `autoinstall/` | Ubuntu autoinstall ISO creation tools |
-| `configs/` | Pre-configured settings and user config backups (claude, codex, git, gh, opencode, zsh) |
+| `configs/` | Pre-configured settings and user config backups (claude, codex, git, gh, opencode, zellij, zsh) |
 | `mcp/servers/` | MCP server configuration files |
 
 ## Supported Platforms
@@ -89,6 +89,12 @@ All platforms have been tested and verified (January 2026):
   - `configs/opencode/AGENTS.md` -> `~/.config/opencode/AGENTS.md`
 - Auto-restore user config backups when target files are missing:
   - `configs/git/gitconfig` -> `~/.gitconfig`
+  - `configs/claude/config.json` -> `~/.claude/config.json`
+  - `configs/claude/settings.json` -> `~/.claude/settings.json`
+  - `configs/claude/settings.local.json` -> `~/.claude/settings.local.json`
+  - `configs/claude/statusline-command.sh` -> `~/.claude/statusline-command.sh`
+  - `configs/zellij/config.kdl` -> `~/.config/zellij/config.kdl`
+  - `configs/zellij/layouts/custom-compact.kdl` -> `~/.config/zellij/layouts/custom-compact.kdl`
   - `configs/zsh/zshrc` -> `~/.zshrc`
   - `configs/zsh/p10k.zsh` -> `~/.p10k.zsh`
 - Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
@@ -332,6 +338,7 @@ setup/
 │   ├── git/
 │   ├── gh/
 │   ├── opencode/
+│   ├── zellij/
 │   └── zsh/
 └── mcp/                      # MCP server configurations
     └── servers/
