@@ -1,5 +1,5 @@
-model = "gpt-5.2"
-model_reasoning_effort = "high"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 
@@ -41,15 +41,9 @@ startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["CONTEXT7_API_KEY"]
 
-[mcp_servers.sequential-thinking]
+[mcp_servers.context-mode]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
-[mcp_servers.sequential-thinking-tools]
-command = "npx"
-args = ["-y", "mcp-sequentialthinking-tools"]
+args = ["-y", "context-mode"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 
@@ -61,12 +55,6 @@ tool_timeout_sec = 180
 
 [mcp_servers.playwright.env]
 PLAYWRIGHT_BROWSERS_PATH = "0"
-
-[mcp_servers.jupyter]
-command = "uvx"
-args = ["mcp-server-jupyter", "stdio"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
 
 [mcp_servers.agentic-tools]
 command = "npx"
@@ -89,19 +77,6 @@ env_vars = [
   "EMBEDDING_MODEL",
 ]
 
-[mcp_servers.claude-context]
-command = "npx"
-args = ["-y", "@zilliz/claude-context-mcp@latest"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-env_vars = ["OPENAI_API_KEY", "MILVUS_ADDRESS", "MILVUS_TOKEN"]
-
-[mcp_servers.auggie-context]
-command = "npx"
-args = ["-y", "auggie-context-mcp@latest"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-
 [mcp_servers.memora]
 command = "memora-server"
 args = []
@@ -112,3 +87,77 @@ tool_timeout_sec = 120
 MEMORA_DB_PATH = "$HOME/.local/share/memora/memories.db"
 MEMORA_ALLOW_ANY_TAG = "1"
 MEMORA_GRAPH_PORT = "8765"
+
+# ── Agent Profiles ──────────────────────────────────────────────
+
+[profiles.architect]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.code-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-read"
+
+[profiles.security-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-read"
+
+[profiles.planner]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-read"
+
+[profiles.debugger]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.refactorer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.tdd]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.docs-writer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.perf-optimization-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.pro-photographer-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.product-marketer-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-read"
+
+[profiles.ui-ux-designer-reviewer]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"

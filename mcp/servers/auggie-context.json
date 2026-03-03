@@ -1,5 +1,0 @@
-"auggie-context": {
-  "command": "npx",
-  "args": ["-y", "auggie-context-mcp@latest"]
-}
-

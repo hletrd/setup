@@ -1,4 +1,0 @@
-"jupyter": {
-  "command": "uvx",
-  "args": ["mcp-server-jupyter", "stdio"]
-}
