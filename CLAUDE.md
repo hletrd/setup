@@ -31,7 +31,8 @@ setup/
 - **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
 - **AI bootstrap hooks**: run `omx setup --force --verbose` and `omc install --force --skip-claude-check` when available
 - **Default MCP servers**: `context7`, `context-mode`, `fetch`, `filesystem`, `git`, `github`, `memora`, `playwright`
-- **User backup restore policy**: restore `~/.gitconfig`, `~/.claude/{config.json,settings.json,settings.local.json,statusline-command.sh}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, `~/.zshrc`, and `~/.p10k.zsh` from `configs/` only when target files are missing
+- **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{config.json,settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
+- **Secret handling policy**: do not back up credential/token-bearing local files (for example auth stores and token-bearing YAML/JSON files)
 - **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
 
 ## Coding Conventions

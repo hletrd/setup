@@ -89,14 +89,24 @@ All platforms have been tested and verified (January 2026):
   - `configs/opencode/AGENTS.md` -> `~/.config/opencode/AGENTS.md`
 - Auto-restore user config backups when target files are missing:
   - `configs/git/gitconfig` -> `~/.gitconfig`
+  - `configs/git/ignore` -> `~/.config/git/ignore`
   - `configs/claude/config.json` -> `~/.claude/config.json`
   - `configs/claude/settings.json` -> `~/.claude/settings.json`
   - `configs/claude/settings.local.json` -> `~/.claude/settings.local.json`
   - `configs/claude/statusline-command.sh` -> `~/.claude/statusline-command.sh`
+  - `configs/codex/config.toml` -> `~/.codex/config.toml`
+  - `configs/codex/instructions.md` -> `~/.codex/instructions.md`
+  - `configs/codex/rules/default.rules` -> `~/.codex/rules/default.rules`
+  - `configs/opencode/oh-my-opencode.json` -> `~/.config/opencode/oh-my-opencode.json`
+  - `configs/opencode/opencode.json` -> `~/.config/opencode/opencode.json`
   - `configs/zellij/config.kdl` -> `~/.config/zellij/config.kdl`
   - `configs/zellij/layouts/custom-compact.kdl` -> `~/.config/zellij/layouts/custom-compact.kdl`
+  - `configs/zsh/profile` -> `~/.profile`
+  - `configs/zsh/zprofile` -> `~/.zprofile`
+  - `configs/zsh/zshenv` -> `~/.zshenv`
   - `configs/zsh/zshrc` -> `~/.zshrc`
   - `configs/zsh/p10k.zsh` -> `~/.p10k.zsh`
+- Secret-bearing files are intentionally excluded from backups (for example: auth tokens, credential stores, and `hosts.yml`-style files).
 - Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
 
 ### Python Tools (via uv tool install)
