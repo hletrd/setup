@@ -14,7 +14,7 @@ setup/
 ├── install_nvidia_remote.sh  # NVIDIA CUDA remote installer
 ├── config.json               # Installation configuration
 ├── autoinstall/              # Ubuntu autoinstall ISO creation
-├── configs/                  # Pre-configured tool settings (codex, gh, opencode)
+├── configs/                  # Pre-configured tool settings and backups (claude, codex, git, gh, opencode, zsh)
 ├── mcp/servers/              # MCP server configuration snippets
 └── tests/                    # Automated testing suite
 ```
@@ -31,6 +31,7 @@ setup/
 - **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
 - **AI bootstrap hooks**: run `omx setup --force --verbose` and `omc install --force --skip-claude-check` when available
 - **Default MCP servers**: `context7`, `context-mode`, `fetch`, `filesystem`, `git`, `github`, `memora`, `playwright`
+- **User backup restore policy**: restore `~/.gitconfig`, `~/.zshrc`, and `~/.p10k.zsh` from `configs/` only when target files are missing
 - **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
 
 ## Coding Conventions

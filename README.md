@@ -17,7 +17,7 @@ A comprehensive collection of scripts to bootstrap and configure new systems wit
 | Directory | Description |
 |-----------|-------------|
 | `autoinstall/` | Ubuntu autoinstall ISO creation tools |
-| `configs/` | Pre-configured settings for codex, gh, opencode |
+| `configs/` | Pre-configured settings and user config backups (claude, codex, git, gh, opencode, zsh) |
 | `mcp/servers/` | MCP server configuration files |
 
 ## Supported Platforms
@@ -87,6 +87,10 @@ All platforms have been tested and verified (January 2026):
   - `configs/claude/CLAUDE.md` -> `~/.claude/CLAUDE.md` (preserves OMC-generated block when present)
   - `configs/codex/AGENTS.md` -> `~/.codex/AGENTS.md`
   - `configs/opencode/AGENTS.md` -> `~/.config/opencode/AGENTS.md`
+- Auto-restore user config backups when target files are missing:
+  - `configs/git/gitconfig` -> `~/.gitconfig`
+  - `configs/zsh/zshrc` -> `~/.zshrc`
+  - `configs/zsh/p10k.zsh` -> `~/.p10k.zsh`
 - Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
 
 ### Python Tools (via uv tool install)
@@ -323,9 +327,12 @@ setup/
 │   ├── user-data
 │   └── meta-data
 ├── configs/                  # Pre-configured tool settings
+│   ├── claude/
 │   ├── codex/
+│   ├── git/
 │   ├── gh/
-│   └── opencode/
+│   ├── opencode/
+│   └── zsh/
 └── mcp/                      # MCP server configurations
     └── servers/
         ├── context7.json
