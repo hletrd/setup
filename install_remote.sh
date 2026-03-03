@@ -1271,9 +1271,18 @@ claude_config_src="$script_dir/configs/claude/config.json"
 claude_settings_src="$script_dir/configs/claude/settings.json"
 claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
 claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
+codex_config_src="$script_dir/configs/codex/config.toml"
+codex_instructions_src="$script_dir/configs/codex/instructions.md"
+codex_default_rules_src="$script_dir/configs/codex/rules/default.rules"
 gitconfig_src="$script_dir/configs/git/gitconfig"
+git_ignore_src="$script_dir/configs/git/ignore"
+opencode_omx_config_src="$script_dir/configs/opencode/oh-my-opencode.json"
+opencode_config_src="$script_dir/configs/opencode/opencode.json"
 zshrc_src="$script_dir/configs/zsh/zshrc"
 p10k_src="$script_dir/configs/zsh/p10k.zsh"
+profile_src="$script_dir/configs/zsh/profile"
+zprofile_src="$script_dir/configs/zsh/zprofile"
+zshenv_src="$script_dir/configs/zsh/zshenv"
 zellij_config_src="$script_dir/configs/zellij/config.kdl"
 zellij_layout_src="$script_dir/configs/zellij/layouts/custom-compact.kdl"
 
@@ -1290,6 +1299,51 @@ fi
 if [ -f "$p10k_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.p10k.zsh" ]; then cat > "$HOME/.p10k.zsh"; else cat >/dev/null; fi' < "$p10k_src"
+fi
+
+if [ -f "$profile_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.profile" ]; then cat > "$HOME/.profile"; else cat >/dev/null; fi' < "$profile_src"
+fi
+
+if [ -f "$zprofile_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.zprofile" ]; then cat > "$HOME/.zprofile"; else cat >/dev/null; fi' < "$zprofile_src"
+fi
+
+if [ -f "$zshenv_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.zshenv" ]; then cat > "$HOME/.zshenv"; else cat >/dev/null; fi' < "$zshenv_src"
+fi
+
+if [ -f "$git_ignore_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/git"; if [ ! -f "$HOME/.config/git/ignore" ]; then cat > "$HOME/.config/git/ignore"; else cat >/dev/null; fi' < "$git_ignore_src"
+fi
+
+if [ -f "$codex_config_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.codex"; if [ ! -f "$HOME/.codex/config.toml" ]; then cat > "$HOME/.codex/config.toml"; else cat >/dev/null; fi' < "$codex_config_src"
+fi
+
+if [ -f "$codex_instructions_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.codex"; if [ ! -f "$HOME/.codex/instructions.md" ]; then cat > "$HOME/.codex/instructions.md"; else cat >/dev/null; fi' < "$codex_instructions_src"
+fi
+
+if [ -f "$codex_default_rules_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.codex/rules"; if [ ! -f "$HOME/.codex/rules/default.rules" ]; then cat > "$HOME/.codex/rules/default.rules"; else cat >/dev/null; fi' < "$codex_default_rules_src"
+fi
+
+if [ -f "$opencode_omx_config_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/opencode"; if [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then cat > "$HOME/.config/opencode/oh-my-opencode.json"; else cat >/dev/null; fi' < "$opencode_omx_config_src"
+fi
+
+if [ -f "$opencode_config_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/opencode"; if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then cat > "$HOME/.config/opencode/opencode.json"; else cat >/dev/null; fi' < "$opencode_config_src"
 fi
 
 if [ -f "$claude_config_src" ]; then

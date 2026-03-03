@@ -956,9 +956,18 @@ claude_config_src="$script_dir/configs/claude/config.json"
 claude_settings_src="$script_dir/configs/claude/settings.json"
 claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
 claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
+codex_config_src="$script_dir/configs/codex/config.toml"
+codex_instructions_src="$script_dir/configs/codex/instructions.md"
+codex_default_rules_src="$script_dir/configs/codex/rules/default.rules"
 gitconfig_src="$script_dir/configs/git/gitconfig"
+git_ignore_src="$script_dir/configs/git/ignore"
+opencode_omx_config_src="$script_dir/configs/opencode/oh-my-opencode.json"
+opencode_config_src="$script_dir/configs/opencode/opencode.json"
 zshrc_src="$script_dir/configs/zsh/zshrc"
 p10k_src="$script_dir/configs/zsh/p10k.zsh"
+profile_src="$script_dir/configs/zsh/profile"
+zprofile_src="$script_dir/configs/zsh/zprofile"
+zshenv_src="$script_dir/configs/zsh/zshenv"
 zellij_config_src="$script_dir/configs/zellij/config.kdl"
 zellij_layout_src="$script_dir/configs/zellij/layouts/custom-compact.kdl"
 
@@ -972,6 +981,54 @@ fi
 
 if [ -f "$p10k_src" ] && [ ! -f "$HOME/.p10k.zsh" ]; then
   cp "$p10k_src" "$HOME/.p10k.zsh"
+fi
+
+if [ -f "$profile_src" ] && [ ! -f "$HOME/.profile" ]; then
+  cp "$profile_src" "$HOME/.profile"
+fi
+
+if [ -f "$zprofile_src" ] && [ ! -f "$HOME/.zprofile" ]; then
+  cp "$zprofile_src" "$HOME/.zprofile"
+fi
+
+if [ -f "$zshenv_src" ] && [ ! -f "$HOME/.zshenv" ]; then
+  cp "$zshenv_src" "$HOME/.zshenv"
+fi
+
+if [ -f "$git_ignore_src" ]; then
+  mkdir -p "$HOME/.config/git"
+fi
+
+if [ -f "$git_ignore_src" ] && [ ! -f "$HOME/.config/git/ignore" ]; then
+  cp "$git_ignore_src" "$HOME/.config/git/ignore"
+fi
+
+if [ -f "$codex_config_src" ] || [ -f "$codex_instructions_src" ] || [ -f "$codex_default_rules_src" ]; then
+  mkdir -p "$HOME/.codex/rules"
+fi
+
+if [ -f "$codex_config_src" ] && [ ! -f "$HOME/.codex/config.toml" ]; then
+  cp "$codex_config_src" "$HOME/.codex/config.toml"
+fi
+
+if [ -f "$codex_instructions_src" ] && [ ! -f "$HOME/.codex/instructions.md" ]; then
+  cp "$codex_instructions_src" "$HOME/.codex/instructions.md"
+fi
+
+if [ -f "$codex_default_rules_src" ] && [ ! -f "$HOME/.codex/rules/default.rules" ]; then
+  cp "$codex_default_rules_src" "$HOME/.codex/rules/default.rules"
+fi
+
+if [ -f "$opencode_omx_config_src" ] || [ -f "$opencode_config_src" ]; then
+  mkdir -p "$HOME/.config/opencode"
+fi
+
+if [ -f "$opencode_omx_config_src" ] && [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then
+  cp "$opencode_omx_config_src" "$HOME/.config/opencode/oh-my-opencode.json"
+fi
+
+if [ -f "$opencode_config_src" ] && [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
+  cp "$opencode_config_src" "$HOME/.config/opencode/opencode.json"
 fi
 
 if [ -f "$claude_config_src" ] || [ -f "$claude_settings_src" ] || [ -f "$claude_settings_local_src" ] || [ -f "$claude_statusline_src" ]; then
