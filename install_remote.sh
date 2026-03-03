@@ -1263,10 +1263,28 @@ else
   ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
 fi
 
-printf "Installing global AI assistant rules on remote host...\n"
+printf "Installing global AI assistant rules and user config backups on remote host...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+gitconfig_src="$script_dir/configs/git/gitconfig"
+zshrc_src="$script_dir/configs/zsh/zshrc"
+p10k_src="$script_dir/configs/zsh/p10k.zsh"
+
+if [ -f "$gitconfig_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.gitconfig" ]; then cat > "$HOME/.gitconfig"; else cat >/dev/null; fi' < "$gitconfig_src"
+fi
+
+if [ -f "$zshrc_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.zshrc" ]; then cat > "$HOME/.zshrc"; else cat >/dev/null; fi' < "$zshrc_src"
+fi
+
+if [ -f "$p10k_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'if [ ! -f "$HOME/.p10k.zsh" ]; then cat > "$HOME/.p10k.zsh"; else cat >/dev/null; fi' < "$p10k_src"
+fi
 
 if [ -f "$claude_rules_src" ] || [ -f "$codex_rules_src" ] || [ -f "$opencode_rules_src" ]; then
   # shellcheck disable=SC2086

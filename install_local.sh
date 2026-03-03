@@ -948,10 +948,25 @@ if command -v omc >/dev/null 2>&1; then
   omc install --force --quiet --skip-claude-check >/dev/null 2>&1 || printf "Warning: omc install failed; run 'omc install --force --skip-claude-check' manually\n"
 fi
 
-printf "Installing global AI assistant rules...\n"
+printf "Installing global AI assistant rules and user config backups...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
+gitconfig_src="$script_dir/configs/git/gitconfig"
+zshrc_src="$script_dir/configs/zsh/zshrc"
+p10k_src="$script_dir/configs/zsh/p10k.zsh"
+
+if [ -f "$gitconfig_src" ] && [ ! -f "$HOME/.gitconfig" ]; then
+  cp "$gitconfig_src" "$HOME/.gitconfig"
+fi
+
+if [ -f "$zshrc_src" ] && [ ! -f "$HOME/.zshrc" ]; then
+  cp "$zshrc_src" "$HOME/.zshrc"
+fi
+
+if [ -f "$p10k_src" ] && [ ! -f "$HOME/.p10k.zsh" ]; then
+  cp "$p10k_src" "$HOME/.p10k.zsh"
+fi
 
 if [ -f "$claude_rules_src" ]; then
   mkdir -p "$HOME/.claude"
