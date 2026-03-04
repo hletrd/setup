@@ -60,26 +60,58 @@ else
     short_dir="~"
 fi
 
-# 5h/7d rolling usage from usage-parser-cache
-CACHE_FILE="$HOME/.claude/.usage-parser-cache.json"
-usage_5h=0
-usage_7d=0
-if [ -f "$CACHE_FILE" ]; then
-    now=$(date +%s)
-    h5_cutoff=$((now - 18000))
-    d7_cutoff=$((now - 604800))
-    read usage_5h usage_7d < <(jq -r --argjson h5 "$h5_cutoff" --argjson d7 "$d7_cutoff" '
-        [.files | to_entries[] | {mtime: .value.mtime, out: ([.value.models | to_entries[]? | .value.outputTokens // 0] | add // 0)}] |
-        reduce .[] as $e ({h5: 0, d7: 0};
-            if $e.mtime > $d7 then
-                .d7 += $e.out |
-                if $e.mtime > $h5 then .h5 += $e.out else . end
-            else . end
-        ) | "\(.h5) \(.d7)"
-    ' "$CACHE_FILE" 2>/dev/null)
-    usage_5h=${usage_5h:-0}
-    usage_7d=${usage_7d:-0}
-fi
+# 5h/7d usage from Anthropic OAuth usage API (real percentages)
+USAGE_CACHE="$HOME/.claude/.statusline-usage-cache.json"
+USAGE_CACHE_TTL=120  # seconds
+h5_pct=""
+d7_pct=""
+
+fetch_usage_api() {
+    local access_token
+    # Try keychain first, then credentials file
+    local token
+    token=$(/usr/bin/security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+    if [ -n "$token" ]; then
+        access_token=$(echo "$token" | jq -r '.claudeAiOauth.accessToken // .accessToken // empty' 2>/dev/null)
+    fi
+    if [ -z "$access_token" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
+        access_token=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
+    fi
+    [ -z "$access_token" ] && return 1
+    local resp
+    resp=$(curl -s --max-time 5 -H "Authorization: Bearer $access_token" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
+    local h5 d7
+    h5=$(echo "$resp" | jq -r '.five_hour.utilization // empty' 2>/dev/null)
+    d7=$(echo "$resp" | jq -r '.seven_day.utilization // empty' 2>/dev/null)
+    [ -z "$h5" ] && [ -z "$d7" ] && return 1
+    printf '{"ts":%d,"h5":%s,"d7":%s}\n' "$(date +%s)" "${h5:-0}" "${d7:-0}" > "$USAGE_CACHE"
+    echo "$h5 $d7"
+}
+
+get_usage() {
+    # Try cache first
+    if [ -f "$USAGE_CACHE" ]; then
+        local cached_ts now
+        cached_ts=$(jq -r '.ts // 0' "$USAGE_CACHE" 2>/dev/null)
+        now=$(date +%s)
+        if [ $((now - cached_ts)) -lt "$USAGE_CACHE_TTL" ]; then
+            jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+            return
+        fi
+    fi
+    # Fetch fresh (background-safe: if it fails, use stale cache)
+    local result
+    result=$(fetch_usage_api 2>/dev/null)
+    if [ -n "$result" ]; then
+        echo "$result"
+    elif [ -f "$USAGE_CACHE" ]; then
+        jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+    fi
+}
+
+read h5_pct d7_pct < <(get_usage)
+h5_pct=${h5_pct:-0}
+d7_pct=${d7_pct:-0}
 
 # Build sections: text and bg color pairs
 texts=()
@@ -108,11 +140,11 @@ if [ -n "$remaining_pct" ] && [ "$remaining_pct" != "null" ]; then
     fi
 fi
 
-# Section 3: 5h/7d Usage
-if [ "$usage_5h" -gt 0 ] 2>/dev/null || [ "$usage_7d" -gt 0 ] 2>/dev/null; then
-    h5_fmt=$(fmt_tokens "$usage_5h")
-    d7_fmt=$(fmt_tokens "$usage_7d")
-    texts+=("5h ${h5_fmt} 7d ${d7_fmt}")
+# Section 3: 5h/7d Usage (real percentages from Anthropic API)
+if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
+    h5_disp=$(printf "%.0f" "$h5_pct" 2>/dev/null || echo "0")
+    d7_disp=$(printf "%.0f" "$d7_pct" 2>/dev/null || echo "0")
+    texts+=("5h ${h5_disp}% 7d ${d7_disp}%")
     bgs+=($C_USAGE)
     fgs+=($C_FG)
 fi
