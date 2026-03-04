@@ -4,35 +4,6 @@ model_reasoning_effort = "xhigh"
 developer_instructions = "You have oh-my-codex installed. Use /prompts:architect, /prompts:executor, /prompts:planner for specialized agent roles. Workflow skills via $name: $ralph, $autopilot, $plan. AGENTS.md is your orchestration brain."
 
 model = "gpt-5.3-codex"
-[projects."__HOME__"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/computerprogramming2026"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/nas-ops"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/rb-y1"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/burstpick"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/aloha-2"]
-trust_level = "trusted"
-
-[projects."__HOME__/git"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/G2"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/xylolabs-panel-demo"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/setup"]
-trust_level = "trusted"
 
 [mcp_servers.context7]
 command = "npx"
@@ -40,13 +11,6 @@ args = ["-y", "@upstash/context7-mcp@latest"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["CONTEXT7_API_KEY"]
-
-[mcp_servers.websearch]
-command = "npx"
-args = ["-y", "exa-mcp-server"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
-env_vars = ["EXA_API_KEY"]
 
 # ── Agent Profiles ──────────────────────────────────────────────
 
@@ -97,6 +61,7 @@ model_reasoning_effort = "xhigh"
 [profiles.ui-ux-designer-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
+
 [features]
 collab = true
 child_agents_md = true
