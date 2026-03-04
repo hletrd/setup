@@ -49,6 +49,7 @@ All platforms have been tested and verified (January 2026):
 | fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
+| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
 | Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
@@ -76,6 +77,7 @@ All platforms have been tested and verified (January 2026):
 | Package | Description |
 |---------|-------------|
 | **fnm** | Fast Node Manager with latest LTS Node.js |
+| **pnpm** | Fast, disk space efficient package manager (via corepack) |
 | **uv** | Fast Python package manager by Astral |
 | **cargo** | Rust toolchain via rustup |
 
@@ -181,6 +183,7 @@ Create a `config.json` file to pre-configure installation options:
   },
   "packages": {
     "fnm": true,
+    "pnpm": true,
     "uv": true,
     "cargo": true,
     "ruff": true,
