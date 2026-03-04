@@ -141,6 +141,7 @@ cfg_editor_claude_desktop="true"
 
 # Package manager toggles (default all enabled)
 cfg_pkg_fnm="true"
+cfg_pkg_pnpm="true"
 cfg_pkg_uv="true"
 cfg_pkg_cargo="true"
 
@@ -179,6 +180,7 @@ if [ -f "$config_file" ]; then
 
   # Load package manager toggles
   set_if_present cfg_pkg_fnm "$(json_get_bool "fnm" "$config_file")"
+  set_if_present cfg_pkg_pnpm "$(json_get_bool "pnpm" "$config_file")"
   set_if_present cfg_pkg_uv "$(json_get_bool "uv" "$config_file")"
   set_if_present cfg_pkg_cargo "$(json_get_bool "cargo" "$config_file")"
   set_if_present cfg_pkg_ruff "$(json_get_bool "ruff" "$config_file")"
@@ -936,6 +938,18 @@ if [ "$cfg_pkg_fnm" = "true" ]; then
   fi
 else
   printf "Skipping fnm and Node.js setup (disabled in config)...\n"
+fi
+
+# Enable pnpm via corepack (requires Node.js)
+if [ "$cfg_pkg_pnpm" = "true" ] && command -v corepack >/dev/null 2>&1; then
+  printf "Enabling pnpm via corepack...\n"
+  corepack enable pnpm
+else
+  if [ "$cfg_pkg_pnpm" = "true" ]; then
+    printf "Skipping pnpm (corepack not available - install Node.js first)...\n"
+  else
+    printf "Skipping pnpm setup (disabled in config)...\n"
+  fi
 fi
 
 if command -v omx >/dev/null 2>&1; then

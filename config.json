@@ -14,6 +14,7 @@
   },
   "packages": {
     "fnm": true,
+    "pnpm": true,
     "uv": true,
     "cargo": true,
     "ruff": true,
