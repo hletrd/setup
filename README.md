@@ -155,6 +155,8 @@ Pre-configured MCP servers for AI-assisted development:
 | playwright | Browser automation |
 | memora | Persistent memory graph |
 
+- `websearch` (`exa-mcp-server`) is intentionally not configured in the default user-level profile.
+
 ### Editor Integration
 MCP configuration is automatically symlinked to supported editors:
 - **Cursor** (`~/.cursor/mcp.json`)
