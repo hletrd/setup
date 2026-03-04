@@ -24,6 +24,13 @@
         "-y",
         "@upstash/context7-mcp@latest"
       ]
+    },
+    "context-mode": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "context-mode"
+      ]
     }
   },
   "defaultMode": "bypassPermissions"
