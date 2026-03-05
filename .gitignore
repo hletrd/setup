@@ -10,3 +10,7 @@
 
 # ISO files
 *.iso
+
+# OMC state
+.omc/
+.omx/
