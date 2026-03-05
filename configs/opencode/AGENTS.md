@@ -38,8 +38,8 @@ Before writing `package.json`, `Cargo.toml`, `pyproject.toml`, or equivalent: ve
 ## Git Commit Rules
 
 - Always GPG-sign commits with `-S`.
-- Commit in a fine-grained way: one feature/fix/enhancement per commit.
-- Commit and push immediately after each completed iteration/fix; do not batch unrelated work.
+- Always commit and push in a fine-grained way for every iteration and every enhancement/fix; keep one feature/fix/enhancement per commit.
+- Do not batch unrelated work into the same commit.
 - Use Conventional Commits format: `<type>(<scope>): <gitmoji> <description>`.
   - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
   - Scope optional but encouraged
