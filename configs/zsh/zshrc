@@ -36,8 +36,6 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # Load local environment
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-# fnm (fast node manager)
-command -v fnm >/dev/null && eval "$(fnm env --use-on-cd)"
 
 # Docker CLI (macOS Docker Desktop)
 export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
@@ -65,9 +63,6 @@ command -v choose >/dev/null && alias cut="choose"
 alias claude="claude --dangerously-skip-permissions"
 alias c="claude"
 
-# Zoxide (smart cd)
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
-
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
 
@@ -94,3 +89,6 @@ export TERMINFO=/usr/share/terminfo
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
 
 alias codex="codex --dangerously-bypass-approvals-and-sandbox"
+
+# Zoxide (smart cd) - must be at the very end of .zshrc
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
