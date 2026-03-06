@@ -940,8 +940,15 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
     # Install fnm (Fast Node Manager)
     fnm_dir="\$HOME/.local/share/fnm"
     if [ "\$is_macos" = "true" ]; then
-      # macOS - use Homebrew
-      brew install fnm
+      # macOS - prefer Homebrew, fallback to direct download
+      if command -v brew >/dev/null 2>&1; then
+        brew install fnm
+      else
+        curl -fsSL "https://github.com/Schniz/fnm/releases/latest/download/fnm-macos.zip" -o /tmp/fnm.zip
+        unzip -o /tmp/fnm.zip -d "\$fnm_dir"
+        chmod +x "\$fnm_dir/fnm"
+        rm -f /tmp/fnm.zip
+      fi
     else
       # Linux - install unzip (required by fnm installer) and fnm via curl script
       pkg_install unzip

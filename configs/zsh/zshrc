@@ -33,6 +33,10 @@ export VISUAL=vim
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 
+# fnm (fast node manager)
+export PATH="$HOME/.local/share/fnm:$PATH"
+command -v fnm >/dev/null && eval "$(fnm env --use-on-cd)"
+
 # Load local environment
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
