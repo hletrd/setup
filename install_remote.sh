@@ -1285,6 +1285,52 @@ else
   ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
 fi
 
+patch_oh_my_opencode_config_context_warning_remote() {
+  printf "Applying oh-my-opencode config-context patch on remote host...\n"
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" '
+    if ! command -v python3 >/dev/null 2>&1; then
+      printf "Skipping oh-my-opencode patch (python3 not available).\n"
+      exit 0
+    fi
+
+    patched_any=false
+    for target in \
+      "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/index.js" \
+      "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/cli/index.js"
+    do
+      [ -f "$target" ] || continue
+      python3 - "$target" <<'"'"'PY'"'"'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+pattern = r'[ \t]*if \(true\) \{\n[ \t]*console\.warn\("\[config-context\] getConfigContext\(\) called before initConfigContext\(\); defaulting to CLI paths\."\);\n[ \t]*\}\n'
+updated, count = re.subn(pattern, "", text, count=1)
+if count:
+    path.write_text(updated)
+    print(f"Patched {path}")
+    sys.exit(0)
+sys.exit(10)
+PY
+      rc=$?
+      if [ "$rc" -eq 0 ]; then
+        patched_any=true
+      elif [ "$rc" -ne 10 ]; then
+        exit "$rc"
+      fi
+    done
+
+    if [ "$patched_any" = false ]; then
+      printf "oh-my-opencode config-context patch not needed.\n"
+    fi
+  '
+}
+
+patch_oh_my_opencode_config_context_warning_remote
+
 printf "Installing global AI assistant rules and user config backups on remote host...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
