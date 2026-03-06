@@ -1,8 +1,0 @@
-prefix_rule(pattern=["ssh"], decision="allow")
-prefix_rule(pattern=["git", "-C", "__HOME__/git/nas-ops"], decision="allow")
-prefix_rule(pattern=["scp"], decision="allow")
-prefix_rule(pattern=["swift", "build"], decision="allow")
-prefix_rule(pattern=["swift", "test"], decision="allow")
-prefix_rule(pattern=["git", "add"], decision="allow")
-prefix_rule(pattern=["git", "commit"], decision="allow")
-prefix_rule(pattern=["git", "push"], decision="allow")

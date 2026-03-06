@@ -3,7 +3,7 @@ notify = ["node", "__HOME__/.local/share/fnm/node-versions/v24.13.0/installation
 model_reasoning_effort = "xhigh"
 developer_instructions = "You have oh-my-codex installed. Use /prompts:architect, /prompts:executor, /prompts:planner for specialized agent roles. Workflow skills via $name: $ralph, $autopilot, $plan. AGENTS.md is your orchestration brain."
 
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 
 [mcp_servers.context7]
 command = "npx"
@@ -67,7 +67,6 @@ model_reasoning_effort = "xhigh"
 [profiles.ui-ux-designer-reviewer]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
-
 [features]
 collab = true
 child_agents_md = true
@@ -107,7 +106,7 @@ startup_timeout_sec = 5
 
 # OMX TUI StatusLine (Codex CLI v0.101.0+)
 [tui]
-status_line = ["project-root", "model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit"]
+status_line = ["project-root", "model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit", "weekly-limit"]
 
 # ============================================================
 # End oh-my-codex
