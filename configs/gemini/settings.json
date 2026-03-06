@@ -1,0 +1,41 @@
+{
+  "general": {
+    "defaultApprovalMode": "yolo",
+    "sessionRetention": {
+      "enabled": true,
+      "maxAge": "30d",
+      "warningAcknowledged": true
+    }
+  },
+  "model": {
+    "name": "gemini-3.1-pro-preview"
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "mcpServers": {
+    "ssh": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@aiondadotcom/mcp-ssh"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "auggie-context": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "auggie-context-mcp@latest"
+      ]
+    }
+  }
+}
