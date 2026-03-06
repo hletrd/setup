@@ -29,13 +29,6 @@
         "-y",
         "@upstash/context7-mcp@latest"
       ]
-    },
-    "auggie-context": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "auggie-context-mcp@latest"
-      ]
     }
   }
 }
