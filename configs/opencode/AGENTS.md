@@ -45,6 +45,7 @@ Before writing `package.json`, `Cargo.toml`, `pyproject.toml`, or equivalent: ve
   - Scope optional but encouraged
   - Use imperative mood and keep header under 72 characters
   - Always include a gitmoji in the subject (for example: `feat(core): ✨ add auth guard`)
+- Never add `Co-authored-by` trailers or any other co-author attribution when writing commit messages.
 
 ## Context Directory Fallback
 
@@ -53,3 +54,10 @@ Before writing `package.json`, `Cargo.toml`, `pyproject.toml`, or equivalent: ve
   1. `.context/README.md`
   2. `.context/project/`
   3. `.context/development/`
+
+## OpenCode Usage Sync (CRITICAL)
+
+- Before ending an OpenCode work session, always run usage catch-up once to send unsent OpenCode/Claude usage records.
+- Use this exact command:
+  - `CLAUDE_PLUGIN_ROOT="/Users/hletrd/.claude/plugins/cache/worv/ccusage-worv/0.1.0"; node "${CLAUDE_PLUGIN_ROOT}/scripts/catchup.mjs"`
+- If the command reports sent sessions, include the result in the final response.
