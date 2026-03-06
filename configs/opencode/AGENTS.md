@@ -59,5 +59,5 @@ Before writing `package.json`, `Cargo.toml`, `pyproject.toml`, or equivalent: ve
 
 - Before ending an OpenCode work session, always run usage catch-up once to send unsent OpenCode/Claude usage records.
 - Use this exact command:
-  - `CLAUDE_PLUGIN_ROOT="/Users/hletrd/.claude/plugins/cache/worv/ccusage-worv/0.1.0"; node "${CLAUDE_PLUGIN_ROOT}/scripts/catchup.mjs"`
+  - `CLAUDE_PLUGIN_ROOT="__HOME__/.claude/plugins/cache/worv/ccusage-worv/0.1.0"; node "${CLAUDE_PLUGIN_ROOT}/scripts/catchup.mjs"`
 - If the command reports sent sessions, include the result in the final response.
