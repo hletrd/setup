@@ -884,6 +884,43 @@ else
   printf "Zinit installed.\n"
 fi
 
+patch_oh_my_opencode_config_context_warning_local() {
+  if ! command -v python3 >/dev/null 2>&1; then
+    printf "Skipping oh-my-opencode config-context patch (python3 not available)...\n"
+    return 0
+  fi
+
+  patched_any="false"
+  for target in \
+    "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/index.js" \
+    "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/cli/index.js"
+  do
+    [ -f "$target" ] || continue
+    if python3 - "$target" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+pattern = r'[ \t]*if \(true\) \{\n[ \t]*console\.warn\("\[config-context\] getConfigContext\(\) called before initConfigContext\(\); defaulting to CLI paths\."\);\n[ \t]*\}\n'
+updated, count = re.subn(pattern, "", text, count=1)
+if count:
+    path.write_text(updated)
+    sys.exit(0)
+sys.exit(10)
+PY
+    then
+      patched_any="true"
+      printf "Patched oh-my-opencode config warning: %s\n" "$target"
+    fi
+  done
+
+  if [ "$patched_any" = "false" ]; then
+    printf "oh-my-opencode config-context patch not needed.\n"
+  fi
+}
+
 if [ "$cfg_pkg_fnm" = "true" ]; then
   printf "Setting up fnm and Node.js...\n"
   if [ "$is_openwrt" = "true" ]; then
@@ -946,6 +983,8 @@ if [ "$cfg_pkg_fnm" = "true" ]; then
 else
   printf "Skipping fnm and Node.js setup (disabled in config)...\n"
 fi
+
+patch_oh_my_opencode_config_context_warning_local
 
 # Enable pnpm via corepack (requires Node.js)
 if [ "$cfg_pkg_pnpm" = "true" ] && command -v corepack >/dev/null 2>&1; then
