@@ -56,7 +56,7 @@ window-width = 120
 font-family = SF Mono
 font-size = 12
 adjust-cell-width = -1
-adjust-cell-height = -1
+adjust-cell-height = -2
 
 # Korean font mapping
 font-codepoint-map = U+AC00-U+D7AF=Noto Sans CJK KR
