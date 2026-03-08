@@ -884,6 +884,41 @@ else
   printf "Zinit installed.\n"
 fi
 
+remove_opencode_web_launch_agent_local() {
+  if [ "$is_macos" != "true" ]; then
+    return 0
+  fi
+
+  launch_agent_plist="$HOME/Library/LaunchAgents/com.hletrd.opencode-server.plist"
+  removed_any="false"
+
+  if [ -f "$launch_agent_plist" ]; then
+    if command -v launchctl >/dev/null 2>&1; then
+      gui_uid="$(id -u 2>/dev/null || printf "")"
+      if [ -n "$gui_uid" ]; then
+        launchctl bootout "gui/$gui_uid" "$launch_agent_plist" >/dev/null 2>&1 || true
+      fi
+      launchctl unload "$launch_agent_plist" >/dev/null 2>&1 || true
+    fi
+    rm -f "$launch_agent_plist"
+    removed_any="true"
+  fi
+
+  if command -v pgrep >/dev/null 2>&1; then
+    opencode_web_pids="$(pgrep -f 'opencode web --port 4096 --hostname 127.0.0.1' 2>/dev/null || true)"
+    if [ -n "$opencode_web_pids" ]; then
+      kill $opencode_web_pids 2>/dev/null || true
+      removed_any="true"
+    fi
+  fi
+
+  if [ "$removed_any" = "true" ]; then
+    printf "Removed stale OpenCode web LaunchAgent.\n"
+  else
+    printf "OpenCode web LaunchAgent not present, skipping...\n"
+  fi
+}
+
 patch_oh_my_opencode_config_context_warning_local() {
   if ! command -v python3 >/dev/null 2>&1; then
     printf "Skipping oh-my-opencode config-context patch (python3 not available)...\n"
@@ -985,6 +1020,7 @@ else
 fi
 
 patch_oh_my_opencode_config_context_warning_local
+remove_opencode_web_launch_agent_local
 
 # Enable pnpm via corepack (requires Node.js)
 if [ "$cfg_pkg_pnpm" = "true" ] && command -v corepack >/dev/null 2>&1; then

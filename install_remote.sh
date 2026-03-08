@@ -1285,6 +1285,46 @@ else
   ssh $ssh_opts "$ssh_user@$server_addr" "sh \"$remote_script_path\" \"$server_port\" \"$servername\" \"$pubkeys\"; rc=\$?; rm -f \"$remote_script_path\"; exit \$rc"
 fi
 
+remove_opencode_web_launch_agent_remote() {
+  printf "Removing stale OpenCode web LaunchAgent on remote host...\n"
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" '
+    if [ "$(uname -s 2>/dev/null)" != "Darwin" ]; then
+      printf "Remote host is not macOS, skipping OpenCode web LaunchAgent cleanup.\n"
+      exit 0
+    fi
+
+    launch_agent_plist="$HOME/Library/LaunchAgents/com.hletrd.opencode-server.plist"
+    removed_any=false
+
+    if [ -f "$launch_agent_plist" ]; then
+      if command -v launchctl >/dev/null 2>&1; then
+        gui_uid="$(id -u 2>/dev/null || printf "")"
+        if [ -n "$gui_uid" ]; then
+          launchctl bootout "gui/$gui_uid" "$launch_agent_plist" >/dev/null 2>&1 || true
+        fi
+        launchctl unload "$launch_agent_plist" >/dev/null 2>&1 || true
+      fi
+      rm -f "$launch_agent_plist"
+      removed_any=true
+    fi
+
+    if command -v pgrep >/dev/null 2>&1; then
+      opencode_web_pids="$(pgrep -f "opencode web --port 4096 --hostname 127.0.0.1" 2>/dev/null || true)"
+      if [ -n "$opencode_web_pids" ]; then
+        kill $opencode_web_pids 2>/dev/null || true
+        removed_any=true
+      fi
+    fi
+
+    if [ "$removed_any" = true ]; then
+      printf "Removed stale OpenCode web LaunchAgent on remote host.\n"
+    else
+      printf "OpenCode web LaunchAgent not present on remote host, skipping.\n"
+    fi
+  '
+}
+
 patch_oh_my_opencode_config_context_warning_remote() {
   printf "Applying oh-my-opencode config-context patch on remote host...\n"
   # shellcheck disable=SC2086
@@ -1330,6 +1370,7 @@ PY
 }
 
 patch_oh_my_opencode_config_context_warning_remote
+remove_opencode_web_launch_agent_remote
 
 printf "Installing global AI assistant rules and user config backups on remote host...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
