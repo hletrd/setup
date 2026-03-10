@@ -1480,6 +1480,16 @@ if [ -f "$claude_statusline_src" ]; then
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/statusline-command.sh" ]; then cat > "$HOME/.claude/statusline-command.sh" && chmod +x "$HOME/.claude/statusline-command.sh"; else cat >/dev/null; fi' < "$claude_statusline_src"
 fi
 
+# Install Claude Code skills on remote host
+skills_src="$script_dir/configs/claude/skills"
+if [ -d "$skills_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.claude/skills\""
+  # shellcheck disable=SC2086
+  tar -cf - -C "$skills_src" . | ssh $ssh_opts "$ssh_user@$server_addr" "tar -xf - -C \"\$HOME/.claude/skills\""
+  printf "Claude Code skills installed on remote host.\n"
+fi
+
 if [ -f "$zellij_config_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/zellij"; if [ ! -f "$HOME/.config/zellij/config.kdl" ]; then cat > "$HOME/.config/zellij/config.kdl"; else cat >/dev/null; fi' < "$zellij_config_src"

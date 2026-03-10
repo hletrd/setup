@@ -1153,6 +1153,20 @@ if [ -f "$claude_statusline_src" ] && [ ! -f "$HOME/.claude/statusline-command.s
   chmod +x "$HOME/.claude/statusline-command.sh"
 fi
 
+# Install Claude Code skills
+skills_src="$script_dir/configs/claude/skills"
+if [ -d "$skills_src" ]; then
+  mkdir -p "$HOME/.claude/skills"
+  for skill_dir in "$skills_src"/*/; do
+    skill_name="$(basename "$skill_dir")"
+    if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
+      mkdir -p "$HOME/.claude/skills/$skill_name"
+      cp "$skill_dir/SKILL.md" "$HOME/.claude/skills/$skill_name/SKILL.md"
+    fi
+  done
+  printf "Claude Code skills installed.\n"
+fi
+
 if [ -f "$zellij_config_src" ] || [ -f "$zellij_layout_src" ]; then
   mkdir -p "$HOME/.config/zellij/layouts"
 fi
