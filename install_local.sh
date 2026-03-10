@@ -968,8 +968,8 @@ if [ "$cfg_pkg_fnm" = "true" ]; then
       pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
     fi
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
-      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
+      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
     else
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
@@ -983,8 +983,8 @@ if [ "$cfg_pkg_fnm" = "true" ]; then
     # libc6-compat provides glibc compatibility for some npm packages
     pkg_install nodejs npm python3 make g++ linux-headers libc6-compat
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
-      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
+      sudo -n npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
     # Install fnm (Fast Node Manager)
@@ -1011,8 +1011,8 @@ if [ "$cfg_pkg_fnm" = "true" ]; then
       fnm install --lts
       fnm default lts-latest
       fnm use lts-latest
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and oh-my-claudecode...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser
     fi
   fi
 else
@@ -1021,6 +1021,11 @@ fi
 
 patch_oh_my_opencode_config_context_warning_local
 remove_opencode_web_launch_agent_local
+
+if command -v agent-browser >/dev/null 2>&1; then
+  printf "Installing agent-browser Chromium...\n"
+  agent-browser install >/dev/null 2>&1 || printf "Warning: agent-browser install failed; run 'agent-browser install' manually\n"
+fi
 
 # Enable pnpm via corepack (requires Node.js)
 if [ "$cfg_pkg_pnpm" = "true" ] && command -v corepack >/dev/null 2>&1; then
