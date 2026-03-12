@@ -58,7 +58,7 @@ font-size = 13
 adjust-cell-width = -1
 adjust-cell-height = -2
 
-# Korean font mapping
+# CJK font mapping
 font-codepoint-map = U+AC00-U+D7AF=Noto Sans CJK KR
 font-codepoint-map = U+1100-U+11FF=Noto Sans CJK KR
 font-codepoint-map = U+3130-U+318F=Noto Sans CJK KR
