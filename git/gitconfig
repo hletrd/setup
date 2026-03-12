@@ -1,0 +1,13 @@
+[user]
+	name = Jiyong Youn
+	email = 01@0101010101.com
+	signingkey = 283F90BDA0126D83
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
