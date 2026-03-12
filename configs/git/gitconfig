@@ -1,7 +1,7 @@
 [user]
 	name = Jiyong Youn
 	email = 01@0101010101.com
-	signingkey = 84263AC8950E800E
+	signingkey = 283F90BDA0126D83
 [commit]
 	gpgsign = true
 [gpg]
