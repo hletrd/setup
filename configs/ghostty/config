@@ -54,16 +54,16 @@ window-height = 68
 window-width = 120
 
 font-family = SF Mono
-font-size = 12
-adjust-cell-width = -1
-adjust-cell-height = -2
+font-size = 13
+adjust-cell-width = 0
+adjust-cell-height = -1
 
-# Korean font mapping
-font-codepoint-map = U+AC00-U+D7AF=Noto Sans CJK KR
-font-codepoint-map = U+1100-U+11FF=Noto Sans CJK KR
-font-codepoint-map = U+3130-U+318F=Noto Sans CJK KR
-font-codepoint-map = U+A960-U+A97F=Noto Sans CJK KR
-font-codepoint-map = U+D7B0-U+D7FF=Noto Sans CJK KR
-font-codepoint-map = U+3000-U+303F=Noto Sans CJK KR
-font-codepoint-map = U+FF00-U+FFEF=Noto Sans CJK KR
-font-codepoint-map = U+4E00-U+9FFF=Noto Sans CJK KR
+# CJK font mapping
+font-codepoint-map = U+AC00-U+D7AF=Apple SD Gothic Neo
+font-codepoint-map = U+1100-U+11FF=Apple SD Gothic Neo
+font-codepoint-map = U+3130-U+318F=Apple SD Gothic Neo
+font-codepoint-map = U+A960-U+A97F=Apple SD Gothic Neo
+font-codepoint-map = U+D7B0-U+D7FF=Apple SD Gothic Neo
+font-codepoint-map = U+3000-U+303F=Apple SD Gothic Neo
+font-codepoint-map = U+FF00-U+FFEF=Apple SD Gothic Neo
+font-codepoint-map = U+4E00-U+9FFF=Apple SD Gothic Neo

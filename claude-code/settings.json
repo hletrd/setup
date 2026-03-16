@@ -9,13 +9,21 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash __HOME__/.claude/statusline-command.sh"
+    "command": "bash /Users/hletrd/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "oh-my-claudecode@omc": true,
-    "swift-lsp@claude-plugins-official": true
+    "swift-lsp@claude-plugins-official": true,
+    "ccusage-worv@worv": true
   },
-  "effortLevel": "max",
+  "extraKnownMarketplaces": {
+    "omc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
+      }
+    }
+  },
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "mcpServers": {
@@ -34,5 +42,9 @@
       ]
     }
   },
-  "defaultMode": "bypassPermissions"
+  "defaultMode": "bypassPermissions",
+  "effortLevel": "high",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
 }
