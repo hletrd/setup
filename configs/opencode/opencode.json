@@ -10,6 +10,11 @@
         "gpt-5.4": {
           "options": {
             "reasoningEffort": "xhigh"
+          },
+          "variants": {
+            "xhigh": {
+              "reasoningEffort": "xhigh"
+            }
           }
         }
       }

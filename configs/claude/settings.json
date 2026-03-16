@@ -15,7 +15,7 @@
     "oh-my-claudecode@omc": true,
     "swift-lsp@claude-plugins-official": true
   },
-  "effortLevel": "max",
+  "effortLevel": "high",
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "mcpServers": {
