@@ -13,12 +13,34 @@
   },
   "enabledPlugins": {
     "oh-my-claudecode@omc": true,
-    "swift-lsp@claude-plugins-official": true
+    "swift-lsp@claude-plugins-official": true,
+    "ccusage-worv@worv": true
+  },
+  "extraKnownMarketplaces": {
+    "worv": {
+      "source": {
+        "source": "github",
+        "repo": "hletrd/ccusage-worv"
+      }
+    },
+    "omc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
+      }
+    }
   },
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "mcpServers": {
+    "ssh": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@aiondadotcom/mcp-ssh"
+      ]
+    },
     "context7": {
       "command": "npx",
       "args": [
@@ -34,5 +56,8 @@
       ]
     }
   },
-  "defaultMode": "bypassPermissions"
+  "defaultMode": "bypassPermissions",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
 }
