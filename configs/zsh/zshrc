@@ -93,6 +93,19 @@ export TERMINFO=/usr/share/terminfo
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
 
 alias codex="codex --dangerously-bypass-approvals-and-sandbox"
+command -v zellij >/dev/null && alias zl="zellij"
 
 # Zoxide (smart cd) - must be at the very end of .zshrc
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
+export _ZO_FZF_OPTS="--ignore-case"
+if command -v zoxide >/dev/null; then
+  eval "$(zoxide init zsh)"
+  # Force case-insensitive matching (bypass smartcase) for NFS mounts
+  function z() {
+    local args=()
+    for arg in "$@"; do
+      [[ "$arg" == -* ]] && args+=("$arg") || args+=("${arg:l}")
+    done
+    __zoxide_z "${args[@]}"
+  }
+  alias cd="z"
+fi
