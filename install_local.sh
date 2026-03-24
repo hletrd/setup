@@ -154,6 +154,7 @@ cfg_mcp_git="true"
 cfg_mcp_github="true"
 cfg_mcp_memora="true"
 cfg_mcp_playwright="true"
+cfg_mcp_agent_browser="true"
 
 # Helper to set config value only if non-empty
 set_if_present() {
@@ -227,6 +228,7 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
   set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
   set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
+  set_if_present cfg_mcp_agent_browser "$(json_get_bool "agent-browser" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -1167,6 +1169,17 @@ if [ -d "$skills_src" ]; then
   printf "Claude Code skills installed.\n"
 fi
 
+# Install Claude Code agents
+agents_src="$script_dir/configs/claude/agents"
+if [ -d "$agents_src" ]; then
+  mkdir -p "$HOME/.claude/agents"
+  for agent_file in "$agents_src"/*.md; do
+    [ -f "$agent_file" ] || continue
+    cp "$agent_file" "$HOME/.claude/agents/"
+  done
+  printf "Claude Code agents installed.\n"
+fi
+
 if [ -f "$zellij_config_src" ] || [ -f "$zellij_layout_src" ]; then
   mkdir -p "$HOME/.config/zellij/layouts"
 fi
@@ -1231,6 +1244,7 @@ else
       github) [ "$cfg_mcp_github" = "true" ] ;;
       memora) [ "$cfg_mcp_memora" = "true" ] ;;
       playwright) [ "$cfg_mcp_playwright" = "true" ] ;;
+      agent-browser) [ "$cfg_mcp_agent_browser" = "true" ] ;;
       *) return 0 ;;  # Unknown servers are enabled by default
     esac
   }

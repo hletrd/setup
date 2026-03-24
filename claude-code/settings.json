@@ -40,6 +40,13 @@
         "-y",
         "context-mode"
       ]
+    },
+    "agent-browser": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "agent-browser"
+      ]
     }
   },
   "defaultMode": "bypassPermissions",
