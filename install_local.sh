@@ -148,12 +148,6 @@ cfg_pkg_cargo="true"
 # MCP server toggles (default all enabled)
 cfg_mcp_context7="true"
 cfg_mcp_context_mode="true"
-cfg_mcp_fetch="true"
-cfg_mcp_filesystem="true"
-cfg_mcp_git="true"
-cfg_mcp_github="true"
-cfg_mcp_memora="true"
-cfg_mcp_playwright="true"
 cfg_mcp_agent_browser="true"
 
 # Helper to set config value only if non-empty
@@ -222,12 +216,6 @@ if [ -f "$config_file" ]; then
   # Load MCP server toggles
   set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
   set_if_present cfg_mcp_context_mode "$(json_get_bool "context-mode" "$config_file")"
-  set_if_present cfg_mcp_fetch "$(json_get_bool "fetch" "$config_file")"
-  set_if_present cfg_mcp_filesystem "$(json_get_bool "filesystem" "$config_file")"
-  set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
-  set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
-  set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
-  set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
   set_if_present cfg_mcp_agent_browser "$(json_get_bool "agent-browser" "$config_file")"
 fi
 
@@ -1238,12 +1226,6 @@ else
     case "$server_name" in
       context7) [ "$cfg_mcp_context7" = "true" ] ;;
       context-mode) [ "$cfg_mcp_context_mode" = "true" ] ;;
-      fetch) [ "$cfg_mcp_fetch" = "true" ] ;;
-      filesystem) [ "$cfg_mcp_filesystem" = "true" ] ;;
-      git) [ "$cfg_mcp_git" = "true" ] ;;
-      github) [ "$cfg_mcp_github" = "true" ] ;;
-      memora) [ "$cfg_mcp_memora" = "true" ] ;;
-      playwright) [ "$cfg_mcp_playwright" = "true" ] ;;
       agent-browser) [ "$cfg_mcp_agent_browser" = "true" ] ;;
       *) return 0 ;;  # Unknown servers are enabled by default
     esac

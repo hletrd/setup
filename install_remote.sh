@@ -194,12 +194,6 @@ cfg_cli_zellij="true"
 # MCP server toggles (default all enabled)
 cfg_mcp_context7="true"
 cfg_mcp_context_mode="true"
-cfg_mcp_fetch="true"
-cfg_mcp_filesystem="true"
-cfg_mcp_git="true"
-cfg_mcp_github="true"
-cfg_mcp_memora="true"
-cfg_mcp_playwright="true"
 
 # Helper to set config value only if non-empty
 set_if_present() {
@@ -265,12 +259,6 @@ if [ -f "$config_file" ]; then
   # Load MCP server toggles
   set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
   set_if_present cfg_mcp_context_mode "$(json_get_bool "context-mode" "$config_file")"
-  set_if_present cfg_mcp_fetch "$(json_get_bool "fetch" "$config_file")"
-  set_if_present cfg_mcp_filesystem "$(json_get_bool "filesystem" "$config_file")"
-  set_if_present cfg_mcp_git "$(json_get_bool "git" "$config_file")"
-  set_if_present cfg_mcp_github "$(json_get_bool "github" "$config_file")"
-  set_if_present cfg_mcp_memora "$(json_get_bool "memora" "$config_file")"
-  set_if_present cfg_mcp_playwright "$(json_get_bool "playwright" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -467,12 +455,6 @@ ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 7
 	# MCP server toggles
 	cfg_mcp_context7="$cfg_mcp_context7"
 	cfg_mcp_context_mode="$cfg_mcp_context_mode"
-	cfg_mcp_fetch="$cfg_mcp_fetch"
-	cfg_mcp_filesystem="$cfg_mcp_filesystem"
-	cfg_mcp_git="$cfg_mcp_git"
-	cfg_mcp_github="$cfg_mcp_github"
-	cfg_mcp_memora="$cfg_mcp_memora"
-	cfg_mcp_playwright="$cfg_mcp_playwright"
 
 	printf "Caching sudo credentials...\n"
 	sudo -v
@@ -1011,12 +993,6 @@ else
     case "\$server_name" in
       context7) [ "\$cfg_mcp_context7" = "true" ] ;;
       context-mode) [ "\$cfg_mcp_context_mode" = "true" ] ;;
-      fetch) [ "\$cfg_mcp_fetch" = "true" ] ;;
-      filesystem) [ "\$cfg_mcp_filesystem" = "true" ] ;;
-      git) [ "\$cfg_mcp_git" = "true" ] ;;
-      github) [ "\$cfg_mcp_github" = "true" ] ;;
-      memora) [ "\$cfg_mcp_memora" = "true" ] ;;
-      playwright) [ "\$cfg_mcp_playwright" = "true" ] ;;
       *) return 0 ;;  # Unknown servers are enabled by default
     esac
   }
@@ -1030,41 +1006,6 @@ else
     cat > "\$mcp_servers_dir/\$server_name.json"
   }
 
-  write_server_config "filesystem" <<'MCP_EOF'
-"filesystem": {
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-filesystem", "__HOME__"]
-}
-MCP_EOF
-
-  write_server_config "fetch" <<'MCP_EOF'
-"fetch": {
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-fetch"]
-}
-MCP_EOF
-
-  write_server_config "github" <<'MCP_EOF'
-"github": {
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-github"]
-}
-MCP_EOF
-
-  write_server_config "git" <<'MCP_EOF'
-"git": {
-  "command": "uvx",
-  "args": ["mcp-server-git"]
-}
-MCP_EOF
-
-  write_server_config "playwright" <<'MCP_EOF'
-"playwright": {
-  "command": "npx",
-  "args": ["-y", "@playwright/mcp@latest"]
-}
-MCP_EOF
-
   write_server_config "context7" <<'MCP_EOF'
 "context7": {
   "command": "npx",
@@ -1076,18 +1017,6 @@ MCP_EOF
 "context-mode": {
   "command": "npx",
   "args": ["-y", "context-mode"]
-}
-MCP_EOF
-
-  write_server_config "memora" <<'MCP_EOF'
-"memora": {
-  "command": "memora-server",
-  "args": [],
-  "env": {
-    "MEMORA_DB_PATH": "__HOME__/.local/share/memora/memories.db",
-    "MEMORA_ALLOW_ANY_TAG": "1",
-    "MEMORA_GRAPH_PORT": "8765"
-  }
 }
 MCP_EOF
 
