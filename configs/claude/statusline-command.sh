@@ -264,7 +264,7 @@ if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
         usage_bg=$C_USAGE      # teal
         usage_fg=$C_FG
     fi
-    texts+=("5h:${h5_disp}% wk:${d7_disp}%")
+    texts+=("5h: ${h5_disp} 7d: ${d7_disp}")
     bgs+=($usage_bg)
     fgs+=($usage_fg)
 fi
