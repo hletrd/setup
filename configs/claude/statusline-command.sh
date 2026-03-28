@@ -62,9 +62,50 @@ fi
 
 # 5h/7d usage from Anthropic OAuth usage API (real percentages)
 USAGE_CACHE="$HOME/.claude/.statusline-usage-cache.json"
-USAGE_CACHE_TTL=120  # seconds
+USAGE_LOCK="${USAGE_CACHE}.lock"
+USAGE_CACHE_TTL=300       # 5 minutes between successful fetches
+USAGE_ERROR_TTL=120       # 2 minutes after errors before retrying
+USAGE_BACKOFF_TTL=600     # 10 minutes after rate-limit (429) before retrying
+USAGE_STALE_MAX=900       # serve stale data up to 15 minutes old
+USAGE_LOCK_TTL=15         # lock expires after 15s (curl timeout is 5s)
 h5_pct=""
 d7_pct=""
+
+# Acquire lock to prevent multiple sessions from fetching simultaneously.
+# Uses mkdir for atomic lock creation (works across all shells/platforms).
+# Returns 0 if lock acquired, 1 if another session is already fetching.
+acquire_lock() {
+    if mkdir "$USAGE_LOCK" 2>/dev/null; then
+        echo $$ > "$USAGE_LOCK/pid"
+        return 0
+    fi
+    # Check for stale lock (process died or took too long)
+    if [ -f "$USAGE_LOCK/pid" ]; then
+        local lock_pid lock_age
+        lock_pid=$(cat "$USAGE_LOCK/pid" 2>/dev/null)
+        lock_age=0
+        if [ -f "$USAGE_LOCK/pid" ]; then
+            local lock_mtime
+            lock_mtime=$(stat -f %m "$USAGE_LOCK/pid" 2>/dev/null || stat -c %Y "$USAGE_LOCK/pid" 2>/dev/null)
+            if [ -n "$lock_mtime" ]; then
+                lock_age=$(( $(date +%s) - lock_mtime ))
+            fi
+        fi
+        # Stale lock: owner dead or lock older than LOCK_TTL
+        if [ "$lock_age" -ge "$USAGE_LOCK_TTL" ] || { [ -n "$lock_pid" ] && ! kill -0 "$lock_pid" 2>/dev/null; }; then
+            rm -rf "$USAGE_LOCK"
+            if mkdir "$USAGE_LOCK" 2>/dev/null; then
+                echo $$ > "$USAGE_LOCK/pid"
+                return 0
+            fi
+        fi
+    fi
+    return 1
+}
+
+release_lock() {
+    rm -rf "$USAGE_LOCK"
+}
 
 fetch_usage_api() {
     local access_token
@@ -78,8 +119,26 @@ fetch_usage_api() {
         access_token=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
     fi
     [ -z "$access_token" ] && return 1
-    local resp
-    resp=$(curl -s --max-time 5 -H "Authorization: Bearer $access_token" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
+    local resp http_code
+    resp=$(curl -s --max-time 5 -w '\n%{http_code}' -H "Authorization: Bearer $access_token" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || {
+        # Network error — write error cache to avoid rapid retries
+        local now; now=$(date +%s)
+        [ -f "$USAGE_CACHE" ] && jq --argjson err_ts "$now" '.err_ts = $err_ts' "$USAGE_CACHE" > "${USAGE_CACHE}.tmp" 2>/dev/null && mv "${USAGE_CACHE}.tmp" "$USAGE_CACHE"
+        return 1
+    }
+    http_code=$(echo "$resp" | tail -1)
+    resp=$(echo "$resp" | sed '$d')
+    # Handle rate-limiting: mark backoff timestamp
+    if [ "$http_code" = "429" ]; then
+        local now; now=$(date +%s)
+        if [ -f "$USAGE_CACHE" ]; then
+            jq --argjson bt "$now" '.backoff_ts = $bt' "$USAGE_CACHE" > "${USAGE_CACHE}.tmp" 2>/dev/null && mv "${USAGE_CACHE}.tmp" "$USAGE_CACHE"
+        else
+            printf '{"ts":0,"h5":0,"d7":0,"backoff_ts":%d}\n' "$now" > "$USAGE_CACHE"
+        fi
+        return 1
+    fi
+    [ "$http_code" != "200" ] && return 1
     local h5 d7
     h5=$(echo "$resp" | jq -r '.five_hour.utilization // empty' 2>/dev/null)
     d7=$(echo "$resp" | jq -r '.seven_day.utilization // empty' 2>/dev/null)
@@ -89,23 +148,71 @@ fetch_usage_api() {
 }
 
 get_usage() {
+    local now
+    now=$(date +%s)
     # Try cache first
     if [ -f "$USAGE_CACHE" ]; then
-        local cached_ts now
+        local cached_ts backoff_ts err_ts ttl
         cached_ts=$(jq -r '.ts // 0' "$USAGE_CACHE" 2>/dev/null)
-        now=$(date +%s)
+        backoff_ts=$(jq -r '.backoff_ts // 0' "$USAGE_CACHE" 2>/dev/null)
+        err_ts=$(jq -r '.err_ts // 0' "$USAGE_CACHE" 2>/dev/null)
+
+        # If in rate-limit backoff, serve stale and don't fetch
+        if [ "$backoff_ts" -gt 0 ] 2>/dev/null && [ $((now - backoff_ts)) -lt "$USAGE_BACKOFF_TTL" ]; then
+            if [ "$cached_ts" -gt 0 ] 2>/dev/null && [ $((now - cached_ts)) -lt "$USAGE_STALE_MAX" ]; then
+                jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+            fi
+            return
+        fi
+
+        # If in error cooldown, serve stale and don't fetch
+        if [ "$err_ts" -gt 0 ] 2>/dev/null && [ $((now - err_ts)) -lt "$USAGE_ERROR_TTL" ]; then
+            if [ "$cached_ts" -gt 0 ] 2>/dev/null && [ $((now - cached_ts)) -lt "$USAGE_STALE_MAX" ]; then
+                jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+            fi
+            return
+        fi
+
+        # Successful cache still fresh
         if [ $((now - cached_ts)) -lt "$USAGE_CACHE_TTL" ]; then
             jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
             return
         fi
     fi
-    # Fetch fresh (background-safe: if it fails, use stale cache)
+    # Try to acquire lock — only one session fetches at a time
+    if ! acquire_lock; then
+        # Another session is fetching; serve stale cache if available
+        if [ -f "$USAGE_CACHE" ]; then
+            local cached_ts
+            cached_ts=$(jq -r '.ts // 0' "$USAGE_CACHE" 2>/dev/null)
+            if [ "$cached_ts" -gt 0 ] 2>/dev/null && [ $((now - cached_ts)) -lt "$USAGE_STALE_MAX" ]; then
+                jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+            fi
+        fi
+        return
+    fi
+    # Re-check cache after acquiring lock (another session may have just refreshed it)
+    if [ -f "$USAGE_CACHE" ]; then
+        local recheck_ts
+        recheck_ts=$(jq -r '.ts // 0' "$USAGE_CACHE" 2>/dev/null)
+        if [ $((now - recheck_ts)) -lt "$USAGE_CACHE_TTL" ]; then
+            jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+            release_lock
+            return
+        fi
+    fi
+    # Fetch fresh (if it fails, use stale cache)
     local result
     result=$(fetch_usage_api 2>/dev/null)
+    release_lock
     if [ -n "$result" ]; then
         echo "$result"
     elif [ -f "$USAGE_CACHE" ]; then
-        jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+        local cached_ts
+        cached_ts=$(jq -r '.ts // 0' "$USAGE_CACHE" 2>/dev/null)
+        if [ "$cached_ts" -gt 0 ] 2>/dev/null && [ $((now - cached_ts)) -lt "$USAGE_STALE_MAX" ]; then
+            jq -r '"\(.h5) \(.d7)"' "$USAGE_CACHE" 2>/dev/null
+        fi
     fi
 }
 
