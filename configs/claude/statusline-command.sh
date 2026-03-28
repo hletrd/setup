@@ -37,7 +37,7 @@ fmt_tokens() {
 }
 
 # Extract data from JSON
-model=$(echo "$input" | jq -r '.model.display_name // "Claude"')
+model=$(echo "$input" | jq -r '.model.display_name // "Claude"' | sed 's/ context)/)/g')
 version=$(echo "$input" | jq -r '.version // ""')
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // ""')
 output_style=$(echo "$input" | jq -r '.output_style.name // ""')
@@ -66,7 +66,7 @@ USAGE_LOCK="${USAGE_CACHE}.lock"
 USAGE_CACHE_TTL=300       # 5 minutes between successful fetches
 USAGE_ERROR_TTL=120       # 2 minutes after errors before retrying
 USAGE_BACKOFF_TTL=600     # 10 minutes after rate-limit (429) before retrying
-USAGE_STALE_MAX=900       # serve stale data up to 15 minutes old
+USAGE_STALE_MAX=86400     # serve stale data up to 24 hours (old data >> no data)
 USAGE_LOCK_TTL=15         # lock expires after 15s (curl timeout is 5s)
 h5_pct=""
 d7_pct=""
@@ -247,13 +247,26 @@ if [ -n "$remaining_pct" ] && [ "$remaining_pct" != "null" ]; then
     fi
 fi
 
-# Section 3: 5h/7d Usage (real percentages from Anthropic API)
+# Section 3: 5h/7d Usage (OMC HUD style with threshold colors)
 if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
     h5_disp=$(printf "%.0f" "$h5_pct" 2>/dev/null || echo "0")
     d7_disp=$(printf "%.0f" "$d7_pct" 2>/dev/null || echo "0")
-    texts+=("5h ${h5_disp}% 7d ${d7_disp}%")
-    bgs+=($C_USAGE)
-    fgs+=($C_FG)
+    # Pick segment bg color based on max usage (green <70, yellow 70-90, red >=90)
+    max_pct=$h5_disp
+    [ "$d7_disp" -gt "$max_pct" ] 2>/dev/null && max_pct=$d7_disp
+    if [ "$max_pct" -ge 90 ] 2>/dev/null; then
+        usage_bg=$C_CTX_LOW    # red
+        usage_fg=232
+    elif [ "$max_pct" -ge 70 ] 2>/dev/null; then
+        usage_bg=$C_CTX_MID    # yellow
+        usage_fg=232
+    else
+        usage_bg=$C_USAGE      # teal
+        usage_fg=$C_FG
+    fi
+    texts+=("5h:${h5_disp}% wk:${d7_disp}%")
+    bgs+=($usage_bg)
+    fgs+=($usage_fg)
 fi
 
 # Section 4: Model + Version
@@ -277,14 +290,7 @@ fi
 if [ "$total_tokens" -gt 0 ] 2>/dev/null; then
     in_fmt=$(fmt_tokens "$total_input")
     out_fmt=$(fmt_tokens "$total_output")
-    tot_fmt=$(fmt_tokens "$total_tokens")
-
-    if [ "$cache_read" -gt 0 ] 2>/dev/null; then
-        cache_fmt=$(fmt_tokens "$cache_read")
-        texts+=("${in_fmt}in ${out_fmt}out ${cache_fmt}cache ${tot_fmt}total")
-    else
-        texts+=("${in_fmt}in ${out_fmt}out ${tot_fmt}total")
-    fi
+    texts+=("${in_fmt}in ${out_fmt}out")
     bgs+=($C_TOKENS)
     fgs+=($C_FG)
 fi
