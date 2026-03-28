@@ -1310,7 +1310,6 @@ printf "Installing global AI assistant rules and user config backups on remote h
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
-claude_config_src="$script_dir/configs/claude/config.json"
 claude_settings_src="$script_dir/configs/claude/settings.json"
 claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
 claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
@@ -1387,11 +1386,6 @@ fi
 if [ -f "$opencode_config_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/opencode"; if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then cat > "$HOME/.config/opencode/opencode.json"; else cat >/dev/null; fi' < "$opencode_config_src"
-fi
-
-if [ -f "$claude_config_src" ]; then
-  # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/config.json" ]; then cat > "$HOME/.claude/config.json"; else cat >/dev/null; fi' < "$claude_config_src"
 fi
 
 if [ -f "$claude_settings_src" ]; then

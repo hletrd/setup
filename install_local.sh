@@ -1043,7 +1043,6 @@ printf "Installing global AI assistant rules and user config backups...\n"
 claude_rules_src="$script_dir/configs/claude/CLAUDE.md"
 codex_rules_src="$script_dir/configs/codex/AGENTS.md"
 opencode_rules_src="$script_dir/configs/opencode/AGENTS.md"
-claude_config_src="$script_dir/configs/claude/config.json"
 claude_settings_src="$script_dir/configs/claude/settings.json"
 claude_settings_local_src="$script_dir/configs/claude/settings.local.json"
 claude_statusline_src="$script_dir/configs/claude/statusline-command.sh"
@@ -1122,12 +1121,8 @@ if [ -f "$opencode_config_src" ] && [ ! -f "$HOME/.config/opencode/opencode.json
   cp "$opencode_config_src" "$HOME/.config/opencode/opencode.json"
 fi
 
-if [ -f "$claude_config_src" ] || [ -f "$claude_settings_src" ] || [ -f "$claude_settings_local_src" ] || [ -f "$claude_statusline_src" ]; then
+if [ -f "$claude_settings_src" ] || [ -f "$claude_settings_local_src" ] || [ -f "$claude_statusline_src" ]; then
   mkdir -p "$HOME/.claude"
-fi
-
-if [ -f "$claude_config_src" ] && [ ! -f "$HOME/.claude/config.json" ]; then
-  cp "$claude_config_src" "$HOME/.claude/config.json"
 fi
 
 if [ -f "$claude_settings_src" ] && [ ! -f "$HOME/.claude/settings.json" ]; then

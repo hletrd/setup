@@ -31,7 +31,7 @@ setup/
 - **AI CLI stack**: `gemini-cli`, `opencode-ai`, `@openai/codex`, `oh-my-codex`
 - **Default MCP servers**: `context7`, `context-mode`
 - **Skills (replacing MCP servers)**: `fetch`, `filesystem`, `git`, `github`, `playwright` (via `configs/claude/skills/`)
-- **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{config.json,settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
+- **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
 - **Secret handling policy**: do not back up credential/token-bearing local files (for example auth stores and token-bearing YAML/JSON files)
 - **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
 

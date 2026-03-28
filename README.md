@@ -92,7 +92,6 @@ All platforms have been tested and verified (January 2026):
 - Auto-restore user config backups when target files are missing:
   - `configs/git/gitconfig` -> `~/.gitconfig`
   - `configs/git/ignore` -> `~/.config/git/ignore`
-  - `configs/claude/config.json` -> `~/.claude/config.json`
   - `configs/claude/settings.json` -> `~/.claude/settings.json`
   - `configs/claude/settings.local.json` -> `~/.claude/settings.local.json`
   - `configs/claude/statusline-command.sh` -> `~/.claude/statusline-command.sh`
