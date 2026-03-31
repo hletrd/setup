@@ -1,11 +1,34 @@
 # oh-my-codex top-level settings (must be before any [table])
 notify = ["node", "__HOME__/.local/share/fnm/node-versions/v24.14.0/installation/lib/node_modules/oh-my-codex/scripts/notify-hook.js"]
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
+developer_instructions = "You have oh-my-codex installed. AGENTS.md is your orchestration brain and the main orchestration surface. Use /prompts:<role> and spawned role prompts for specialized subagent work. Use workflow skills via $name when explicitly invoked or clearly routed by AGENTS.md. Treat role prompts as narrower execution surfaces under AGENTS.md authority."
+
+
 plan_mode_reasoning_effort = "xhigh"
-developer_instructions = "You have oh-my-codex installed. Use /prompts:architect, /prompts:executor, /prompts:planner for specialized agent roles. Workflow skills via $name: $ralph, $autopilot, $plan. AGENTS.md is your orchestration brain."
+
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
+
 
 model = "gpt-5.4"
 service_tier = "fast"
+[projects."__HOME__"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/Xylolabs-Knowledge-Engine"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/RB-Y1"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/xylolabs-panel-demo"]
+trust_level = "trusted"
+
+[projects."__HOME__/git/burstpick"]
+trust_level = "trusted"
+
+[projects."__HOME__/flash-shared/xylolabs-api"]
+trust_level = "trusted"
 
 [mcp_servers.context7]
 command = "npx"
@@ -13,12 +36,6 @@ args = ["-y", "@upstash/context7-mcp@latest"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
 env_vars = ["CONTEXT7_API_KEY"]
-
-[mcp_servers.context-mode]
-command = "npx"
-args = ["-y", "context-mode"]
-startup_timeout_sec = 20
-tool_timeout_sec = 120
 
 # ── Agent Profiles ──────────────────────────────────────────────
 
@@ -70,8 +87,8 @@ model_reasoning_effort = "xhigh"
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 [features]
-collab = true
 child_agents_md = true
+multi_agent = true
 
 # ============================================================
 # oh-my-codex (OMX) Configuration
@@ -106,9 +123,98 @@ args = ["__HOME__/.local/share/fnm/node-versions/v24.14.0/installation/lib/node_
 enabled = true
 startup_timeout_sec = 5
 
+# OMX Team MCP Server (team job lifecycle: start, status, wait, cleanup)
+[mcp_servers.omx_team_run]
+command = "node"
+args = ["__HOME__/.local/share/fnm/node-versions/v24.14.0/installation/lib/node_modules/oh-my-codex/dist/mcp/team-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+# OMX Native Agent Roles (Codex multi-agent)
+
+[agents.explore]
+description = "Fast codebase search and file/symbol mapping"
+config_file = "__HOME__/.omx/agents/explore.toml"
+
+[agents.analyst]
+description = "Requirements clarity, acceptance criteria, hidden constraints"
+config_file = "__HOME__/.omx/agents/analyst.toml"
+
+[agents.planner]
+description = "Task sequencing, execution plans, risk flags"
+config_file = "__HOME__/.omx/agents/planner.toml"
+
+[agents.architect]
+description = "System design, boundaries, interfaces, long-horizon tradeoffs"
+config_file = "__HOME__/.omx/agents/architect.toml"
+
+[agents.debugger]
+description = "Root-cause analysis, regression isolation, failure diagnosis"
+config_file = "__HOME__/.omx/agents/debugger.toml"
+
+[agents.executor]
+description = "Code implementation, refactoring, feature work"
+config_file = "__HOME__/.omx/agents/executor.toml"
+
+[agents."team-executor"]
+description = "Supervised team execution for conservative delivery lanes"
+config_file = "__HOME__/.omx/agents/team-executor.toml"
+
+[agents.verifier]
+description = "Completion evidence, claim validation, test adequacy"
+config_file = "__HOME__/.omx/agents/verifier.toml"
+
+[agents."security-reviewer"]
+description = "Vulnerabilities, trust boundaries, authn/authz"
+config_file = "__HOME__/.omx/agents/security-reviewer.toml"
+
+[agents."code-reviewer"]
+description = "Comprehensive review across all concerns"
+config_file = "__HOME__/.omx/agents/code-reviewer.toml"
+
+[agents."dependency-expert"]
+description = "External SDK/API/package evaluation"
+config_file = "__HOME__/.omx/agents/dependency-expert.toml"
+
+[agents."test-engineer"]
+description = "Test strategy, coverage, flaky-test hardening"
+config_file = "__HOME__/.omx/agents/test-engineer.toml"
+
+[agents."build-fixer"]
+description = "Build/toolchain/type failures resolution"
+config_file = "__HOME__/.omx/agents/build-fixer.toml"
+
+[agents.designer]
+description = "UX/UI architecture, interaction design"
+config_file = "__HOME__/.omx/agents/designer.toml"
+
+[agents.writer]
+description = "Documentation, migration notes, user guidance"
+config_file = "__HOME__/.omx/agents/writer.toml"
+
+[agents."git-master"]
+description = "Commit strategy, history hygiene, rebasing"
+config_file = "__HOME__/.omx/agents/git-master.toml"
+
+[agents."code-simplifier"]
+description = "Simplifies recently modified code for clarity and consistency without changing behavior"
+config_file = "__HOME__/.omx/agents/code-simplifier.toml"
+
+[agents.researcher]
+description = "External documentation and reference research"
+config_file = "__HOME__/.omx/agents/researcher.toml"
+
+[agents.critic]
+description = "Plan/design critical challenge and review"
+config_file = "__HOME__/.omx/agents/critic.toml"
+
+[agents.vision]
+description = "Image/screenshot/diagram analysis"
+config_file = "__HOME__/.omx/agents/vision.toml"
+
 # OMX TUI StatusLine (Codex CLI v0.101.0+)
 [tui]
-status_line = ["project-root", "model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit", "weekly-limit"]
+status_line = ["model-with-reasoning", "git-branch", "context-remaining", "total-input-tokens", "total-output-tokens", "five-hour-limit"]
 
 # ============================================================
 # End oh-my-codex
