@@ -38,7 +38,6 @@ fmt_tokens() {
 
 # Extract data from JSON
 model=$(echo "$input" | jq -r '.model.display_name // "Claude"' | sed 's/ context)/)/g')
-version=$(echo "$input" | jq -r '.version // ""')
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // ""')
 output_style=$(echo "$input" | jq -r '.output_style.name // ""')
 vim_mode=$(echo "$input" | jq -r '.vim.mode // ""')
@@ -264,17 +263,13 @@ if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
         usage_bg=$C_USAGE      # teal
         usage_fg=$C_FG
     fi
-    texts+=("5h: ${h5_disp} 7d: ${d7_disp}")
+    texts+=("5h ${h5_disp}% 7d ${d7_disp}%")
     bgs+=($usage_bg)
     fgs+=($usage_fg)
 fi
 
 # Section 4: Model + Version
-model_section="$model"
-if [ -n "$version" ]; then
-    model_section="$model v$version"
-fi
-texts+=("$model_section")
+texts+=("$model")
 bgs+=($C_MODEL)
 fgs+=($C_FG)
 
