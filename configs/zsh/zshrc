@@ -48,10 +48,14 @@ fpath=($HOME/.docker/completions $fpath)
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Modern CLI tool aliases (only if tools exist)
-command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
+# Modern CLI tool aliases (only if tools exist; skip in Claude Code to avoid breaking Bash tool)
+if [[ -z "$CLAUDE_CODE" ]]; then
+  command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
+  command -v fd >/dev/null && alias find="fd"
+else
+  command -v eza >/dev/null && alias ll="eza -l" && alias la="eza -la"
+fi
 #command -v bat >/dev/null # && alias cat="bat"
-command -v fd >/dev/null && alias find="fd"
 #command -v rg >/dev/null # && alias grep="rg"
 command -v dust >/dev/null && alias du="dust"
 command -v duf >/dev/null && alias df="duf"
@@ -64,12 +68,7 @@ command -v xh >/dev/null && alias http="xh"
 command -v lazygit >/dev/null && alias lg="lazygit"
 command -v lazydocker >/dev/null && alias lzd="lazydocker"
 command -v choose >/dev/null && alias cut="choose"
-# Wrap claude through terminal-ime-proxy (timp) for CJK IME support if available
-if command -v timp >/dev/null; then
-  alias claude="timp claude --dangerously-skip-permissions"
-else
-  alias claude="claude --dangerously-skip-permissions"
-fi
+alias claude="claude --dangerously-skip-permissions"
 alias c="claude"
 
 # GLM-based Claude Code
@@ -103,29 +102,23 @@ command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
 # Powerlevel10k configuration
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export TERMINFO=/usr/share/terminfo
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
 
-# OpenClaw Completion
-#source <(openclaw completion --shell zsh)
 
 # opencode config
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export CLAUDE_PLUGIN_ROOT="$HOME/.claude/plugins/marketplaces/worv/plugin"
 
 alias codex="codex --dangerously-bypass-approvals-and-sandbox"
-command -v zellij >/dev/null && alias zl="zellij"
+alias omx="omx --xhigh --madmax"
+
+
+# OpenClaw Completion
+source "/Users/hletrd/.openclaw/completions/openclaw.zsh"
+
+# opencode
+export PATH=/Users/hletrd/.opencode/bin:$PATH
 
 # Zoxide (smart cd) - must be at the very end of .zshrc
 export _ZO_FZF_OPTS="--ignore-case"
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"
-  # Force case-insensitive matching (bypass smartcase) for NFS mounts
-  function z() {
-    local args=()
-    for arg in "$@"; do
-      [[ "$arg" == -* ]] && args+=("$arg") || args+=("${arg:l}")
-    done
-    __zoxide_z "${args[@]}"
-  }
-  alias cd="z"
-fi
+command -v zellij >/dev/null && alias zl="zellij"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && [[ -z "$CLAUDE_CODE" ]] && alias cd="z"
