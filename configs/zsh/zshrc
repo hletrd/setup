@@ -64,8 +64,26 @@ command -v xh >/dev/null && alias http="xh"
 command -v lazygit >/dev/null && alias lg="lazygit"
 command -v lazydocker >/dev/null && alias lzd="lazydocker"
 command -v choose >/dev/null && alias cut="choose"
-alias claude="claude --dangerously-skip-permissions"
+# Wrap claude through terminal-ime-proxy (timp) for CJK IME support if available
+if command -v timp >/dev/null; then
+  alias claude="timp claude --dangerously-skip-permissions"
+else
+  alias claude="claude --dangerously-skip-permissions"
+fi
 alias c="claude"
+
+# GLM-based Claude Code
+claude_with_glm_env() {
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.7" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.1" \
+    ANTHROPIC_AUTH_TOKEN="your_api_key" \
+    ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias claude-glm='claude_with_glm_env'
+alias cg='claude_with_glm_env'
 
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
@@ -85,6 +103,8 @@ command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
 # Powerlevel10k configuration
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export TERMINFO=/usr/share/terminfo
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 # OpenClaw Completion
 #source <(openclaw completion --shell zsh)

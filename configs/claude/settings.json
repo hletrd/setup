@@ -1,4 +1,10 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1"
+  },
   "permissions": {
     "allow": [
       "Read",
@@ -14,58 +20,32 @@
   "enabledPlugins": {
     "oh-my-claudecode@omc": true,
     "swift-lsp@claude-plugins-official": true,
-    "ccusage-worv@worv": true
+    "ccusage-worv@worv": true,
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
-    "worv": {
-      "source": {
-        "source": "github",
-        "repo": "hletrd/ccusage-worv"
-      }
-    },
     "omc": {
       "source": {
         "source": "git",
         "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
       }
+    },
+    "worv": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/MaumAI-Company/ccusage-worv.git"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
     }
   },
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
+  "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
-  "mcpServers": {
-    "ssh": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@aiondadotcom/mcp-ssh"
-      ]
-    },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ]
-    },
-    "context-mode": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "context-mode"
-      ]
-    },
-    "agent-browser": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "agent-browser"
-      ]
-    }
-  },
-  "defaultMode": "bypassPermissions",
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "autoMemoryEnabled": false
+  "defaultMode": "bypassPermissions"
 }
