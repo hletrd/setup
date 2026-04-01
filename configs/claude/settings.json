@@ -45,6 +45,19 @@
   },
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
+  "hooks": {
+    "StopFailure": [
+      {
+        "matcher": "rate_limit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/cc-auto-resume-handler"
+          }
+        ]
+      }
+    ]
+  },
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "defaultMode": "bypassPermissions"

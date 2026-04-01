@@ -1413,6 +1413,31 @@ if [ -d "$skills_src" ]; then
   printf "Claude Code skills installed on remote host.\n"
 fi
 
+# Install Claude Code auto-resume (cchelper) — macOS remote only
+cchelper_handler_src="$script_dir/configs/claude/bin/cc-auto-resume-handler"
+cchelper_daemon_src="$script_dir/configs/claude/bin/cc-auto-resume-daemon"
+cchelper_plist_src="$script_dir/configs/claude/launchd/com.user.cc-auto-resume.plist"
+if [ -f "$cchelper_handler_src" ] && [ -f "$cchelper_daemon_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.local/bin" "$HOME/.claude/auto-resume/pending" "$HOME/.claude/auto-resume/log"'
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'cat > "$HOME/.local/bin/cc-auto-resume-handler" && chmod +x "$HOME/.local/bin/cc-auto-resume-handler"' < "$cchelper_handler_src"
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'cat > "$HOME/.local/bin/cc-auto-resume-daemon" && chmod +x "$HOME/.local/bin/cc-auto-resume-daemon"' < "$cchelper_daemon_src"
+  if [ -f "$cchelper_plist_src" ]; then
+    # shellcheck disable=SC2086
+    ssh $ssh_opts "$ssh_user@$server_addr" '
+      mkdir -p "$HOME/Library/LaunchAgents"
+      cat > "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist"
+      sed -i "" "s|__HOME__|$HOME|g" "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist"
+      launchctl bootout "gui/$(id -u)/com.user.cc-auto-resume" 2>/dev/null || true
+      launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist" 2>/dev/null || \
+        launchctl load "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist" 2>/dev/null || true
+    ' < "$cchelper_plist_src"
+  fi
+  printf "Claude Code auto-resume (cchelper) installed on remote host.\n"
+fi
+
 if [ -f "$zellij_config_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/zellij"; if [ ! -f "$HOME/.config/zellij/config.kdl" ]; then cat > "$HOME/.config/zellij/config.kdl"; else cat >/dev/null; fi' < "$zellij_config_src"

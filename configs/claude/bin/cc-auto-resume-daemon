@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+# cc-auto-resume-daemon — Periodic checker that resumes rate-limited Claude Code sessions
+# Run by launchd every 60 seconds. Scans pending state files and resumes when limit resets.
+
+set -euo pipefail
+
+STATE_DIR="$HOME/.claude/auto-resume/pending"
+LOG_FILE="$HOME/.claude/auto-resume/log/resume.log"
+MAX_ATTEMPTS=60  # give up after ~1 hour of retries
+STALE_AGE=86400  # clean up state files older than 24 hours
+
+log() {
+    printf '[%s] [daemon] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$LOG_FILE"
+}
+
+notify() {
+    local title="$1" subtitle="$2" body="$3"
+    osascript -e "display notification \"${body}\" with title \"${title}\" subtitle \"${subtitle}\"" 2>/dev/null || true
+}
+
+# --- Usage API check (reuses OAuth token from keychain, same as statusline) ---
+
+get_access_token() {
+    local token access_token=""
+    token=$(/usr/bin/security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || true
+    if [ -n "$token" ]; then
+        access_token=$(echo "$token" | jq -r '.claudeAiOauth.accessToken // .accessToken // empty' 2>/dev/null)
+    fi
+    if [ -z "$access_token" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
+        access_token=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
+    fi
+    echo "$access_token"
+}
+
+check_rate_limit_reset() {
+    local access_token
+    access_token=$(get_access_token)
+    if [ -z "$access_token" ]; then
+        log "WARN: no access token found, assuming limit reset"
+        return 0  # assume reset if we can't check
+    fi
+
+    local resp http_code
+    resp=$(curl -s --max-time 5 -w '\n%{http_code}' \
+        -H "Authorization: Bearer $access_token" \
+        -H "anthropic-beta: oauth-2025-04-20" \
+        "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || {
+        log "WARN: usage API request failed, assuming limit reset"
+        return 0
+    }
+
+    http_code=$(echo "$resp" | tail -1)
+    resp=$(echo "$resp" | sed '$d')
+
+    if [ "$http_code" != "200" ]; then
+        log "WARN: usage API returned $http_code, assuming limit reset"
+        return 0
+    fi
+
+    local h5_util
+    h5_util=$(echo "$resp" | jq -r '.five_hour.utilization // 0' 2>/dev/null)
+
+    # Consider reset if utilization dropped below 95%
+    local is_under
+    is_under=$(echo "$h5_util < 95" | bc -l 2>/dev/null || echo "1")
+    if [ "$is_under" = "1" ]; then
+        log "Rate limit reset confirmed (5h utilization: ${h5_util}%)"
+        return 0
+    else
+        log "Rate limit still active (5h utilization: ${h5_util}%)"
+        return 1
+    fi
+}
+
+# --- Zellij version detection ---
+
+zellij_has_pane_id() {
+    local ver
+    ver=$(zellij --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1) || return 1
+    local major minor
+    major=$(echo "$ver" | cut -d. -f1)
+    minor=$(echo "$ver" | cut -d. -f2)
+    # --pane-id available in 0.44.0+
+    [ "$major" -gt 0 ] || [ "$minor" -ge 44 ]
+}
+
+# --- Check if zellij session exists ---
+
+zellij_session_exists() {
+    local session_name="$1"
+    zellij list-sessions 2>/dev/null | grep -qF "$session_name"
+}
+
+# --- Send resume keystrokes ---
+
+resume_via_zellij() {
+    local session_name="$1" pane_id="$2"
+
+    if zellij_has_pane_id; then
+        # Zellij 0.44.0+: precise pane targeting
+        if [ -n "$pane_id" ]; then
+            zellij --session "$session_name" action write-chars --pane-id "$pane_id" "continue" 2>/dev/null &&
+            zellij --session "$session_name" action write --pane-id "$pane_id" 13 2>/dev/null
+            return $?
+        fi
+    fi
+
+    # Zellij 0.43.x fallback: send to focused pane
+    zellij --session "$session_name" action write-chars "continue" 2>/dev/null &&
+    zellij --session "$session_name" action write 13 2>/dev/null
+    return $?
+}
+
+# --- Resume via new terminal (zellij session gone) ---
+
+resume_via_new_session() {
+    local session_id="$1" cwd="$2"
+
+    # Try to create a new zellij session with claude --resume
+    if command -v zellij &>/dev/null; then
+        zellij --session "cc-resume-${session_id:0:8}" \
+            attach --create-background 2>/dev/null || true
+        zellij --session "cc-resume-${session_id:0:8}" \
+            run --cwd "$cwd" -- claude --resume "$session_id" 2>/dev/null
+        return $?
+    fi
+
+    # Last resort: open in Terminal.app
+    osascript -e "
+        tell application \"Terminal\"
+            activate
+            do script \"cd '${cwd}' && claude --resume '${session_id}'\"
+        end tell
+    " 2>/dev/null
+    return $?
+}
+
+# --- Main: process pending state files ---
+
+now=$(date +%s)
+
+# Collect pending files (nullglob avoids literal glob when no matches)
+shopt -s nullglob
+pending_files=("$STATE_DIR"/*.json)
+shopt -u nullglob
+
+if [ ${#pending_files[@]} -eq 0 ]; then
+    exit 0
+fi
+
+for state_file in "${pending_files[@]}"; do
+    [ -f "$state_file" ] || continue
+
+    session_id=$(jq -r '.session_id // empty' "$state_file")
+    cwd=$(jq -r '.cwd // empty' "$state_file")
+    zellij_session=$(jq -r '.zellij_session // empty' "$state_file")
+    zellij_pane_id=$(jq -r '.zellij_pane_id // empty' "$state_file")
+    resume_after=$(jq -r '.resume_after // 0' "$state_file")
+    detected_at=$(jq -r '.detected_at // 0' "$state_file")
+    attempts=$(jq -r '.attempts // 0' "$state_file")
+
+    # Clean up stale files (older than 24 hours)
+    if [ $((now - detected_at)) -gt "$STALE_AGE" ]; then
+        log "Removing stale state file for session $session_id (detected ${STALE_AGE}s+ ago)"
+        rm -f "$state_file"
+        continue
+    fi
+
+    # Not yet time
+    if [ "$resume_after" -gt "$now" ]; then
+        continue
+    fi
+
+    # Too many attempts — give up
+    if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
+        log "ERROR: giving up on session $session_id after $attempts attempts"
+        notify "Claude Code Auto-Resume Failed" "Session: ${session_id:0:8}..." "Gave up after $attempts retries"
+        rm -f "$state_file"
+        continue
+    fi
+
+    # Verify rate limit actually reset via API
+    if ! check_rate_limit_reset; then
+        # Still rate limited — bump resume_after by 5 minutes, increment attempts
+        new_resume=$((now + 300))
+        new_attempts=$((attempts + 1))
+        jq --argjson r "$new_resume" --argjson a "$new_attempts" \
+            '.resume_after = $r | .attempts = $a' "$state_file" > "${state_file}.tmp" &&
+            mv "${state_file}.tmp" "$state_file"
+        log "Session $session_id still rate-limited, retry #$new_attempts at $(date -r "$new_resume" '+%H:%M')"
+        continue
+    fi
+
+    # --- Attempt resume ---
+    log "Resuming session $session_id..."
+
+    if [ -n "$zellij_session" ] && zellij_session_exists "$zellij_session"; then
+        # Notify before sending keystrokes (gives user a moment if they're watching)
+        notify "Claude Code Resuming" "Session: ${session_id:0:8}..." "Sending continue to zellij/$zellij_session"
+
+        if resume_via_zellij "$zellij_session" "$zellij_pane_id"; then
+            log "SUCCESS: resumed session $session_id via zellij ($zellij_session/$zellij_pane_id)"
+        else
+            log "WARN: zellij write-chars failed for session $session_id, trying new session"
+            if resume_via_new_session "$session_id" "$cwd"; then
+                log "Launched new session for $session_id"
+            else
+                log "WARN: could not launch new session for $session_id, will retry"
+                new_attempts=$((attempts + 1))
+                jq --argjson r "$((now + 300))" --argjson a "$new_attempts" \
+                    '.resume_after = $r | .attempts = $a' "$state_file" > "${state_file}.tmp" &&
+                    mv "${state_file}.tmp" "$state_file"
+                continue
+            fi
+        fi
+    else
+        log "Zellij session '$zellij_session' not found, launching new session"
+        notify "Claude Code Resuming" "Session: ${session_id:0:8}..." "Opening new terminal session"
+        if resume_via_new_session "$session_id" "$cwd"; then
+            log "SUCCESS: launched new session for $session_id"
+        else
+            log "WARN: could not launch new session for $session_id, will retry"
+            new_attempts=$((attempts + 1))
+            jq --argjson r "$((now + 300))" --argjson a "$new_attempts" \
+                '.resume_after = $r | .attempts = $a' "$state_file" > "${state_file}.tmp" &&
+                mv "${state_file}.tmp" "$state_file"
+            continue
+        fi
+    fi
+
+    # Remove pending file
+    rm -f "$state_file"
+    log "Cleaned up state file for session $session_id"
+done
+
+exit 0

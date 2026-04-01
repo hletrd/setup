@@ -1163,6 +1163,25 @@ if [ -d "$agents_src" ]; then
   printf "Claude Code agents installed.\n"
 fi
 
+# Install Claude Code auto-resume (cchelper) — macOS only
+cchelper_handler_src="$script_dir/configs/claude/bin/cc-auto-resume-handler"
+cchelper_daemon_src="$script_dir/configs/claude/bin/cc-auto-resume-daemon"
+cchelper_plist_src="$script_dir/configs/claude/launchd/com.user.cc-auto-resume.plist"
+if [ "$(uname)" = "Darwin" ] && [ -f "$cchelper_handler_src" ] && [ -f "$cchelper_daemon_src" ]; then
+  mkdir -p "$HOME/.local/bin" "$HOME/.claude/auto-resume/pending" "$HOME/.claude/auto-resume/log"
+  cp "$cchelper_handler_src" "$HOME/.local/bin/cc-auto-resume-handler"
+  cp "$cchelper_daemon_src" "$HOME/.local/bin/cc-auto-resume-daemon"
+  chmod +x "$HOME/.local/bin/cc-auto-resume-handler" "$HOME/.local/bin/cc-auto-resume-daemon"
+  if [ -f "$cchelper_plist_src" ]; then
+    mkdir -p "$HOME/Library/LaunchAgents"
+    sed "s|__HOME__|${HOME}|g" "$cchelper_plist_src" > "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist"
+    launchctl bootout "gui/$(id -u)/com.user.cc-auto-resume" 2>/dev/null || true
+    launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist" 2>/dev/null || \
+      launchctl load "$HOME/Library/LaunchAgents/com.user.cc-auto-resume.plist" 2>/dev/null || true
+  fi
+  printf "Claude Code auto-resume (cchelper) installed.\n"
+fi
+
 if [ -f "$zellij_config_src" ] || [ -f "$zellij_layout_src" ]; then
   mkdir -p "$HOME/.config/zellij/layouts"
 fi

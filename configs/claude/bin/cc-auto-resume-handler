@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# cc-auto-resume-handler — Claude Code StopFailure hook for rate limit detection
+# Called by Claude Code when StopFailure fires with error: "rate_limit"
+# Reads JSON from stdin, saves state for the daemon to pick up.
+
+set -euo pipefail
+
+STATE_DIR="$HOME/.claude/auto-resume/pending"
+LOG_FILE="$HOME/.claude/auto-resume/log/resume.log"
+
+log() {
+    printf '[%s] [handler] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$LOG_FILE"
+}
+
+# Read JSON from stdin
+input=$(cat)
+
+# Extract fields
+session_id=$(echo "$input" | jq -r '.session_id // empty')
+cwd=$(echo "$input" | jq -r '.cwd // empty')
+last_msg=$(echo "$input" | jq -r '.last_assistant_message // empty')
+error=$(echo "$input" | jq -r '.error // empty')
+error_details=$(echo "$input" | jq -r '.error_details // empty')
+
+if [ -z "$session_id" ]; then
+    log "ERROR: no session_id in input, aborting"
+    exit 0  # exit 0 so we don't interfere with Claude Code
+fi
+
+# Don't duplicate if already pending
+if [ -f "$STATE_DIR/${session_id}.json" ]; then
+    log "Session $session_id already pending, skipping"
+    exit 0
+fi
+
+# Capture zellij context from inherited environment
+zellij_session="${ZELLIJ_SESSION_NAME:-}"
+zellij_pane_id="${ZELLIJ_PANE_ID:-}"
+now=$(date +%s)
+
+# Parse reset time from the message
+# Formats seen:
+#   "5-hour limit reached ∙ resets 5pm"
+#   "5-hour limit reached ∙ resets 3am"
+#   "X-hour limit reached ∙ resets 11:30am"
+#   "You've hit your limit · resets 2am"
+resume_after=""
+
+parse_reset_time() {
+    local msg="$1"
+    local now_ts="$2"
+
+    # Try to extract time like "5pm", "3am", "11:30pm", "11:30am"
+    local time_str
+    time_str=$(echo "$msg" | grep -oiE 'resets?\s+(\d{1,2}(:\d{2})?\s*(am|pm))' | grep -oiE '\d{1,2}(:\d{2})?\s*(am|pm)' | head -1)
+
+    if [ -z "$time_str" ]; then
+        return 1
+    fi
+
+    # Normalize: remove spaces
+    time_str=$(echo "$time_str" | tr -d ' ')
+
+    local hour minute ampm
+    if echo "$time_str" | grep -qE ':'; then
+        hour=$(echo "$time_str" | grep -oE '^\d{1,2}')
+        minute=$(echo "$time_str" | grep -oE ':\d{2}' | tr -d ':')
+        ampm=$(echo "$time_str" | grep -oiE '(am|pm)$')
+    else
+        hour=$(echo "$time_str" | grep -oE '^\d{1,2}')
+        minute="00"
+        ampm=$(echo "$time_str" | grep -oiE '(am|pm)$')
+    fi
+
+    ampm=$(echo "$ampm" | tr '[:upper:]' '[:lower:]')
+
+    # Convert to 24h
+    if [ "$ampm" = "pm" ] && [ "$hour" -ne 12 ]; then
+        hour=$((hour + 12))
+    elif [ "$ampm" = "am" ] && [ "$hour" -eq 12 ]; then
+        hour=0
+    fi
+
+    # Build today's timestamp at that time
+    local target_date
+    target_date=$(date '+%Y-%m-%d')
+    local target_ts
+    target_ts=$(date -j -f '%Y-%m-%d %H:%M:%S' "${target_date} $(printf '%02d' "$hour"):${minute}:00" '+%s' 2>/dev/null) || return 1
+
+    # If target is in the past, it's tomorrow
+    if [ "$target_ts" -le "$now_ts" ]; then
+        target_ts=$((target_ts + 86400))
+    fi
+
+    echo "$target_ts"
+}
+
+parsed_time=$(parse_reset_time "$last_msg" "$now" 2>/dev/null || true)
+
+if [ -n "$parsed_time" ]; then
+    resume_after="$parsed_time"
+    human_time=$(date -r "$resume_after" '+%H:%M')
+    log "Parsed reset time: $human_time (ts=$resume_after) from message"
+else
+    # Fallback: 5 hours from now
+    resume_after=$((now + 18000))
+    human_time=$(date -r "$resume_after" '+%H:%M')
+    log "Could not parse reset time from: '$last_msg' — fallback to 5h from now ($human_time)"
+fi
+
+# Write state file
+jq -n \
+    --arg sid "$session_id" \
+    --arg cwd "$cwd" \
+    --arg zs "$zellij_session" \
+    --arg zp "$zellij_pane_id" \
+    --argjson det "$now" \
+    --argjson res "$resume_after" \
+    --arg msg "$last_msg" \
+    --arg err "$error_details" \
+    '{
+        session_id: $sid,
+        cwd: $cwd,
+        zellij_session: $zs,
+        zellij_pane_id: $zp,
+        detected_at: $det,
+        resume_after: $res,
+        raw_message: $msg,
+        error_details: $err,
+        attempts: 0
+    }' > "$STATE_DIR/${session_id}.json"
+
+log "Rate limit detected for session $session_id in $cwd (zellij=$zellij_session/$zellij_pane_id) — resume at $human_time"
+
+# macOS notification
+osascript -e "display notification \"Auto-resume scheduled at ${human_time}\" with title \"Claude Code Rate Limited\" subtitle \"Session: ${session_id:0:8}...\"" 2>/dev/null || true
+
+exit 0

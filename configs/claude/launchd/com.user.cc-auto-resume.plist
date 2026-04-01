@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.cc-auto-resume</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"; exec "$HOME/.local/bin/cc-auto-resume-daemon"</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.claude/auto-resume/log/launchd-out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.claude/auto-resume/log/launchd-err.log</string>
+
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
