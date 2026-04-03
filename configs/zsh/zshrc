@@ -113,21 +113,6 @@ command -v zellij >/dev/null && alias zl="zellij"
 # opencode
 export PATH=/Users/hletrd/.opencode/bin:$PATH
 
-opencode() {
-  local opencode_bin="/Users/hletrd/.opencode/bin/opencode"
-  local burstpick_root="$HOME/git/BurstPick"
-  local current_dir_lower="${PWD:l}/"
-  local burstpick_root_lower="${burstpick_root:l}/"
-
-  if [[ "$current_dir_lower" == "$burstpick_root_lower"* ]]; then
-    local suffix="${PWD:${#burstpick_root}}"
-    local target_dir="$burstpick_root$suffix"
-
-    builtin cd "$target_dir" || return
-  fi
-
-  "$opencode_bin" "$@"
-}
 
 # Zoxide (smart cd) - must be at the very end of .zshrc
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
