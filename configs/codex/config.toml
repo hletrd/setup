@@ -15,18 +15,6 @@ service_tier = "fast"
 [projects."__HOME__"]
 trust_level = "trusted"
 
-[projects."__HOME__/git/Xylolabs-Knowledge-Engine"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/RB-Y1"]
-trust_level = "trusted"
-
-[projects."__HOME__/git/xylolabs-panel-demo"]
-trust_level = "trusted"
-
-[projects."__HOME__/flash-shared/xylolabs-api"]
-trust_level = "trusted"
-
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "@upstash/context7-mcp@latest"]
