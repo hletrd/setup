@@ -92,15 +92,9 @@ command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
 # acme.sh
 [ -f "$HOME/.acme.sh/acme.sh.env" ] && . "$HOME/.acme.sh/acme.sh.env"
 
-# OpenClaw Completion (cached for faster startup)
-[ -f ~/.cache/openclaw_completion.zsh ] && source ~/.cache/openclaw_completion.zsh
-
 # Powerlevel10k configuration
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export TERMINFO=/usr/share/terminfo
-
-# OpenClaw Completion
-#source <(openclaw completion --shell zsh)
 
 # opencode config
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
@@ -111,14 +105,14 @@ alias omx="omx --xhigh --madmax"
 command -v zellij >/dev/null && alias zl="zellij"
 
 # opencode
-export PATH=/Users/hletrd/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 
 # Zoxide (smart cd) - must be at the very end of .zshrc
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
 
 # bun completions
-[ -s "/Users/hletrd/.bun/_bun" ] && source "/Users/hletrd/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
