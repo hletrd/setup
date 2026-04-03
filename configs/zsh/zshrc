@@ -48,14 +48,10 @@ fpath=($HOME/.docker/completions $fpath)
 # FZF
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Modern CLI tool aliases (only if tools exist; skip in Claude Code to avoid breaking Bash tool)
-if [[ -z "$CLAUDE_CODE" ]]; then
-  command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
-  command -v fd >/dev/null && alias find="fd"
-else
-  command -v eza >/dev/null && alias ll="eza -l" && alias la="eza -la"
-fi
+# Modern CLI tool aliases (only if tools exist)
+command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
 #command -v bat >/dev/null # && alias cat="bat"
+command -v fd >/dev/null && alias find="fd"
 #command -v rg >/dev/null # && alias grep="rg"
 command -v dust >/dev/null && alias du="dust"
 command -v duf >/dev/null && alias df="duf"
@@ -81,8 +77,8 @@ claude_with_glm_env() {
     API_TIMEOUT_MS="3000000" \
     command claude --dangerously-skip-permissions "$@"
 }
-alias claude-glm='claude_with_glm_env'
-alias cg='claude_with_glm_env'
+alias claude-glm=claude_with_glm_env
+alias cg=claude_with_glm_env
 
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
@@ -103,22 +99,42 @@ command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export TERMINFO=/usr/share/terminfo
 
+# OpenClaw Completion
+#source <(openclaw completion --shell zsh)
 
 # opencode config
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export CLAUDE_PLUGIN_ROOT="$HOME/.claude/plugins/marketplaces/worv/plugin"
+export CLAUDE_PLUGIN_ROOT="$HOME/.claude/plugins/cache/worv/ccusage-worv/0.1.0"
 
 alias codex="codex --dangerously-bypass-approvals-and-sandbox"
 alias omx="omx --xhigh --madmax"
-
-
-# OpenClaw Completion
-source "/Users/hletrd/.openclaw/completions/openclaw.zsh"
+command -v zellij >/dev/null && alias zl="zellij"
 
 # opencode
 export PATH=/Users/hletrd/.opencode/bin:$PATH
 
+opencode() {
+  local opencode_bin="/Users/hletrd/.opencode/bin/opencode"
+  local burstpick_root="$HOME/git/BurstPick"
+  local current_dir_lower="${PWD:l}/"
+  local burstpick_root_lower="${burstpick_root:l}/"
+
+  if [[ "$current_dir_lower" == "$burstpick_root_lower"* ]]; then
+    local suffix="${PWD:${#burstpick_root}}"
+    local target_dir="$burstpick_root$suffix"
+
+    builtin cd "$target_dir" || return
+  fi
+
+  "$opencode_bin" "$@"
+}
+
 # Zoxide (smart cd) - must be at the very end of .zshrc
-export _ZO_FZF_OPTS="--ignore-case"
-command -v zellij >/dev/null && alias zl="zellij"
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && [[ -z "$CLAUDE_CODE" ]] && alias cd="z"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
+
+# bun completions
+[ -s "/Users/hletrd/.bun/_bun" ] && source "/Users/hletrd/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
