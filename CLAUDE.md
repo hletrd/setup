@@ -30,7 +30,7 @@ setup/
 
 - **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`, `agent-browser`
 - **AI bootstrap hooks**: run `omx setup --force --verbose`, `omc install --force --skip-claude-check`, and `agent-browser install` when available
-- **Default MCP servers**: `context7`, `context-mode`
+- **Default external MCP servers**: none; optional snippets for `context7` and `context-mode` remain under `mcp/servers/`
 - **Skills (replacing MCP servers)**: `fetch`, `filesystem`, `git`, `github`, `playwright`, `agent-browser` (9 skills: core, interact, query, wait, network, visual, debug, state, config) (via `configs/claude/skills/`)
 - **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
 - **Secret handling policy**: do not back up credential/token-bearing local files (for example auth stores and token-bearing YAML/JSON files)

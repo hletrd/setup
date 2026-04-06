@@ -141,7 +141,7 @@ All tools are configurable via `config.json`. Installed via cargo for cross-plat
 | lsd | ls | - | Alternative ls with icons |
 
 ### MCP (Model Context Protocol) Servers
-Pre-configured MCP servers for AI-assisted development:
+Optional MCP server snippets for AI-assisted development:
 
 | Server | Purpose |
 |--------|---------|
