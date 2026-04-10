@@ -67,3 +67,6 @@ font-codepoint-map = U+D7B0-U+D7FF=Apple SD Gothic Neo
 font-codepoint-map = U+3000-U+303F=Apple SD Gothic Neo
 font-codepoint-map = U+FF00-U+FFEF=Apple SD Gothic Neo
 font-codepoint-map = U+4E00-U+9FFF=Apple SD Gothic Neo
+
+# macOS Option key as Alt for terminal Alt+ shortcuts (Zellij etc.)
+macos-option-as-alt = true
