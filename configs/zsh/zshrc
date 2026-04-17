@@ -21,6 +21,11 @@ SAVEHIST=100000
 setopt autocd
 bindkey -e
 
+# Reset stale mouse tracking modes (fixes garbled input after SSH disconnect)
+autoload -Uz add-zsh-hook
+_reset_mouse_tracking() { printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l'; }
+add-zsh-hook precmd _reset_mouse_tracking
+
 # Completion
 autoload -Uz compinit
 compinit
