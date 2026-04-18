@@ -44,6 +44,39 @@ Do not parallelize cycles. Each cycle must finish before the next begins.
 Use `TaskCreate` / `TaskUpdate` to track cycle progress visibly. One task per
 cycle is fine.
 
+## Handling new TODOs injected mid-run
+
+The user may send additional instructions, TODOs, or fix requests WHILE the
+loop is running. Handle them like this:
+
+1. **Never drop a user-injected TODO.** Capture it via `TaskCreate`
+   immediately (with the user's wording) so it cannot be forgotten across
+   cycle boundaries.
+2. **Route by timing:**
+   - If PROMPT 3 (implement-with-ralph) of the current cycle has NOT yet
+     started, pass the new TODO into the current cycle by appending it to
+     the plan directory as an explicit "user-injected TODO" plan entry
+     before PROMPT 2 finalizes. The current cycle will then pick it up in
+     PROMPT 3.
+   - If PROMPT 3 of the current cycle is already running, do NOT interrupt
+     it. Queue the TODO for the NEXT cycle by recording it in the plan
+     directory under `user-injected/pending-next-cycle.md` (create if
+     missing), and make sure the next cycle's PROMPT 2 ingests that file
+     alongside the reviews.
+   - If the current cycle has already finished and the next one has not yet
+     spawned, inject it into the next cycle's PROMPT 2 input the same way.
+3. **Propagate to the subagent prompt.** When spawning the next cycle,
+   append a short "User-injected TODOs to honor this cycle" block to the
+   subagent prompt listing the queued items verbatim, with instruction that
+   PROMPT 2 must turn them into plan entries and PROMPT 3 must implement
+   them alongside the normal plan work.
+4. **Still obey the deferred-fix rules above.** A user-injected TODO may be
+   deferred only under the same strict rules (explicit record, repo rules
+   honored, severity preserved).
+5. **Do not let injected TODOs skip review.** They still flow through the
+   plan step so the repo has a durable record; they do not bypass PROMPT 2
+   into PROMPT 3 directly.
+
 ## Stop conditions
 
 Break the loop early and report when any of these hold:
@@ -52,9 +85,52 @@ Break the loop early and report when any of these hold:
 - The user interrupts or tells you to stop.
 - The subagent reports a hard error it could not recover from (push rejected
   after retry, GPG signing unavailable, missing credentials, etc.).
-- Two consecutive cycles returned `no new findings AND no new plans AND no
-  commits`. This means the repository has stabilized — further cycles would
-  be wasted work.
+- **Convergence (strict, single-cycle):** the cycle returned
+  `NEW_FINDINGS == 0 AND COMMITS == 0`. That is, the review produced no new
+  items AND the fix step made no changes. This means the repository has
+  stabilized — stop immediately. Do not wait for a second confirming cycle.
+  - `NEW_PLANS` is ignored for this check: plan docs can be re-touched
+    cosmetically without representing real new work.
+  - If the END OF CYCLE REPORT is malformed so these counts cannot be parsed,
+    do not treat it as convergence. Keep going unless the malformed report
+    recurs (then stop on the `ERRORS` clause above).
+
+## Repo-wide rules for deferred fixes (STRICT)
+
+Findings that the plan step chooses NOT to implement this cycle ("deferred",
+"won't fix", "out of scope", "follow-up", "wontfix", "later") MUST strictly
+follow the repository's own rules. This applies to every cycle, and the
+orchestrator must reinforce it in the subagent prompt (see PROMPT 2 below).
+
+Mandatory rules for deferred items:
+
+1. **Obey repo instructions first.** Read and follow, in this precedence:
+   `CLAUDE.md`, `AGENTS.md`, `.context/**`, `.cursorrules`, `CONTRIBUTING.md`,
+   and any `docs/` style/policy files that exist in the repo. Repo rules
+   override this skill's defaults.
+2. **No silent drops.** A finding may only be deferred if it is explicitly
+   recorded in the plan directory with: file+line citation, the original
+   severity/confidence, the concrete reason for deferral, and the exit
+   criterion that would re-open it. A finding that is not fixed and not
+   recorded is a bug — fail the cycle.
+3. **Do not downgrade severity to justify deferral.** High/Medium findings
+   stay High/Medium in the deferred record. The reason for deferral is
+   separate from the severity.
+4. **Security, correctness, and data-loss findings are not deferrable** by
+   default. They may only be deferred if the repo's own rules explicitly
+   permit it, and the deferral record must quote the specific repo rule that
+   allows it.
+5. **Deferral must not violate repo policy.** If repo rules require e.g.
+   GPG-signed commits, conventional commit messages, no `--no-verify`, no
+   force-push to protected branches, specific file-layout, specific language
+   versions, etc., deferred work is still bound by those rules when it is
+   eventually picked up. The deferral note must not contradict them.
+6. **No new scope under the "deferred" label.** Deferral is for existing
+   findings only. New refactors, rewrites, or feature ideas do not belong in
+   the deferred list — they belong in their own plan, or nowhere.
+
+If any of these rules is violated, the orchestrator treats the cycle as
+`ERRORS != none` for stop-condition purposes.
 
 ## Subagent prompt (run per cycle, verbatim structure)
 
@@ -70,13 +146,34 @@ finish before starting the next. Do not merge them. Do not skip any. Treat
 each prompt as authoritative for its own step.
 
 =========================
-PROMPT 1 — DEEP CODE REVIEW
+PROMPT 1 — DEEP CODE REVIEW (MULTI-AGENT FAN-OUT)
 =========================
 Perform a comprehensive, deep code review of this repository. Your goal is to find as many real issues as possible without missing relevant files or important cross-file interactions. Be thorough, skeptical, and critical. Do not optimize for speed.
-Requirements
-- Review the entire repository and all relevant documentation.
+
+Fan out the review across ALL available review agents in a single batch of parallel Agent tool calls. At minimum, spawn these subagents concurrently (skip any that are not registered in this environment, but never silently drop one that IS available):
+- code-reviewer (code quality, logic, SOLID, maintainability)
+- perf-reviewer (performance, concurrency, CPU/memory/UI responsiveness)
+- security-reviewer (OWASP top 10, secrets, unsafe patterns, auth/authz)
+- critic (multi-perspective critique of the whole change surface)
+- verifier (evidence-based correctness check against stated behavior)
+- test-engineer (test coverage gaps, flaky tests, TDD opportunities)
+- tracer (causal tracing of suspicious flows, competing hypotheses)
+- architect (architectural/design risks, coupling, layering)
+- debugger (latent bug surface, failure modes, regressions)
+- document-specialist (doc/code mismatches against authoritative sources)
+- designer (UI/UX review — ONLY if the repo actually contains UI/UX: web frontend, mobile UI, desktop UI, CLI UX, design tokens, CSS, component libraries, design-system docs. Skip entirely for pure-backend/infra/library repos.)
+- any other reviewer-style agent registered for this repo (e.g. project-specific linters, kf-reviewer, custom `.claude/agents/*-reviewer*`). Enumerate available agents before fan-out and include every reviewer you find.
+
+UI/UX review specifics:
+- Detect UI/UX presence by scanning for web assets (HTML/CSS/JSX/TSX/Vue/Svelte, `public/`, `static/`, common frontend framework markers), mobile UI (SwiftUI/UIKit, Jetpack Compose, Flutter), desktop UI toolkits, CLI UX code, or design-system docs. Skip the UI/UX reviewer if none are present.
+- For web projects, the designer agent MUST use the `agent-browser` skills (core, interact, query, wait, network, visual, debug, state, config) to actually load the app and interact with it when feasible. Start a local dev server or use an existing build per the repo's README/CONTRIBUTING.
+- Multimodal caveat: some models cannot see images. When the review model is not multimodal, DO NOT rely on raw screenshots. Instead use `agent-browser-query` for accessibility snapshots, DOM structure, computed styles, element state, and ARIA roles; use `agent-browser-visual` accessibility-snapshot diffs and structural comparisons; and describe visual findings textually with precise selectors, colors (hex), box metrics, and z-order. Screenshots MAY be captured as attachments for the human reader even when the model cannot inspect them, but all findings must be backed by text-extractable evidence.
+- Cover: information architecture, affordances, focus/keyboard navigation, WCAG 2.2 accessibility (contrast, ARIA, focus traps, reduced motion), responsive breakpoints, loading/empty/error states, form validation UX, dark/light mode, i18n/RTL, and perceived performance (LCP, CLS, INP).
+
+Each spawned subagent must:
+- Review the entire repository and all relevant documentation from its own specialist angle.
 - First build an inventory of review-relevant files, then make sure every relevant file is examined.
-- Do not sample only a subset of files or stop after the first few findings.
+- Not sample only a subset of files or stop after the first few findings.
 - Analyze both individual files and how they interact across the system.
 - Pay close attention to correctness, edge cases, failure modes, and maintainability risks.
 - Look systematically for common issue types such as:
@@ -90,19 +187,29 @@ Requirements
   - performance problems
   - test gaps
   - documentation-code mismatches
-- Do not assume tests or comments are correct. Validate behavior from the code.
+- Not assume tests or comments are correct. Validate behavior from the code.
 - For each finding, cite the exact file and code region, explain why it is a problem, describe a concrete failure scenario, and suggest a fix.
 - Clearly label confidence as High, Medium, or Low.
 - Distinguish between confirmed issues, likely issues, and risks needing manual validation.
 - After the main review, do one final sweep specifically for commonly missed issues and to confirm no relevant file was skipped.
-Write the review to:
-./.context/reviews
-Do not finish until the review is comprehensive and the final review has been written to ./.context/reviews
+- Write its own review to `./.context/reviews/<agent-name>.md` (one file per agent).
+
+After every fanned-out review returns, do a final aggregation pass yourself: dedupe overlapping findings across agents, preserving the highest severity/confidence of any duplicate; note cross-agent agreement (a finding flagged by multiple agents is higher signal); and write the merged result to `./.context/reviews/_aggregate.md`. Keep the per-agent files as-is for provenance.
+
+Do not finish PROMPT 1 until every available review agent has returned AND the aggregate has been written to `./.context/reviews/_aggregate.md`. If a spawned agent fails, retry once; if it still fails, record the failure in the aggregate under an `AGENT FAILURES` section and continue.
 
 =========================
 PROMPT 2 — PLAN FROM REVIEWS
 =========================
 Please read all reviews and find any missing tasks to do, write plan under plan directory. Please write implementation plans to address critics in each reviews. Please do not implement yet. Archive plans which are fully implemented and done.
+
+Deferred-fix rules (STRICT — must be obeyed):
+- Every finding from the reviews must be either (a) scheduled for implementation in a plan, or (b) explicitly recorded in the plan directory as a deferred item. No finding may be silently dropped.
+- Before deferring anything, read the repo's own rules in this order and strictly follow them: CLAUDE.md, AGENTS.md, .context/**, .cursorrules, CONTRIBUTING.md, and docs/ style/policy files. Repo rules override any default behavior.
+- Each deferred finding must record: file+line citation, original severity/confidence (do NOT downgrade to justify deferral), concrete reason for deferral, and the exit criterion that would re-open it.
+- Security, correctness, and data-loss findings are NOT deferrable unless the repo's own rules explicitly allow it; if deferred, quote the specific repo rule that permits it.
+- Deferred work remains bound by repo policy when it is eventually picked up (e.g. GPG-signed commits, conventional commit + gitmoji, no `--no-verify`, no force-push to protected branches, required language/toolchain versions). The deferral note must not contradict those rules.
+- The "deferred" list is only for existing review findings. Do not introduce new refactors, rewrites, or feature ideas under the "deferred" label.
 
 =========================
 PROMPT 3 — IMPLEMENT WITH RALPH
