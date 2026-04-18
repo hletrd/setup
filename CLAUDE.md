@@ -34,7 +34,7 @@ setup/
 - **Skills (replacing MCP servers)**: `agent-browser` (9 subskills: core, config, debug, interact, network, query, state, visual, wait), `fetch`, `filesystem`, `git`, `github`, `korean-naturalizer`, `playwright`, `review-plan-fix` (16 skills total; sourced from `configs/claude/skills/` and installed into both `~/.claude/skills/` and `~/.codex/skills/`)
 - **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
 - **Secret handling policy**: do not back up credential/token-bearing local files (for example auth stores and token-bearing YAML/JSON files)
-- **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
+- **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do NOT alias any POSIX/standard tool name so claude/codex/opencode agents see baseline behavior — specifically, do not alias `ls`, `cat`, `grep`, `sed`, `find`, `du`, `df`, `top`, `ps`, `diff`, `cut`, `cd`, or `ping`. Keep non-POSIX shortcuts (`ll`, `la`, `http`, `lg`, `lzd`, `zl`, `c`, `cg`).
 
 ## Coding Conventions
 
