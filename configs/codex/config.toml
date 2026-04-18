@@ -77,18 +77,6 @@ USE_OMX_EXPLORE_CMD = "1"
 max_threads = 6
 max_depth = 2
 
-[projects."__HOME__/flash-shared/judgekit"]
-trust_level = "trusted"
-
-[projects."__HOME__/flash-shared/ccusage-worv"]
-trust_level = "trusted"
-
-[projects."__HOME__/flash-shared/XyloKospo"]
-trust_level = "trusted"
-
-[projects."__HOME__/flash-shared/dgx-management"]
-trust_level = "trusted"
-
 [tui]
 theme = "dracula"
 
