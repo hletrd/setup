@@ -1138,18 +1138,21 @@ if [ -f "$claude_statusline_src" ] && [ ! -f "$HOME/.claude/statusline-command.s
   chmod +x "$HOME/.claude/statusline-command.sh"
 fi
 
-# Install Claude Code skills
+# Install Claude Code skills (mirror to both ~/.claude/skills and ~/.codex/skills)
 skills_src="$script_dir/configs/claude/skills"
 if [ -d "$skills_src" ]; then
   mkdir -p "$HOME/.claude/skills"
+  mkdir -p "$HOME/.codex/skills"
   for skill_dir in "$skills_src"/*/; do
     skill_name="$(basename "$skill_dir")"
     if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
       mkdir -p "$HOME/.claude/skills/$skill_name"
       cp "$skill_dir/SKILL.md" "$HOME/.claude/skills/$skill_name/SKILL.md"
+      mkdir -p "$HOME/.codex/skills/$skill_name"
+      cp "$skill_dir/SKILL.md" "$HOME/.codex/skills/$skill_name/SKILL.md"
     fi
   done
-  printf "Claude Code skills installed.\n"
+  printf "Claude Code and Codex skills installed.\n"
 fi
 
 # Install Claude Code agents
