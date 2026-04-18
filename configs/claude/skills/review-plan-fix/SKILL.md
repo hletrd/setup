@@ -31,7 +31,17 @@ You are the orchestrator. Do exactly this, nothing more:
 3. For `i` from `1` to `N`:
    a. Spawn a subagent via the `Agent` tool with `subagent_type: "general-purpose"` and the exact prompt template in **Subagent prompt** below (with `<i>` and `<N>` substituted).
    b. Wait for the subagent to return.
-   c. Print one short status line: `Cycle <i>/<N> complete — <subagent's one-line summary>`.
+   c. Parse the END OF CYCLE REPORT and print a compact per-cycle report back to the user in THIS exact shape (one message, no extra commentary):
+
+      ```
+      Cycle <i>/<N> — <SUMMARY from report>
+        findings: <NEW_FINDINGS>   plans: <NEW_PLANS>   commits: <COMMITS>   errors: <ERRORS>
+        changes this cycle:
+          • <CHANGES bullet 1>
+          • <CHANGES bullet 2>
+          • ...
+      ```
+      If `CHANGES` is empty or "(no changes this cycle)", print `  (no changes this cycle)` under `changes this cycle:`.
    d. Evaluate **Stop conditions** below. If any fires, break.
 4. After the loop ends (either `i == N` or a stop condition), print a final summary: cycles run, cycles that made commits, cycles that hit errors.
 
@@ -228,7 +238,13 @@ NEW_PLANS: <integer, plan docs created or materially updated this cycle>
 COMMITS: <integer, git commits pushed this cycle>
 ERRORS: <short string, or "none">
 SUMMARY: <one sentence>
+CHANGES:
+- <one-line description of enhancement/fix/change #1 — include file path and the kind of change: feat/fix/perf/refactor/test/docs>
+- <one-line description of enhancement/fix/change #2>
+- <...one bullet per concrete change made this cycle; if zero changes, write "- (no changes this cycle)">
 ```
+
+The `CHANGES:` block is REQUIRED every cycle, even when `COMMITS: 0`. Each bullet must be user-facing and specific ("fix auth: prevent null deref in src/auth/verify.ts:42" beats "fixed a bug"). Do not include every commit SHA — bundle related commits into one bullet when appropriate. Cap the list at the 10 most significant changes; if there were more, add a final bullet "- plus N more minor fixes (see git log)".
 
 ## Notes for the orchestrator
 
