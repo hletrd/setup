@@ -69,11 +69,14 @@ command -v xh >/dev/null && alias http="xh"
 command -v lazygit >/dev/null && alias lg="lazygit"
 command -v lazydocker >/dev/null && alias lzd="lazydocker"
 command -v choose >/dev/null && alias cut="choose"
-alias claude="claude --dangerously-skip-permissions"
+# claude/codex/opencode wrappers: `BASH_ENV=""` and `ENV=""` stop child bash/sh subshells from sourcing any startup file, so interactive-only aliases from this zshrc never leak into agent tool invocations. The tools still see POSIX-standard `ls`, `grep`, `cat`, etc.
+alias claude='BASH_ENV="" ENV="" command claude --dangerously-skip-permissions'
 alias c="claude"
 
 # GLM-based Claude Code
 claude_with_glm_env() {
+    BASH_ENV="" \
+    ENV="" \
     ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.7" \
     ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1" \
     ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.1" \
@@ -105,12 +108,13 @@ export TERMINFO=/usr/share/terminfo
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
 export CLAUDE_PLUGIN_ROOT="$HOME/.claude/plugins/cache/worv/ccusage-worv/0.1.0"
 
-alias codex="codex --dangerously-bypass-approvals-and-sandbox"
+alias codex='BASH_ENV="" ENV="" command codex --dangerously-bypass-approvals-and-sandbox'
 alias omx="omx --xhigh --madmax"
 command -v zellij >/dev/null && alias zl="zellij"
 
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"
+alias opencode='BASH_ENV="" ENV="" command opencode'
 
 
 # Zoxide (smart cd) - must be at the very end of .zshrc
