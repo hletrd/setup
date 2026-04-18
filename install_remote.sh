@@ -1403,16 +1403,18 @@ if [ -f "$claude_statusline_src" ]; then
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.claude"; if [ ! -f "$HOME/.claude/statusline-command.sh" ]; then cat > "$HOME/.claude/statusline-command.sh" && chmod +x "$HOME/.claude/statusline-command.sh"; else cat >/dev/null; fi' < "$claude_statusline_src"
 fi
 
-# Install Claude Code skills on remote host (mirror to both ~/.claude/skills and ~/.codex/skills)
+# Install Claude Code skills on remote host (mirror to ~/.claude, ~/.codex, and ~/.config/opencode skill dirs)
 skills_src="$script_dir/configs/claude/skills"
 if [ -d "$skills_src" ]; then
   # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.claude/skills\" \"\$HOME/.codex/skills\""
+  ssh $ssh_opts "$ssh_user@$server_addr" "mkdir -p \"\$HOME/.claude/skills\" \"\$HOME/.codex/skills\" \"\$HOME/.config/opencode/skills\""
   # shellcheck disable=SC2086
   tar -cf - -C "$skills_src" . | ssh $ssh_opts "$ssh_user@$server_addr" "tar -xf - -C \"\$HOME/.claude/skills\""
   # shellcheck disable=SC2086
   tar -cf - -C "$skills_src" . | ssh $ssh_opts "$ssh_user@$server_addr" "tar -xf - -C \"\$HOME/.codex/skills\""
-  printf "Claude Code and Codex skills installed on remote host.\n"
+  # shellcheck disable=SC2086
+  tar -cf - -C "$skills_src" . | ssh $ssh_opts "$ssh_user@$server_addr" "tar -xf - -C \"\$HOME/.config/opencode/skills\""
+  printf "Claude Code, Codex, and opencode skills installed on remote host.\n"
 fi
 
 # Install Claude Code auto-resume (cchelper) — macOS remote only
