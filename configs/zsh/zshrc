@@ -54,21 +54,23 @@ fpath=($HOME/.docker/completions $fpath)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Modern CLI tool aliases (only if tools exist)
-command -v eza >/dev/null && alias ls="eza" && alias ll="eza -l" && alias la="eza -la"
-#command -v bat >/dev/null # && alias cat="bat"
-command -v fd >/dev/null && alias find="fd"
-#command -v rg >/dev/null # && alias grep="rg"
-command -v dust >/dev/null && alias du="dust"
-command -v duf >/dev/null && alias df="duf"
-command -v btm >/dev/null && alias top="btm"
+# POSIX-shadowing aliases (ls, find, du, df, top, diff, cut, cd, cat, grep, sed, ps, ping) are intentionally disabled so claude/codex/opencode agents see standard POSIX tool behavior (flags, output format) rather than the alternative tools' behavior. Use the alt tools by their own names (eza, fd, dust, duf, btm, difft, choose, z, bat, rg, sd, procs, gping).
+command -v eza >/dev/null && alias ll="eza -l" && alias la="eza -la"
+#command -v eza >/dev/null && alias ls="eza"
+#command -v bat >/dev/null && alias cat="bat"
+#command -v fd >/dev/null && alias find="fd"
+#command -v rg >/dev/null && alias grep="rg"
+#command -v dust >/dev/null && alias du="dust"
+#command -v duf >/dev/null && alias df="duf"
+#command -v btm >/dev/null && alias top="btm"
 #command -v procs >/dev/null && alias ps="procs"
-#command -v sd >/dev/null # && alias sed="sd"
+#command -v sd >/dev/null && alias sed="sd"
 #command -v gping >/dev/null && alias ping="gping"
-command -v difft >/dev/null && alias diff="difft"
+#command -v difft >/dev/null && alias diff="difft"
 command -v xh >/dev/null && alias http="xh"
 command -v lazygit >/dev/null && alias lg="lazygit"
 command -v lazydocker >/dev/null && alias lzd="lazydocker"
-command -v choose >/dev/null && alias cut="choose"
+#command -v choose >/dev/null && alias cut="choose"
 alias claude="claude --dangerously-skip-permissions"
 alias c="claude"
 
@@ -113,8 +115,8 @@ command -v zellij >/dev/null && alias zl="zellij"
 export PATH="$HOME/.opencode/bin:$PATH"
 
 
-# Zoxide (smart cd) - must be at the very end of .zshrc
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
+# Zoxide (smart cd) - `alias cd="z"` intentionally disabled; use `z` directly so agents see POSIX cd behavior.
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
