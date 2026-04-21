@@ -88,6 +88,21 @@ claude_with_glm_env() {
 alias claude-glm=claude_with_glm_env
 alias cg=claude_with_glm_env
 
+# Self-hosted Kimi-K2.6 via proxy.worv.ai
+claude_with_kimi_env() {
+    BASH_ENV="" \
+    ENV="" \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="kimi-k2.6" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="kimi-k2.6" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="kimi-k2.6" \
+    ANTHROPIC_AUTH_TOKEN="your_proxy_key" \
+    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias claude-kimi=claude_with_kimi_env
+alias ck=claude_with_kimi_env
+
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
 
