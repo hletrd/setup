@@ -88,6 +88,20 @@ claude_with_glm_env() {
 alias claude-glm=claude_with_glm_env
 alias cg=claude_with_glm_env
 
+# Self-hosted via proxy.worv.ai, named as GLM (auto-routed by proxy to live backend)
+claude_with_glm_proxy_env() {
+    BASH_ENV="" \
+    ENV="" \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.1-fp8" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1-fp8" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.1-fp8" \
+    ANTHROPIC_AUTH_TOKEN="your_proxy_key" \
+    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias cg8=claude_with_glm_proxy_env
+
 # Self-hosted Kimi-K2.6 via proxy.worv.ai
 claude_with_kimi_env() {
     BASH_ENV="" \
