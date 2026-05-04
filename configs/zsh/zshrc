@@ -45,7 +45,6 @@ command -v fnm >/dev/null && eval "$(fnm env --use-on-cd)"
 # Load local environment
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-
 # Docker CLI (macOS Docker Desktop)
 export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
 fpath=($HOME/.docker/completions $fpath)
@@ -73,73 +72,24 @@ command -v choose >/dev/null && alias cut="choose"
 alias claude='BASH_ENV="" ENV="" command claude --dangerously-skip-permissions'
 alias c="claude"
 
-# GLM-based Claude Code
-claude_with_glm_env() {
+# Self-hosted backend via proxy.worv.ai. Single consolidated alias `cb`
+# routes Claude Code to whichever model is currently live on the proxy
+# (1 M native context). The proxy's _normalize_model +
+# PROXY_ALIAS_REWRITE_ALL=on rewrites every model ID to the live
+# served-model-name; the [1m] suffix tells Claude Code to render a 1 M
+# context window.
+claude_with_proxy_env() {
     BASH_ENV="" \
     ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.7" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.1" \
-    ANTHROPIC_AUTH_TOKEN="your_api_key" \
-    ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias claude-glm=claude_with_glm_env
-alias cg=claude_with_glm_env
-
-# Self-hosted via proxy.worv.ai, named as GLM (auto-routed by proxy to live backend).
-# CLAUDE_CODE_MAX_OUTPUT_TOKENS is intentionally unset: GLM-5.1 has a 202k
-# total budget, so a 65k client-side max leaves only ~137k for the prompt
-# and triggers "Invalid tool parameters" on long sessions. Falling back to
-# Claude Code's default (32k) keeps headroom.
-claude_with_glm_proxy_env() {
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.1-fp8" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1-fp8" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.1-fp8" \
-    ANTHROPIC_AUTH_TOKEN="your_proxy_key" \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6.0-spark[1m]" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.0[1m]" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6.0[1m]" \
+    ANTHROPIC_AUTH_TOKEN="REDACTED" \
     ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
     API_TIMEOUT_MS="3000000" \
     command claude --dangerously-skip-permissions "$@"
 }
-alias cg8=claude_with_glm_proxy_env
-
-# Self-hosted Kimi-K2.6 via proxy.worv.ai
-claude_with_kimi_env() {
-    CLAUDE_CODE_MAX_OUTPUT_TOKENS="65536" \
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="kimi-k2.6" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="kimi-k2.6" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="kimi-k2.6" \
-    ANTHROPIC_AUTH_TOKEN="your_proxy_key" \
-    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias claude-kimi=claude_with_kimi_env
-alias ck=claude_with_kimi_env
-
-# Self-hosted DeepSeek-V4-Pro via proxy.worv.ai.
-# Served model name is DeepSeek-V4-Pro; with PROXY_ALIAS_REWRITE_ALL=on on
-# the proxy the model string is moot, but we pin it anyway so /v1/models
-# returns a matching row. CLAUDE_CODE_MAX_OUTPUT_TOKENS left unset — the
-# 1 M native context makes the default 32k output budget fine.
-claude_with_deepseek_env() {
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="DeepSeek-V4-Pro" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="DeepSeek-V4-Pro" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="DeepSeek-V4-Pro" \
-    ANTHROPIC_AUTH_TOKEN="your_proxy_key" \
-    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias claude-deepseek=claude_with_deepseek_env
-alias cds=claude_with_deepseek_env
+alias cb=claude_with_proxy_env
 
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
@@ -168,7 +118,6 @@ command -v zellij >/dev/null && alias zl="zellij"
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"
 alias opencode='BASH_ENV="" ENV="" command opencode'
-
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
