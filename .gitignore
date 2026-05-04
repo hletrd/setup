@@ -14,3 +14,7 @@
 # OMC state
 .omc/
 .omx/
+
+# Per-host setup-mac-mini.sh / harness backup files
+configs/**/*.bak-*
+configs/**/*.bak

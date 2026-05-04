@@ -3,7 +3,8 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
   },
   "permissions": {
     "allow": [
@@ -44,6 +45,7 @@
     }
   },
   "effortLevel": "high",
+  "showThinkingSummaries": true,
   "autoUpdatesChannel": "latest",
   "hooks": {
     "StopFailure": [
