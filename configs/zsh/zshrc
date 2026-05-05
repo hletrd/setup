@@ -91,6 +91,23 @@ claude_with_proxy_env() {
 }
 alias cb=claude_with_proxy_env
 
+# `cbl` = same proxy, but without the [1m] context-window suffix. Use this
+# when the live backend ships a smaller positional ceiling than 1 M (e.g.
+# Kimi-K2.6-NVFP4 at 32 K) so Claude Code's local context budget tracks
+# what the model can actually consume.
+claude_with_proxy_env_local() {
+    BASH_ENV="" \
+    ENV="" \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6.0-spark" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.0" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6.0" \
+    ANTHROPIC_AUTH_TOKEN="REDACTED" \
+    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias cbl=claude_with_proxy_env_local
+
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
 

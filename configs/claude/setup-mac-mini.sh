@@ -1,9 +1,13 @@
 #!/bin/sh
-# Setup Claude Code aliases (c, cb) and proxy.worv.ai auth token on Mac minis.
-# `cb` routes Claude Code through the self-hosted proxy and pins
-# ANTHROPIC_DEFAULT_*_MODEL to the gpt-6.0[1m] / gpt-6.0-spark[1m]
-# placeholders so Claude Code renders a 1 M context window. The proxy
-# rewrites every model ID to whichever backend is currently live.
+# Setup Claude Code aliases (c, cb, cbl) and proxy.worv.ai auth token on Mac minis.
+# `cb`  routes Claude Code through the self-hosted proxy and pins the model
+#       env vars to the gpt-6.0[1m] / gpt-6.0-spark[1m] placeholders so
+#       Claude Code renders a 1 M context window.
+# `cbl` is the same proxy without the [1m] suffix, for backends whose
+#       positional ceiling is much smaller than 1 M (e.g. Kimi-K2.6-NVFP4 at
+#       32 K) — keeps Claude Code's local context budget aligned with what
+#       the model can actually consume.
+# The proxy rewrites every model ID to whichever backend is currently live.
 # Usage: ./setup-mac-mini.sh <api_key>
 # Example: ./setup-mac-mini.sh YOUR_API_KEY_HERE
 
@@ -25,6 +29,29 @@ printf "Backup saved to %s.bak\n" "$ZSHRC"
 if grep -q 'claude_with_proxy_env' "$ZSHRC"; then
     sed -i '' "s|ANTHROPIC_AUTH_TOKEN=\"[^\"]*\"|ANTHROPIC_AUTH_TOKEN=\"$API_KEY\"|" "$ZSHRC"
     printf "Updated existing proxy API key.\n"
+    # Append cbl block if it's missing (idempotent for already-set-up minis)
+    if ! grep -q 'claude_with_proxy_env_local' "$ZSHRC"; then
+        CBL_BLOCK="
+# \`cbl\` = same proxy as \`cb\` but without the [1m] context-window suffix.
+# Use this when the live backend's positional ceiling is much smaller than
+# 1 M (e.g. Kimi-K2.6-NVFP4 at 32 K) so Claude Code's local context budget
+# stays aligned with what the model can actually consume.
+claude_with_proxy_env_local() {
+    BASH_ENV=\"\" \\
+    ENV=\"\" \\
+    ANTHROPIC_DEFAULT_HAIKU_MODEL=\"gpt-6.0-spark\" \\
+    ANTHROPIC_DEFAULT_SONNET_MODEL=\"gpt-6.0\" \\
+    ANTHROPIC_DEFAULT_OPUS_MODEL=\"gpt-6.0\" \\
+    ANTHROPIC_AUTH_TOKEN=\"$API_KEY\" \\
+    ANTHROPIC_BASE_URL=\"https://proxy.worv.ai\" \\
+    API_TIMEOUT_MS=\"3000000\" \\
+    command claude --dangerously-skip-permissions \"\$@\"
+}
+alias cbl=claude_with_proxy_env_local
+"
+        printf '%s' "$CBL_BLOCK" >> "$ZSHRC"
+        printf "Appended cbl alias.\n"
+    fi
 else
     # Block doesn't exist yet — append before Zoxide or at end
     CLAUDE_BLOCK='# Claude Code aliases
@@ -45,7 +72,22 @@ claude_with_proxy_env() {
     API_TIMEOUT_MS="3000000" \
     command claude --dangerously-skip-permissions "$@"
 }
-alias cb=claude_with_proxy_env'
+alias cb=claude_with_proxy_env
+
+# `cbl` = same proxy, but without the [1m] context-window suffix. Use this
+# when the live backend ships a smaller positional ceiling than 1 M (e.g.
+# Kimi-K2.6-NVFP4 at 32 K) so Claude Code'"'"'s local context budget tracks
+# what the model can actually consume.
+claude_with_proxy_env_local() {
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6.0-spark" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.0" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6.0" \
+    ANTHROPIC_AUTH_TOKEN="__API_KEY__" \
+    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias cbl=claude_with_proxy_env_local'
 
     # Substitute the actual key
     CLAUDE_BLOCK=$(printf '%s' "$CLAUDE_BLOCK" | sed "s|__API_KEY__|$API_KEY|")
@@ -87,4 +129,4 @@ if [ "$LINE_COUNT" -lt 20 ]; then
 fi
 
 printf "Done. Run 'source ~/.zshrc' or open a new shell.\n"
-printf "Aliases set: c=claude, cb=claude_with_proxy_env (proxy.worv.ai)\n"
+printf "Aliases set: c=claude, cb=claude_with_proxy_env, cbl=claude_with_proxy_env_local (proxy.worv.ai)\n"
