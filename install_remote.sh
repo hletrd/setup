@@ -1119,7 +1119,13 @@ ensure_zshrc_line 'bindkey -e'
 	ensure_zshrc_line 'export EDITOR=vim'
 	ensure_zshrc_line 'export VISUAL=vim'
 	ensure_zshrc_line 'alias nano=vim'
-	ensure_zshrc_line 'alias codex="codex --dangerously-bypass-approvals-and-sandbox"'
+	# AI coding-agent wrappers — `BASH_ENV=""` and `ENV=""` stop child bash/sh subshells
+	# from sourcing any startup file, so interactive-only aliases (ls=eza, find=fd, top=btm,
+	# du=dust, df=duf, cut=choose, etc.) never leak into agent tool invocations. The agents
+	# still see POSIX-standard `ls`, `grep`, `cat`, `find`, etc.
+	ensure_zshrc_line 'alias claude='\''BASH_ENV="" ENV="" command claude --dangerously-skip-permissions'\'''
+	ensure_zshrc_line 'alias codex='\''BASH_ENV="" ENV="" command codex --dangerously-bypass-approvals-and-sandbox'\'''
+	ensure_zshrc_line 'alias opencode='\''BASH_ENV="" ENV="" command opencode'\'''
 	ensure_zshrc_line 'export PATH="\$HOME/.local/bin:\$PATH"'
 	ensure_zshrc_line 'export PATH="\$HOME/.cargo/bin:\$PATH"'
 	ensure_zshrc_line 'eval "\$(fnm env --use-on-cd --shell zsh)"'
