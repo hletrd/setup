@@ -122,7 +122,7 @@ command -v mcfly >/dev/null && eval "$(mcfly init zsh)"
 
 # Powerlevel10k configuration
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export TERMINFO=/usr/share/terminfo
+infocmp -x -A /usr/share/terminfo "$TERM" >/dev/null 2>&1 && export TERMINFO=/usr/share/terminfo
 
 # opencode config
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md

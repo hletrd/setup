@@ -374,5 +374,5 @@ setup/
 - On macOS, the default shell change requires manual execution: `chsh -s /bin/zsh`
 - Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have)
 - OpenWrt has limited package availability; Rust-based CLI tools require manual installation
-- On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with zerobrew/cargo-installed ncurses-based tools (e.g., tmux)
+- On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with zerobrew/cargo-installed ncurses-based tools (e.g., tmux). The export is guarded by `infocmp -A /usr/share/terminfo "$TERM"` so terminals whose terminfo lives elsewhere (e.g., Ghostty) keep working without the `xterm-ghostty: terminal definition not found` warning under Powerlevel10k instant prompt.
 - If zerobrew (`zb`) is installed, `brew` is aliased to `zb` for convenience

@@ -1374,9 +1374,14 @@ ensure_zshrc_line 'export PATH="$HOME/.cargo/bin:$PATH"'
 ensure_zshrc_line 'export PATH="$HOME/.local/share/fnm:$PATH"'
 ensure_zshrc_line 'eval "$(fnm env --use-on-cd --shell zsh)"'
 
-# Set TERMINFO for macOS to fix terminfo database lookup with zerobrew/cargo ncurses
+# Set TERMINFO for macOS to fix terminfo database lookup with zerobrew/cargo ncurses,
+# guarded so terminals whose terminfo isn't in /usr/share/terminfo (e.g. Ghostty) keep working.
 if [ "$is_macos" = "true" ]; then
-  ensure_zshrc_line 'export TERMINFO=/usr/share/terminfo'
+  if grep -Fqx 'export TERMINFO=/usr/share/terminfo' "$zshrc"; then
+    tmp="${zshrc}.tmp"
+    grep -Fvx 'export TERMINFO=/usr/share/terminfo' "$zshrc" > "$tmp" && mv "$tmp" "$zshrc"
+  fi
+  ensure_zshrc_line 'infocmp -x -A /usr/share/terminfo "$TERM" >/dev/null 2>&1 && export TERMINFO=/usr/share/terminfo'
 fi
 
 # Modern CLI tool aliases (only add if the tool is installed)
