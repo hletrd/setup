@@ -38,6 +38,9 @@
     "delta": true,
     "hishtory": false,
     "cheat": true,
-    "lsd": true
+    "lsd": true,
+    "jq": true,
+    "yq": true,
+    "lazygit": true
   }
 }
