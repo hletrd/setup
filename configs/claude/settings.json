@@ -19,18 +19,18 @@
     "command": "bash __HOME__/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "oh-my-claudecode@omc": true,
-    "swift-lsp@claude-plugins-official": true,
     "ccusage-worv@worv": true,
-    "codex@openai-codex": true
+    "codex@openai-codex": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
-    "omc": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
-      }
-    },
     "worv": {
       "source": {
         "source": "git",
