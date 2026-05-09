@@ -905,8 +905,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
     fi
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
     else
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
@@ -915,8 +915,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
     printf "Installing Node.js from apk (Alpine)...\n"
     pkg_install nodejs npm
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
     # Install fnm (Fast Node Manager)
@@ -943,8 +943,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       fnm install --lts
       fnm default lts-latest
       fnm use lts-latest
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, oh-my-claudecode, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex oh-my-claude-sisyphus agent-browser
+      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser
     fi
   fi
 else
@@ -973,11 +973,7 @@ if command -v omx >/dev/null 2>&1; then
   omx setup --force --verbose >/dev/null 2>&1 || printf "Warning: omx setup failed; run 'omx setup --force --verbose' manually\n"
 fi
 
-if command -v omc >/dev/null 2>&1; then
-  printf "Configuring oh-my-claudecode defaults...\n"
-  omc install --force --quiet --skip-claude-check >/dev/null 2>&1 || printf "Warning: omc install failed; run 'omc install --force --skip-claude-check' manually\n"
-fi
-	
+
 if [ "\$cfg_skip_mcp_setup" = "true" ]; then
   printf "Skipping MCP setup (disabled in config)...\n"
 else
@@ -1470,22 +1466,7 @@ fi
 
 if [ -f "$claude_rules_src" ]; then
   # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.claude/CLAUDE.user-rules.md\"" < "$claude_rules_src"
-  # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" '
-    target="$HOME/.claude/CLAUDE.md"
-    rules="$HOME/.claude/CLAUDE.user-rules.md"
-    if [ -f "$target" ] && grep -q "<!-- OMC:END -->" "$target"; then
-      tmp_file="${target}.tmp"
-      sed "/<!-- OMC:END -->/q" "$target" > "$tmp_file"
-      printf "\n" >> "$tmp_file"
-      cat "$rules" >> "$tmp_file"
-      mv "$tmp_file" "$target"
-    else
-      cp "$rules" "$target"
-    fi
-    rm -f "$rules"
-  '
+  ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.claude/CLAUDE.md\"" < "$claude_rules_src"
 else
   printf "Warning: Claude rules file not found: %s\n" "$claude_rules_src"
 fi
