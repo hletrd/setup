@@ -28,8 +28,9 @@ setup/
 
 ## Knowledge Base (Current Defaults)
 
-- **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`, `agent-browser`
-- **AI bootstrap hooks**: run `omx setup --force --verbose`, `omc install --force --skip-claude-check`, and `agent-browser install` when available
+- **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `agent-browser`
+- **AI bootstrap hooks**: run `omx setup --force --verbose` and `agent-browser install` when available
+- **Claude Code plugins (enabled in `configs/claude/settings.json`)**: `ccusage-worv@worv`, `codex@openai-codex`, plus `frontend-design`, `code-simplifier`, `superpowers`, `skill-creator`, `feature-dev`, `ralph-loop`, `code-review`, `security-guidance` from `claude-plugins-official`
 - **Default external MCP servers**: none; optional snippets for `context7` and `context-mode` remain under `mcp/servers/`
 - **Skills (replacing MCP servers)**: `agent-browser` (9 subskills: core, config, debug, interact, network, query, state, visual, wait), `fetch`, `filesystem`, `git`, `github`, `korean-naturalizer`, `playwright`, `review-plan-fix` (16 skills total; sourced from `configs/claude/skills/` and installed into both `~/.claude/skills/` and `~/.codex/skills/`)
 - **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing

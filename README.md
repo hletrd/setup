@@ -82,11 +82,10 @@ All platforms have been tested and verified (January 2026):
 | **cargo** | Rust toolchain via rustup |
 
 ### AI CLI Stack (Default)
-- Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `oh-my-claude-sisyphus`
+- Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `agent-browser`
 - Auto-run `omx setup --force --verbose` when `omx` is available
-- Auto-run `omc install --force --skip-claude-check` when `omc` is available
 - Auto-install backed-up global rules:
-  - `configs/claude/CLAUDE.md` -> `~/.claude/CLAUDE.md` (preserves OMC-generated block when present)
+  - `configs/claude/CLAUDE.md` -> `~/.claude/CLAUDE.md`
   - `configs/codex/AGENTS.md` -> `~/.codex/AGENTS.md`
   - `configs/opencode/AGENTS.md` -> `~/.config/opencode/AGENTS.md`
 - Auto-restore user config backups when target files are missing:
