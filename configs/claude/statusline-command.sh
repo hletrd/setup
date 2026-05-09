@@ -246,7 +246,7 @@ if [ -n "$remaining_pct" ] && [ "$remaining_pct" != "null" ]; then
     fi
 fi
 
-# Section 3: 5h/7d Usage (OMC HUD style with threshold colors)
+# Section 3: 5h/7d Usage with threshold colors
 if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
     h5_disp=$(printf "%.0f" "$h5_pct" 2>/dev/null || echo "0")
     d7_disp=$(printf "%.0f" "$d7_pct" 2>/dev/null || echo "0")
