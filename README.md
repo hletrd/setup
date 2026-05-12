@@ -26,7 +26,7 @@ The scripts are compatible with all major POSIX-derived operating systems:
 
 | Platform | Package Manager | Status |
 |----------|-----------------|--------|
-| **macOS** | Homebrew | ✅ Fully supported |
+| **macOS** | Homebrew (or direct binary) | ✅ Fully supported |
 | **Ubuntu/Debian** | apt | ✅ Fully supported |
 | **Fedora/RHEL** | dnf/yum | ✅ Fully supported |
 | **Arch Linux** | pacman | ✅ Fully supported |
@@ -35,26 +35,48 @@ The scripts are compatible with all major POSIX-derived operating systems:
 
 ### Test Results
 
-All platforms have been tested and verified (January 2026):
+All platforms have been tested and verified (January 2026). Additionally, deployed to Mac mini M4 fleet (May 2026):
 
-| Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 |
-|------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|
-| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
-| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
-| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 | Mac mini #3 (M4) |
+|------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|:----------------:|
+| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* | ✅ |
+| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* | ✅ |
+| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Notes:**
 - \* Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have).
+- Mac mini #3 uses direct binary downloads (no Homebrew) — fnm installed from GitHub releases zip, cargo tools compiled from source.
+
+## Mac mini Fleet Deployment
+
+This repo bootstraps a fleet of Apple Silicon Mac minis (M4) for AI development:
+
+| Host | IP | SSH | RAM | Storage | Zellij Session |
+|------|-----|-----|-----|---------|----------------|
+| Mac mini #0 | 172.30.61.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.61.1` | 32 GB | 500 GB | mm0 |
+| Mac mini #1 | 172.30.62.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.62.1` | 32 GB | 500 GB | mm1 |
+| Mac mini #2 | 172.30.63.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.63.1` | 32 GB | 500 GB | mm2 |
+| Mac mini #3 | 172.30.64.2 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.64.2` | 16 GB | 228 GB | mm3 |
+
+**Deployment method:** Configs copied from `configs/` directory, tools installed via cargo (direct binary downloads on macOS without Homebrew). See `nas-ops` repo for full infrastructure docs.
+
+**Mac mini #3 specifics (May 2026):**
+- 16 GB unified memory (vs 32 GB on mm0–mm2)
+- 256 GB SSD (228 GB usable)
+- Primary interface: en1 at 172.30.64.2 (en0 has no IP)
+- No Tailscale installed
+- No Homebrew — all tools via cargo or direct binary download
+- Zellij session name: `mm3`
 
 ## Features
 
@@ -108,6 +130,42 @@ All platforms have been tested and verified (January 2026):
   - `configs/zsh/p10k.zsh` -> `~/.p10k.zsh`
 - Secret-bearing files are intentionally excluded from backups (for example: auth tokens, credential stores, and `hosts.yml`-style files).
 - Add zsh alias: `codex="codex --dangerously-bypass-approvals-and-sandbox"`
+
+### Moshi (iOS Remote Control)
+
+Optional remote-agent control from the [Moshi](https://getmoshi.app/) iOS app. Not part of the default bootstrap — set up manually per host when you want push-approval round-trips on the Apple Watch / Live Activity.
+
+**Install:**
+
+```sh
+brew tap rjyo/moshi
+brew install moshi-hook mosh
+moshi-hook pair --token <PAIRING_TOKEN> --store file --name <short-host-name>
+moshi-hook install                # writes hooks for Claude Code, Codex, OpenCode
+brew services start moshi-hook
+```
+
+**Skill bundle** (adds the `moshi-best-practices` and `play-developer-console` skills to `~/.agents/skills/` with symlinks into `~/.claude/skills/`):
+
+```sh
+npx skills add rjyo/moshi-skill -y -g
+```
+
+**Known gotchas on macOS:**
+
+- `moshi-hook pair` defaults to Keychain storage, which is unavailable in headless SSH sessions ("User interaction is not allowed", exit 36). Always pass `--store file` over SSH; secrets land at `~/.config/moshi/secrets.json` (mode 0600).
+- Pass `--name <short>` explicitly. Without it the iOS app may collapse long hostnames (e.g., `HLETRDMac-mini-M4-1.local`) so multiple hosts appear under the same label.
+- Non-interactive `zsh -c` (what SSH/Mosh use to spawn `tmux` / `mosh-server`) does not source `~/.zprofile`. Move `eval "$(/opt/homebrew/bin/brew shellenv zsh)"` into `~/.zshenv` so Homebrew binaries resolve.
+- macOS App Firewall blocks unsigned UDP listeners by default. Whitelist `mosh-server` once per host:
+  ```sh
+  sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/mosh-server
+  sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /opt/homebrew/bin/mosh-server
+  ```
+- On headless Mac minis with no logged-in console user, `brew services start moshi-hook` fails (`gui/<uid>` domain doesn't exist). Bootstrap into the user domain instead:
+  ```sh
+  launchctl bootstrap user/$(id -u) ~/Library/LaunchAgents/homebrew.mxcl.moshi-hook.plist
+  ```
+  Note: the `user/<uid>` agent only starts after that user opens a session (GUI login or SSH), so enable auto-login or use a `LaunchDaemon` if you need it to come up unattended after reboot.
 
 ### Python Tools (via uv tool install)
 | Tool | Description |
@@ -373,5 +431,6 @@ setup/
 - On macOS, the default shell change requires manual execution: `chsh -s /bin/zsh`
 - Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have)
 - OpenWrt has limited package availability; Rust-based CLI tools require manual installation
-- On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with zerobrew/cargo-installed ncurses-based tools (e.g., tmux). The export is guarded by `infocmp -A /usr/share/terminfo "$TERM"` so terminals whose terminfo lives elsewhere (e.g., Ghostty) keep working without the `xterm-ghostty: terminal definition not found` warning under Powerlevel10k instant prompt.
+- On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with cargo-installed ncurses-based tools (e.g., tmux). The export is guarded by `infocmp -A /usr/share/terminfo "$TERM"` so terminals whose terminfo lives elsewhere (e.g., Ghostty) keep working without the `xterm-ghostty: terminal definition not found` warning under Powerlevel10k instant prompt.
+- On Mac minis without Homebrew (e.g., mm3), `.zprofile` is kept minimal — `brew shellenv` is intentionally omitted.
 - If zerobrew (`zb`) is installed, `brew` is aliased to `zb` for convenience
