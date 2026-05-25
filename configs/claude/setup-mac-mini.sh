@@ -70,6 +70,7 @@ claude_with_proxy_env() {
     ANTHROPIC_AUTH_TOKEN="__API_KEY__" \
     ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
     API_TIMEOUT_MS="3000000" \
+    CLAUDE_CODE_ATTRIBUTION_HEADER="0" \
     command claude --dangerously-skip-permissions "$@"
 }
 alias cb=claude_with_proxy_env
@@ -85,6 +86,7 @@ claude_with_proxy_env_local() {
     ANTHROPIC_AUTH_TOKEN="__API_KEY__" \
     ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
     API_TIMEOUT_MS="3000000" \
+    CLAUDE_CODE_ATTRIBUTION_HEADER="0" \
     command claude --dangerously-skip-permissions "$@"
 }
 alias cbl=claude_with_proxy_env_local'

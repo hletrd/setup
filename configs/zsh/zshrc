@@ -108,6 +108,21 @@ claude_with_proxy_env_local() {
 }
 alias cbl=claude_with_proxy_env_local
 
+# `cl` = Claude Code against a local LM Studio backend. LM Studio speaks both
+# OpenAI-format and Anthropic-format on :1234; Claude Code uses the Anthropic
+# /v1/messages endpoint natively, so we point directly at LM Studio. No [1m]
+# suffix — local models ship with whatever native context the loaded checkpoint
+# declares.
+claude_with_lmstudio_env() {
+    BASH_ENV="" \
+    ENV="" \
+    ANTHROPIC_AUTH_TOKEN="lm-studio" \
+    ANTHROPIC_BASE_URL="http://127.0.0.1:1234" \
+    API_TIMEOUT_MS="3000000" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias cl=claude_with_lmstudio_env
+
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
 
