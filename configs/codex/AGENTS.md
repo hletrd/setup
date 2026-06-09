@@ -508,5 +508,5 @@ Before writing any `package.json`, `Cargo.toml`, `pyproject.toml`, or similar, s
   - Grafana/Prometheus monitoring
   - SSL/TLS certificates, NGINX configuration
   - ZFS/NFS storage, hardware sensors, UPS
-  - Mac mini #0 (172.30.61.1), Mac mini #1 (172.30.62.1), and Mac mini #3 (172.30.64.2)
+  - Mac mini #0 (172.30.61.1), Mac mini #1 (172.30.62.1), and Mac mini #3 (100.115.57.92 Tailscale)
 <!-- USER:CUSTOMIZATIONS:END -->
