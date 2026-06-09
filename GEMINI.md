@@ -93,7 +93,6 @@ This repo bootstraps the following machines:
 |------|-----|--------|---------|
 | Mac mini #0 | 172.30.61.1 | `install_remote.sh` / `configs/` copy | mm0 |
 | Mac mini #1 | 172.30.62.1 | `install_remote.sh` / `configs/` copy | mm1 |
-| Mac mini #2 | 172.30.63.1 | `install_remote.sh` / `configs/` copy | mm2 |
 | Mac mini #3 | 172.30.64.2 | `configs/` copy + cargo binaries | mm3 |
 
 Mac mini #3 specifics: 16 GB RAM, no Homebrew, all tools via cargo/direct download. Zellij session name set to `mm3` in `configs/zellij/config.kdl`.

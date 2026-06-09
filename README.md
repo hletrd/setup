@@ -65,13 +65,12 @@ This repo bootstraps a fleet of Apple Silicon Mac minis (M4) for AI development:
 |------|-----|-----|-----|---------|----------------|
 | Mac mini #0 | 172.30.61.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.61.1` | 32 GB | 500 GB | mm0 |
 | Mac mini #1 | 172.30.62.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.62.1` | 32 GB | 500 GB | mm1 |
-| Mac mini #2 | 172.30.63.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.63.1` | 32 GB | 500 GB | mm2 |
 | Mac mini #3 | 172.30.64.2 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.64.2` | 16 GB | 228 GB | mm3 |
 
 **Deployment method:** Configs copied from `configs/` directory, tools installed via cargo (direct binary downloads on macOS without Homebrew). See `nas-ops` repo for full infrastructure docs.
 
 **Mac mini #3 specifics (May 2026):**
-- 16 GB unified memory (vs 32 GB on mm0–mm2)
+- 16 GB unified memory (vs 32 GB on mm0/mm1)
 - 256 GB SSD (228 GB usable)
 - Primary interface: en1 at 172.30.64.2 (en0 has no IP)
 - No Tailscale installed
