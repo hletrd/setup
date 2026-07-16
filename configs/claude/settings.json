@@ -19,7 +19,6 @@
     "command": "bash __HOME__/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "ccusage-worv@worv": true,
     "codex@openai-codex": true,
     "frontend-design@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
@@ -31,12 +30,6 @@
     "security-guidance@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
-    "worv": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/MaumAI-Company/ccusage-worv.git"
-      }
-    },
     "openai-codex": {
       "source": {
         "source": "github",

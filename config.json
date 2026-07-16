@@ -2,7 +2,7 @@
   "prompts": {
     "prompt_for_confirmation": true,
     "ssh_port": "22",
-    "server_address": "10.50.2.7",
+    "server_address": "192.168.1.100",
     "ssh_user": "hletrd",
     "ssh_key_action": "generate",
     "ssh_public_keys": []

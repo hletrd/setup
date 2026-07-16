@@ -35,46 +35,27 @@ The scripts are compatible with all major POSIX-derived operating systems:
 
 ### Test Results
 
-All platforms have been tested and verified (January 2026). Additionally, deployed to Mac mini M4 fleet (May 2026):
+All platforms have been tested and verified (January 2026).
 
-| Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 | Mac mini #3 (M4) |
-|------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|:----------------:|
-| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* | ✅ |
-| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* | ✅ |
-| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 |
+|------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|
+| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
+| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
+| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Notes:**
-- \* Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have).
-- Mac mini #3 uses direct binary downloads (no Homebrew) — fnm installed from GitHub releases zip, cargo tools compiled from source.
-
-## Mac mini Fleet Deployment
-
-This repo bootstraps a fleet of Apple Silicon Mac minis (M4) for AI development:
-
-| Host | IP | SSH | RAM | Storage | Zellij Session |
-|------|-----|-----|-----|---------|----------------|
-| Mac mini #0 | 172.30.61.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.61.1` | 32 GB | 500 GB | mm0 |
-| Mac mini #1 | 172.30.62.1 | `ssh -i ~/.ssh/hletrd-mac hletrd@172.30.62.1` | 32 GB | 500 GB | mm1 |
-| Mac mini #3 | 100.115.57.92 (Tailscale) | `ssh -i ~/.ssh/hletrd-mac hletrd@100.115.57.92` | 16 GB | 228 GB | mm3 |
-
-**Deployment method:** Configs copied from `configs/` directory, tools installed via cargo (direct binary downloads on macOS without Homebrew). See `nas-ops` repo for full infrastructure docs.
-
-**Mac mini #3 specifics (May 2026):**
-- 16 GB unified memory (vs 32 GB on mm0/mm1)
-- 256 GB SSD (228 GB usable)
-- Network: administered via Tailscale `100.115.57.92` (primary; no fixed internal LAN IP — en0 on a public DHCP uplink, en1 on 172.30.52.x)
-- No Homebrew — all tools via cargo or direct binary download
-- Zellij session name: `mm3`
+- \* Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc, which musl-based systems don't have).
+- On macOS without Homebrew, tools install via direct binary downloads (fnm from GitHub releases) and cargo compiled from source.
 
 ## Features
 
@@ -102,8 +83,7 @@ This repo bootstraps a fleet of Apple Silicon Mac minis (M4) for AI development:
 | **cargo** | Rust toolchain via rustup |
 
 ### AI CLI Stack (Default)
-- Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `agent-browser`
-- Auto-run `omx setup --force --verbose` when `omx` is available
+- Install global CLIs: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `agent-browser`
 - Auto-install backed-up global rules:
   - `configs/claude/CLAUDE.md` -> `~/.claude/CLAUDE.md`
   - `configs/codex/AGENTS.md` -> `~/.codex/AGENTS.md`
@@ -117,7 +97,7 @@ This repo bootstraps a fleet of Apple Silicon Mac minis (M4) for AI development:
   - `configs/codex/config.toml` -> `~/.codex/config.toml`
   - `configs/codex/instructions.md` -> `~/.codex/instructions.md`
   - `configs/codex/rules/default.rules` -> `~/.codex/rules/default.rules`
-  - `configs/opencode/oh-my-opencode.json` -> `~/.config/opencode/oh-my-opencode.json`
+  - `configs/opencode/oh-my-openagent.json` -> `~/.config/opencode/oh-my-openagent.json`
   - `configs/opencode/opencode.json` -> `~/.config/opencode/opencode.json`
   - `configs/zellij/config.kdl` -> `~/.config/zellij/config.kdl`
   - `configs/zellij/layouts/custom-compact.kdl` -> `~/.config/zellij/layouts/custom-compact.kdl`
@@ -159,7 +139,7 @@ npx skills add rjyo/moshi-skill -y -g
   sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/mosh-server
   sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /opt/homebrew/bin/mosh-server
   ```
-- On headless Mac minis with no logged-in console user, `brew services start moshi-hook` fails (`gui/<uid>` domain doesn't exist). Bootstrap into the user domain instead:
+- On headless macOS hosts with no logged-in console user, `brew services start moshi-hook` fails (`gui/<uid>` domain doesn't exist). Bootstrap into the user domain instead:
   ```sh
   launchctl bootstrap user/$(id -u) ~/Library/LaunchAgents/homebrew.mxcl.moshi-hook.plist
   ```
@@ -196,27 +176,18 @@ All tools are configurable via `config.json`. Installed via cargo for cross-plat
 | lsd | ls | - | Alternative ls with icons |
 
 ### MCP (Model Context Protocol) Servers
-Optional MCP server snippets for AI-assisted development:
+Optional MCP server snippets for AI-assisted development. Former MCP servers (fetch, filesystem, git, github, playwright) are now provided as Claude Code / Codex skills under `configs/claude/skills/` instead:
 
 | Server | Purpose |
 |--------|---------|
-| context7 | Library documentation |
-| context-mode | Context compression MCP (`npx -y context-mode`) |
-| fetch | URL fetching |
-| filesystem | File operations |
-| git | Git operations |
-| github | GitHub API integration |
-| playwright | Browser automation |
-| memora | Persistent memory graph |
+| agent-browser | Headless browser automation (`npx -y agent-browser`) |
 
 - `websearch` (`exa-mcp-server`) is intentionally not configured in the default user-level profile.
 
 ### Editor Integration
 MCP configuration is automatically symlinked to supported editors:
-- **Cursor** (`~/.cursor/mcp.json`)
 - **Codex** (`~/.codex/`)
 - **OpenCode** (`~/.opencode/`)
-- **Antigravity** (`~/.antigravity/`)
 - **Claude Desktop** (`~/Library/Application Support/Claude/`)
 
 ## Configuration
@@ -266,13 +237,9 @@ Create a `config.json` file to pre-configure installation options:
     "lsd": false
   },
   "mcp_servers": {
-    "github": true,
-    "filesystem": true,
-    "git": true,
-    "fetch": true
+    "agent-browser": true
   },
   "editors": {
-    "cursor": true,
     "codex": true,
     "opencode": true,
     "claude_desktop": true
@@ -411,14 +378,7 @@ setup/
 │   └── zsh/
 └── mcp/                      # MCP server configurations
     └── servers/
-        ├── context7.json
-        ├── context-mode.json
-        ├── fetch.json
-        ├── filesystem.json
-        ├── git.json
-        ├── github.json
-        ├── memora.json
-        ├── playwright.json
+        └── agent-browser.json
 ```
 
 ## Notes
@@ -430,5 +390,5 @@ setup/
 - Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc which musl-based systems don't have)
 - OpenWrt has limited package availability; Rust-based CLI tools require manual installation
 - On macOS, `TERMINFO=/usr/share/terminfo` is set to fix terminfo database lookup issues with cargo-installed ncurses-based tools (e.g., tmux). The export is guarded by `infocmp -A /usr/share/terminfo "$TERM"` so terminals whose terminfo lives elsewhere (e.g., Ghostty) keep working without the `xterm-ghostty: terminal definition not found` warning under Powerlevel10k instant prompt.
-- On Mac minis without Homebrew (e.g., mm3), `.zprofile` is kept minimal — `brew shellenv` is intentionally omitted.
+- On macOS without Homebrew, `.zprofile` is kept minimal — `brew shellenv` is intentionally omitted.
 - If zerobrew (`zb`) is installed, `brew` is aliased to `zb` for convenience

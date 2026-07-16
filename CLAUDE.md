@@ -28,14 +28,14 @@ setup/
 
 ## Knowledge Base (Current Defaults)
 
-- **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `oh-my-codex`, `agent-browser`
-- **AI bootstrap hooks**: run `omx setup --force --verbose` and `agent-browser install` when available
+- **AI CLI stack**: `@anthropic-ai/claude-code`, `opencode-ai`, `@openai/codex`, `agent-browser`
+- **AI bootstrap hooks**: run `agent-browser install` when available
 - **Moshi (iOS remote control)**: `moshi-hook` from the `rjyo/moshi` Homebrew tap installs the bidirectional approval daemon (covers Claude Code, Codex, OpenCode hooks in one). `rjyo/moshi-skill` via `npx skills add rjyo/moshi-skill -y -g` adds the `moshi-best-practices` and `play-developer-console` skills to `~/.agents/skills/` with symlinks into `~/.claude/skills/`. Pairing: prefer `moshi-hook pair --token <T> --store file --name <short>` — Keychain is unavailable over SSH and the explicit short name avoids the iOS app collapsing long hostnames to a duplicate label
 - **Moshi prerequisites**: `mosh` + `tmux` installed; `brew shellenv` must be loaded in `~/.zshenv` (not only `~/.zprofile`) so non-interactive `zsh -c` launched by SSH/Mosh resolves `mosh-server` and `tmux`. macOS App Firewall must whitelist `/opt/homebrew/bin/mosh-server` (`sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add` then `--unblockapp`) — without this, SSH works but the Mosh UDP handshake silently fails. Headless hosts without a console login can't use `brew services start` (`gui/<uid>` domain missing); load the agent into `user/<uid>` via `launchctl bootstrap user/$(id -u) ~/Library/LaunchAgents/homebrew.mxcl.moshi-hook.plist` instead
-- **Claude Code plugins (enabled in `configs/claude/settings.json`)**: `ccusage-worv@worv`, `codex@openai-codex`, plus `frontend-design`, `code-simplifier`, `superpowers`, `skill-creator`, `feature-dev`, `ralph-loop`, `code-review`, `security-guidance` from `claude-plugins-official`
-- **Default external MCP servers**: none; optional snippets for `context7` and `context-mode` remain under `mcp/servers/`
-- **Skills (replacing MCP servers)**: `agent-browser` (9 subskills: core, config, debug, interact, network, query, state, visual, wait), `fetch`, `filesystem`, `git`, `github`, `korean-naturalizer`, `playwright`, `review-plan-fix` (16 skills total; sourced from `configs/claude/skills/` and installed into both `~/.claude/skills/` and `~/.codex/skills/`)
-- **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-opencode.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
+- **Claude Code plugins (enabled in `configs/claude/settings.json`)**: `codex@openai-codex`, plus `frontend-design`, `code-simplifier`, `superpowers`, `skill-creator`, `feature-dev`, `ralph-loop`, `code-review`, `security-guidance` from `claude-plugins-official`
+- **Default external MCP servers**: none; an optional `agent-browser` snippet remains under `mcp/servers/`
+- **Skills (replacing MCP servers)**: `agent-browser` (9 subskills: core, config, debug, interact, network, query, state, visual, wait), `fetch`, `filesystem`, `git`, `github`, `korean-naturalizer`, `playwright`, `review-plan-fix`, `writing-fixer` (17 skills total; sourced from `configs/claude/skills/` and installed into both `~/.claude/skills/` and `~/.codex/skills/`)
+- **User backup restore policy**: restore `~/.gitconfig`, `~/.config/git/ignore`, `~/.claude/{settings.json,settings.local.json,statusline-command.sh}`, `~/.codex/{config.toml,instructions.md,rules/default.rules}`, `~/.config/opencode/{oh-my-openagent.json,opencode.json}`, `~/.config/zellij/{config.kdl,layouts/custom-compact.kdl}`, and `~/.{profile,zprofile,zshenv,zshrc,p10k.zsh}` from `configs/` only when target files are missing
 - **Secret handling policy**: do not back up credential/token-bearing local files (for example auth stores and token-bearing YAML/JSON files)
 - **zsh alias policy**: add `alias codex="codex --dangerously-bypass-approvals-and-sandbox"`; do not alias `cat`, `grep`, `sed`, or `ping`
 - **Claude Code keychain prompt after updates (macOS)**: each native-installer update drops a new binary at `~/.local/share/claude/versions/<ver>`, and the login-keychain item `Claude Code-credentials` has its ACL bound to the previous binary — so the first launch after every update re-prompts for keychain access. Fix: recreate the item with an any-app ACL — read the secret (`security find-generic-password -s "Claude Code-credentials" -a "$USER" -w`), delete the item, then re-add via `printf 'add-generic-password -a "%s" -s "Claude Code-credentials" -A -X %s\n' "$USER" "$(printf '%s' "$CREDS" | xxd -p | tr -d '\n')" | security -i`. If one more prompt still appears (partition list), run `security set-generic-password-partition-list -S "apple-tool:,apple:,teamid:Q6L2SF6YDW" -s "Claude Code-credentials" -a "$USER"` once (asks for the login password) to whitelist Anthropic's signing team permanently
@@ -87,18 +87,6 @@ cd autoinstall && ./create-autoinstall-iso.sh ubuntu-24.04-live-server-amd64.iso
 3. **Idempotency**: Scripts should be safe to run multiple times
 4. **Error handling**: Use `set -e` and handle failures gracefully
 5. **SSH key handling**: Supports generate, add, or skip modes for SSH keys
-
-## Deployment Targets
-
-This repo bootstraps the following machines:
-
-| Host | IP | Method | Session |
-|------|-----|--------|---------|
-| Mac mini #0 | 172.30.61.1 | `install_remote.sh` / `configs/` copy | mm0 |
-| Mac mini #1 | 172.30.62.1 | `install_remote.sh` / `configs/` copy | mm1 |
-| Mac mini #3 | 100.115.57.92 (Tailscale) | `configs/` copy + cargo binaries | mm3 |
-
-Mac mini #3 specifics: 16 GB RAM, no Homebrew, all tools via cargo/direct download. Zellij session name set to `mm3` in `configs/zellij/config.kdl`.
 
 ## Skills
 

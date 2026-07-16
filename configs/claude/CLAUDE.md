@@ -4,7 +4,7 @@
 - When you are unsure or lack confidence about something — especially for software, libraries, frameworks, APIs, and other frequently-updated technologies — do NOT answer based solely on training knowledge, which may be outdated.
 - Never say "I don't know" or "that's not possible" without first attempting to look it up.
 - Use available tools to find current, accurate information before responding:
-  - **context7** (MCP/skill) for library and framework documentation
+  - **find-docs** skill for library and framework documentation
   - **Web search** for latest versions, release notes, changelogs, and current best practices
   - **Official documentation** via fetch/WebFetch for authoritative API references
 - Outdated answers (e.g., wrong version numbers, deprecated APIs, removed features) are worse than taking a moment to verify.
@@ -66,14 +66,3 @@ Before starting any project or adding dependencies, **always search for and use 
   2. `.context/project/` — project overview, architecture, tech stack
   3. `.context/development/` — conventions, code style, guidelines
 - Read these files at the start of a session before doing any work, as they serve the same purpose as `CLAUDE.md` for providing project-specific instructions and context.
-
-## Infrastructure Reference
-
-- For all infrastructure-related work (NAS, Proxmox, VMs, networking, Docker services, SSL, monitoring, Mac minis, etc.), refer to the **`~/git/nas-ops`** repository.
-- That repo contains `CLAUDE.md`, `AGENTS.md`, and a `docs/knowledge-graph/` directory with comprehensive modular documentation covering:
-  - Network topology, VM specs, service catalog
-  - SSH access, security rules, trust boundaries
-  - Grafana/Prometheus monitoring
-  - SSL/TLS certificates, NGINX configuration
-  - ZFS/NFS storage, hardware sensors, UPS
-  - Mac mini #0 (172.30.61.1) and Mac mini #1 (172.30.62.1) setup
