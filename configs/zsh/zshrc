@@ -72,57 +72,6 @@ command -v choose >/dev/null && alias cut="choose"
 alias claude='BASH_ENV="" ENV="" command claude --dangerously-skip-permissions'
 alias c="claude"
 
-# Self-hosted backend via proxy.worv.ai. Single consolidated alias `cb`
-# routes Claude Code to whichever model is currently live on the proxy
-# (1 M native context). The proxy's _normalize_model +
-# PROXY_ALIAS_REWRITE_ALL=on rewrites every model ID to the live
-# served-model-name; the [1m] suffix tells Claude Code to render a 1 M
-# context window.
-claude_with_proxy_env() {
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6.0-spark[1m]" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.0[1m]" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6.0[1m]" \
-    ANTHROPIC_AUTH_TOKEN="REDACTED" \
-    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias cb=claude_with_proxy_env
-
-# `cbl` = same proxy, but without the [1m] context-window suffix. Use this
-# when the live backend ships a smaller positional ceiling than 1 M (e.g.
-# Kimi-K2.6-NVFP4 at 32 K) so Claude Code's local context budget tracks
-# what the model can actually consume.
-claude_with_proxy_env_local() {
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-6.0-spark" \
-    ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-6.0" \
-    ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-6.0" \
-    ANTHROPIC_AUTH_TOKEN="REDACTED" \
-    ANTHROPIC_BASE_URL="https://proxy.worv.ai" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias cbl=claude_with_proxy_env_local
-
-# `cl` = Claude Code against a local LM Studio backend. LM Studio speaks both
-# OpenAI-format and Anthropic-format on :1234; Claude Code uses the Anthropic
-# /v1/messages endpoint natively, so we point directly at LM Studio. No [1m]
-# suffix — local models ship with whatever native context the loaded checkpoint
-# declares.
-claude_with_lmstudio_env() {
-    BASH_ENV="" \
-    ENV="" \
-    ANTHROPIC_AUTH_TOKEN="lm-studio" \
-    ANTHROPIC_BASE_URL="http://127.0.0.1:1234" \
-    API_TIMEOUT_MS="3000000" \
-    command claude --dangerously-skip-permissions "$@"
-}
-alias cl=claude_with_lmstudio_env
-
 # Broot (file navigator)
 [ -f ~/.config/broot/launcher/bash/br ] && source ~/.config/broot/launcher/bash/br
 
@@ -141,10 +90,8 @@ infocmp -x -A /usr/share/terminfo "$TERM" >/dev/null 2>&1 && export TERMINFO=/us
 
 # opencode config
 export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export CLAUDE_PLUGIN_ROOT="$HOME/.claude/plugins/cache/worv/ccusage-worv/0.1.0"
 
 alias codex='BASH_ENV="" ENV="" command codex --dangerously-bypass-approvals-and-sandbox'
-alias omx="omx --xhigh --madmax"
 command -v zellij >/dev/null && alias zl="zellij"
 
 # opencode
