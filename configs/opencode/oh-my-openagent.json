@@ -79,9 +79,6 @@
   "background_tasks": {
     "max_concurrent": 4
   },
-  "lsp": {
-    "enabled": true
-  },
   "hooks": {
     "todo_enforcer": true,
     "comment_checker": true
