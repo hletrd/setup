@@ -192,8 +192,6 @@ cfg_cli_difftastic="true"
 cfg_cli_zellij="true"
 
 # MCP server toggles (default all enabled)
-cfg_mcp_context7="true"
-cfg_mcp_context_mode="true"
 
 # Helper to set config value only if non-empty
 set_if_present() {
@@ -257,8 +255,6 @@ if [ -f "$config_file" ]; then
   set_if_present cfg_cli_zellij "$(json_get_bool "zellij" "$config_file")"
 
   # Load MCP server toggles
-  set_if_present cfg_mcp_context7 "$(json_get_bool "context7" "$config_file")"
-  set_if_present cfg_mcp_context_mode "$(json_get_bool "context-mode" "$config_file")"
 fi
 
 # Apply command line overrides
@@ -453,8 +449,6 @@ ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"$remote_script_path\" && chmod 7
 	cfg_cli_zellij="$cfg_cli_zellij"
 
 	# MCP server toggles
-	cfg_mcp_context7="$cfg_mcp_context7"
-	cfg_mcp_context_mode="$cfg_mcp_context_mode"
 
 	printf "Caching sudo credentials...\n"
 	sudo -v
@@ -905,8 +899,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       pkg_install nodejs npm 2>/dev/null || printf "Warning: Node.js packages not available on this OpenWrt installation\n"
     fi
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
+      printf "Installing Claude Code, OpenCode, Codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on OpenWrt\n"
     else
       printf "Skipping npm package installation (Node.js not available)\n"
     fi
@@ -915,8 +909,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
     printf "Installing Node.js from apk (Alpine)...\n"
     pkg_install nodejs npm
     if command -v npm >/dev/null 2>&1; then
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
+      printf "Installing Claude Code, OpenCode, Codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex agent-browser 2>/dev/null || printf "Warning: Some npm packages may not install on Alpine\n"
     fi
   else
     # Install fnm (Fast Node Manager)
@@ -943,8 +937,8 @@ if [ "\$cfg_pkg_fnm" = "true" ]; then
       fnm install --lts
       fnm default lts-latest
       fnm use lts-latest
-      printf "Installing Claude Code, OpenCode, Codex, oh-my-codex, and agent-browser...\n"
-      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex oh-my-codex agent-browser
+      printf "Installing Claude Code, OpenCode, Codex, and agent-browser...\n"
+      npm install -g @anthropic-ai/claude-code opencode-ai @openai/codex agent-browser
     fi
   fi
 else
@@ -968,12 +962,6 @@ else
   fi
 fi
 
-if command -v omx >/dev/null 2>&1; then
-  printf "Configuring oh-my-codex defaults...\n"
-  omx setup --force --verbose >/dev/null 2>&1 || printf "Warning: omx setup failed; run 'omx setup --force --verbose' manually\n"
-fi
-
-
 if [ "\$cfg_skip_mcp_setup" = "true" ]; then
   printf "Skipping MCP setup (disabled in config)...\n"
 else
@@ -987,8 +975,6 @@ else
   is_server_enabled() {
     server_name="\$1"
     case "\$server_name" in
-      context7) [ "\$cfg_mcp_context7" = "true" ] ;;
-      context-mode) [ "\$cfg_mcp_context_mode" = "true" ] ;;
       *) return 0 ;;  # Unknown servers are enabled by default
     esac
   }
@@ -1001,20 +987,6 @@ else
     fi
     cat > "\$mcp_servers_dir/\$server_name.json"
   }
-
-  write_server_config "context7" <<'MCP_EOF'
-"context7": {
-  "command": "npx",
-  "args": ["-y", "@upstash/context7-mcp@latest"]
-}
-MCP_EOF
-
-  write_server_config "context-mode" <<'MCP_EOF'
-"context-mode": {
-  "command": "npx",
-  "args": ["-y", "context-mode"]
-}
-MCP_EOF
 
   build_mcp_config() {
     printf "{\n  \"mcpServers\": {\n" > "\$mcp_config"
@@ -1056,9 +1028,7 @@ MCP_EOF
       ln -s "\$mcp_config" "\$target"
     fi
   }
-  link_mcp_config "\$HOME/.cursor/mcp.json"
   link_mcp_config "\$HOME/.config/codex/mcp.json"
-  link_mcp_config "\$HOME/.config/antigravity/mcp.json"
 fi
 
 printf "Configuring zsh settings...\n"
@@ -1267,18 +1237,18 @@ remove_opencode_web_launch_agent_remote() {
 }
 
 patch_oh_my_opencode_config_context_warning_remote() {
-  printf "Applying oh-my-opencode config-context patch on remote host...\n"
+  printf "Applying oh-my-openagent config-context patch on remote host...\n"
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" '
     if ! command -v python3 >/dev/null 2>&1; then
-      printf "Skipping oh-my-opencode patch (python3 not available).\n"
+      printf "Skipping oh-my-openagent patch (python3 not available).\n"
       exit 0
     fi
 
     patched_any=false
     for target in \
-      "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/index.js" \
-      "$HOME/.cache/opencode/node_modules/oh-my-opencode/dist/cli/index.js"
+      "$HOME/.cache/opencode/node_modules/oh-my-openagent/dist/index.js" \
+      "$HOME/.cache/opencode/node_modules/oh-my-openagent/dist/cli/index.js"
     do
       [ -f "$target" ] || continue
       python3 - "$target" <<'"'"'PY'"'"'
@@ -1305,7 +1275,7 @@ PY
     done
 
     if [ "$patched_any" = false ]; then
-      printf "oh-my-opencode config-context patch not needed.\n"
+      printf "oh-my-openagent config-context patch not needed.\n"
     fi
   '
 }
@@ -1325,7 +1295,7 @@ codex_instructions_src="$script_dir/configs/codex/instructions.md"
 codex_default_rules_src="$script_dir/configs/codex/rules/default.rules"
 gitconfig_src="$script_dir/configs/git/gitconfig"
 git_ignore_src="$script_dir/configs/git/ignore"
-opencode_omx_config_src="$script_dir/configs/opencode/oh-my-opencode.json"
+opencode_omx_config_src="$script_dir/configs/opencode/oh-my-openagent.json"
 opencode_config_src="$script_dir/configs/opencode/opencode.json"
 zshrc_src="$script_dir/configs/zsh/zshrc"
 p10k_src="$script_dir/configs/zsh/p10k.zsh"
@@ -1387,7 +1357,7 @@ fi
 
 if [ -f "$opencode_omx_config_src" ]; then
   # shellcheck disable=SC2086
-  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/opencode"; if [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then cat > "$HOME/.config/opencode/oh-my-opencode.json"; else cat >/dev/null; fi' < "$opencode_omx_config_src"
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/opencode"; if [ ! -f "$HOME/.config/opencode/oh-my-openagent.json" ]; then cat > "$HOME/.config/opencode/oh-my-openagent.json"; else cat >/dev/null; fi' < "$opencode_omx_config_src"
 fi
 
 if [ -f "$opencode_config_src" ]; then
