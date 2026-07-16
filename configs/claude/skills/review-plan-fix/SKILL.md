@@ -335,7 +335,7 @@ The `CHANGES:` block is REQUIRED every cycle, even when `COMMITS: 0`. Each bulle
 ## Notes for the orchestrator
 
 - The subagent has full tool access; let it use whatever it needs (Bash, Edit,
-  Write, Grep, Glob, slash commands).
+  Write, Grep, Glob, slash commands like `/oh-my-claudecode:ralph`).
 - Parse the subagent's END OF CYCLE REPORT to drive the stop conditions. If the
   report is malformed, treat that cycle as `ERRORS != none` for stop-condition
   purposes but keep going unless it recurs twice in a row.
