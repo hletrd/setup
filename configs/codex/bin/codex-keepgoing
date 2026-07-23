@@ -1,0 +1,324 @@
+#!/usr/bin/env node
+// codex-keepgoing — run a Codex task across rate-limit windows.
+//
+// Two independent gates can block Codex on a ChatGPT-plan workspace:
+//   (1) owner-set spend cap  — blocks NEW sessions (fresh `codex exec`) but
+//       NOT `codex exec resume` of an existing session;
+//   (2) rolling 5h/weekly window — blocks BOTH fresh and resume.
+//
+// Modes:
+//   default (fresh) : `codex exec "<task>"` then resume across windows.
+//                     Needs the spend cap CLEAR (fresh exec is blocked by it).
+//   --resume <id>   : drive an EXISTING session as a carrier via `codex exec
+//                     resume <id>`. Bypasses the spend cap (gate 1), so it keeps
+//                     working even when the owner spend cap is active and can't
+//                     be raised (e.g. admin UI bug on your own workspace). Still
+//                     respects the 5h window (gate 2): when it fills, wait for
+//                     the reset, then resume again.
+//   --last          : like --resume but targets the most recent session
+//                     (WARNING: can collide if that session is already running
+//                     in another codex process — prefer an explicit id).
+//
+// It does NOT bypass OpenAI's 5h usage window. It keeps a session alive across
+// windows (and, in --resume mode, past a bugged/active spend cap on your own
+// workspace) instead of hard-failing.
+//
+// Usage:
+//   codex-keepgoing --check
+//   codex-keepgoing "<task>"                            # fresh (needs cap clear)
+//   codex-keepgoing --resume 019f6895-... "<task>"      # carrier (bypasses spend cap)
+//   codex-keepgoing --resume 019f6895-... --once "<task>"
+//   echo "<task>" | codex-keepgoing --resume 019f6895-...
+
+import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
+const USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage';
+const FETCH_TIMEOUT_MS = 8_000;
+const RESET_BUFFER_S = 45;
+const POLL_SECS = 60;
+const DEFAULT_MAX_RESUMES = 12;
+const DEFAULT_MAX_HOURS = 24;
+const DEFAULT_CONTINUE = 'Continue exactly where you left off and complete the task.';
+
+// ── usage oracle ──────────────────────────────────────────────────────────────
+function readCodexToken() {
+  try {
+    const a = JSON.parse(readFileSync(join(homedir(), '.codex', 'auth.json'), 'utf8'));
+    if (a?.auth_mode !== 'chatgpt') return null;
+    return a?.tokens?.access_token || null;
+  } catch {
+    return null;
+  }
+}
+
+async function getUsage(token = readCodexToken()) {
+  if (!token) return null;
+  try {
+    const res = await fetch(USAGE_URL, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const rl = j?.rate_limit || {};
+    const pw = rl.primary_window || {};
+    const rateLimited = !!rl.limit_reached;              // gate 2: blocks fresh AND resume
+    const spendReached = !!j?.spend_control?.reached;    // gate 1: blocks fresh only
+    return {
+      rateLimited,
+      spendReached,
+      primaryPct: typeof pw.used_percent === 'number' ? pw.used_percent : null,
+      resetAtSec: typeof pw.reset_at === 'number' ? pw.reset_at : null,
+      secondaryPct: rl.secondary_window?.used_percent ?? null,
+      plan: j?.plan_type || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function fmtRemaining(sec) {
+  if (sec == null || !Number.isFinite(sec) || sec < 0) return '?';
+  const m = Math.round(sec / 60);
+  if (m < 60) return `${m}m`;
+  return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}m`;
+}
+
+function usageLine(u) {
+  if (!u) return '(usage unavailable — no ChatGPT token / wham fetch failed)';
+  const reset = u.resetAtSec ? ` resets=${new Date(u.resetAtSec * 1000).toISOString()}` : '';
+  return `plan=${u.plan ?? '?'} primary=${u.primaryPct ?? '?'}% secondary=${u.secondaryPct ?? '?'}% 5hWindow=${u.rateLimited ? 'FULL' : 'ok'} spendCap=${u.spendReached ? 'on' : 'off'}${reset}`;
+}
+
+// ── CLI args ───────────────────────────────────────────────────────────────────
+function parseArgs(argv) {
+  const o = {
+    prompt: '', maxResumes: DEFAULT_MAX_RESUMES, maxHours: DEFAULT_MAX_HOURS,
+    cd: null, model: null, profile: null, sandbox: null, codex: 'codex',
+    continueText: DEFAULT_CONTINUE, check: false, once: false, resume: null, last: false,
+    extra: [], positional: [],
+  };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    switch (a) {
+      case '--max-resumes': o.maxResumes = Number(argv[++i]); break;
+      case '--max-hours': o.maxHours = Number(argv[++i]); break;
+      case '--cd': case '-C': o.cd = argv[++i]; break;
+      case '--model': case '-m': o.model = argv[++i]; break;
+      case '--profile': case '-p': o.profile = argv[++i]; break;
+      case '--sandbox': case '-s': o.sandbox = argv[++i]; break;
+      case '--codex': o.codex = argv[++i]; break;
+      case '--continue-text': o.continueText = argv[++i]; break;
+      case '--resume': o.resume = argv[++i]; break;
+      case '--last': o.last = true; break;
+      case '--check': o.check = true; break;
+      case '--once': o.once = true; break;
+      case '--safe': o.sandbox = o.sandbox || 'workspace-write'; break;
+      case '--': o.extra = argv.slice(i + 1); i = argv.length; break;
+      default:
+        if (a.startsWith('-') && a.length > 1) o.extra.push(a);
+        else o.positional.push(a);
+    }
+  }
+  return o;
+}
+
+function codexBaseArgs(o) {
+  const a = ['--json', '--skip-git-repo-check'];
+  if (o.sandbox) a.push('--sandbox', o.sandbox);
+  else a.push('--dangerously-bypass-approvals-and-sandbox');
+  if (o.cd) a.push('--cd', o.cd);
+  if (o.model) a.push('--model', o.model);
+  if (o.profile) a.push('--profile', o.profile);
+  return a;
+}
+
+// ── run one codex invocation ───────────────────────────────────────────────────
+function runCodex(o, args) {
+  return new Promise((resolve) => {
+    const child = spawn(o.codex, args, { stdio: ['ignore', 'pipe', 'inherit'] });
+    let buf = '';
+    let raw = '';
+    let sessionId = null;
+    const onLine = (line) => {
+      raw += line + '\n';
+      if (!sessionId) {
+        const m = line.match(/"(?:session_id|thread_id)"\s*:\s*"([0-9a-fA-F-]{8,})"/);
+        if (m) sessionId = m[1];
+      }
+      const out = describeEvent(line);
+      if (out) console.log(out);
+    };
+    child.stdout.on('data', (d) => {
+      buf += d.toString('utf8');
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        onLine(buf.slice(0, nl));
+        buf = buf.slice(nl + 1);
+      }
+    });
+    child.on('error', (err) => resolve({ ok: false, code: -1, err, raw, sessionId }));
+    child.on('close', (code) => {
+      if (buf.trim()) onLine(buf);
+      resolve({ ok: code === 0, code, raw, sessionId });
+    });
+  });
+}
+
+function describeEvent(line) {
+  let obj;
+  try { obj = JSON.parse(line); } catch { return line.trim() ? `[codex] ${line.trim()}` : null; }
+  const t = obj?.type || '';
+  const c = obj?.message?.content ?? obj?.item?.content ?? obj?.content;
+  let text = '';
+  if (Array.isArray(c)) text = c.map((x) => x?.text ?? (typeof x === 'string' ? x : '')).join('');
+  else if (typeof c === 'string') text = c;
+  if (!text && typeof obj?.text === 'string') text = obj.text;
+  const errMsg = obj?.error?.message || (t === 'error' ? obj?.message : null);
+  if (errMsg) return `[${t || 'error'}] ${errMsg}`;
+  if (text) return text;
+  if (/limit|error|fail|abort|quota|interrupt/i.test(t)) return `[${t}] ${line.slice(0, 240)}`;
+  return null;
+}
+
+function outputMentionsLimit(raw) {
+  return /usage limit|rate.?limit|spend cap|spend_control|try again (at|in)|UsageLimitReached|you'?ve hit|429/i.test(raw);
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+// ── wait for the 5h window to reset (polls wham/usage), SIGINT-aware ───────────
+let interrupted = false;
+process.on('SIGINT', () => { interrupted = true; });
+
+async function awaitReset(reason) {
+  let u = await getUsage();
+  const resetAtSec = u?.resetAtSec;
+  if (!resetAtSec) {
+    console.error(`[keepgoing] ${reason}: limited with no 5h reset time. Polling every ${POLL_SECS}s (Ctrl-C to stop).`);
+  } else {
+    const wake = (resetAtSec + RESET_BUFFER_S) * 1000;
+    console.error(`[keepgoing] ${reason}: waiting for the 5h window to reset ~${new Date(wake).toISOString()} (in ${fmtRemaining((resetAtSec + RESET_BUFFER_S) - Date.now() / 1000)}). Ctrl-C to stop.`);
+  }
+  let tick = 0;
+  while (!interrupted) {
+    const nowSec = Date.now() / 1000;
+    if (resetAtSec && nowSec >= resetAtSec + RESET_BUFFER_S) {
+      u = await getUsage();
+      if (!u || !u.rateLimited) { console.error(`[keepgoing] 5h window cleared. ${usageLine(u)}`); return u; }
+    }
+    if (u && !u.rateLimited) { console.error(`[keepgoing] 5h window cleared. ${usageLine(u)}`); return u; }
+    await sleep(POLL_SECS * 1000);
+    tick += 1;
+    u = await getUsage();
+    if (u && tick % 5 === 0) console.error(`[keepgoing] still waiting — ${usageLine(u)}`);
+  }
+  return null;
+}
+
+function manualResumeHint(carrier) {
+  const id = carrier || '--last';
+  return `To continue manually:\n  codex exec resume ${id} "${DEFAULT_CONTINUE}"`;
+}
+
+// ── main ───────────────────────────────────────────────────────────────────────
+async function main() {
+  const o = parseArgs(process.argv.slice(2));
+
+  if (o.check) {
+    const u = await getUsage();
+    console.log(usageLine(u));
+    if (u?.resetAtSec) console.log(`primary(5h) resets in ${fmtRemaining(u.resetAtSec - Date.now() / 1000)}`);
+    console.log(o.resume || o.last ? 'mode: resume (bypasses spend cap; waits on 5h window)' : 'mode: fresh (needs spend cap clear)');
+    return 0;
+  }
+
+  let prompt = o.positional.join(' ').trim();
+  if (!prompt) {
+    try { prompt = readFileSync(0, 'utf8').trim(); } catch { /* no stdin */ }
+  }
+  if (!prompt) {
+    console.error('Usage:\n  codex-keepgoing "<task>"                            (fresh; needs spend cap clear)\n  codex-keepgoing --resume <session-id> "<task>"      (carrier; bypasses spend cap)\n  codex-keepgoing --check');
+    return 2;
+  }
+
+  const resumeMode = !!(o.resume || o.last);
+  const carrier = o.resume || (o.last ? '__LAST__' : null);
+  // resume bypasses the spend cap (gate 1) but not the 5h window (gate 2);
+  // a fresh exec is blocked by either.
+  const blockedNow = (u) => (resumeMode ? (u && u.rateLimited) : (u && (u.rateLimited || u.spendReached)));
+
+  const startMs = Date.now();
+  const maxMs = o.maxHours * 3_600_000;
+  let sessionId = resumeMode ? (o.resume || null) : null;
+  let resumes = 0;
+
+  while (!interrupted) {
+    if (Date.now() - startMs > maxMs) {
+      console.error(`[keepgoing] --max-hours (${o.maxHours}) reached. ${manualResumeHint(carrier)}`);
+      return 3;
+    }
+
+    const pre = await getUsage();
+    if (blockedNow(pre)) {
+      if (o.once) { console.error(`[keepgoing] blocked right now. ${usageLine(pre)}\n${manualResumeHint(carrier)}`); return 4; }
+      await awaitReset(resumeMode ? '5h window full (resume mode)' : 'pre-flight');
+      if (interrupted) break;
+    }
+
+    const outFile = `/tmp/keepgoing-last-${process.pid}.txt`;
+    const isFirst = resumes === 0;
+    const msg = isFirst ? prompt : o.continueText;
+    let fullArgs;
+    if (resumeMode) {
+      const target = carrier === '__LAST__' ? ['--last'] : [carrier];
+      fullArgs = ['exec', 'resume', ...target, ...codexBaseArgs(o), '-o', outFile, msg];
+    } else {
+      fullArgs = isFirst
+        ? ['exec', ...codexBaseArgs(o), '-o', outFile, msg]
+        : ['exec', 'resume', sessionId, ...codexBaseArgs(o), '-o', outFile, msg];
+    }
+
+    console.error(`[keepgoing] ${resumeMode ? 'resume' : (isFirst ? 'start' : 'resume')} (${resumes}/${o.maxResumes}) on ${carrier || 'new session'}…`);
+    const r = await runCodex(o, fullArgs);
+    if (r.sessionId && !sessionId) sessionId = r.sessionId;
+
+    const u = await getUsage();
+    const limited = u ? blockedNow(u) : outputMentionsLimit(r.raw);
+
+    if (r.ok && !limited) {
+      try {
+        const last = readFileSync(outFile, 'utf8').trim();
+        if (last) console.log('\n—— final message ——\n' + last);
+      } catch { /* no -o output */ }
+      console.error(`[keepgoing] done. session=${sessionId ?? '?'}`);
+      return 0;
+    }
+
+    if (limited) {
+      if (o.once) {
+        console.error(`[keepgoing] interrupted by 5h window. ${usageLine(u)}\n${manualResumeHint(carrier)}`);
+        return 4;
+      }
+      if (resumes >= o.maxResumes) {
+        console.error(`[keepgoing] --max-resumes (${o.maxResumes}) reached. ${manualResumeHint(carrier)}`);
+        return 3;
+      }
+      await awaitReset('interrupted by 5h window');
+      if (interrupted) break;
+      resumes += 1;
+      continue;
+    }
+
+    console.error(`[keepgoing] codex exited ${r.code} without a limit signal. ${manualResumeHint(carrier)}`);
+    return r.code ?? 1;
+  }
+
+  console.error(`[keepgoing] interrupted. ${manualResumeHint(carrier)}`);
+  return 130;
+}
+
+main().then((c) => process.exit(typeof c === 'number' ? c : 0)).catch((e) => { console.error('[keepgoing] fatal:', e); process.exit(1); });

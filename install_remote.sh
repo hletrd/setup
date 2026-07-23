@@ -1419,6 +1419,20 @@ if [ -f "$cchelper_handler_src" ] && [ -f "$cchelper_daemon_src" ]; then
   printf "Claude Code auto-resume (cchelper) installed on remote host.\n"
 fi
 
+# Install Codex helper scripts (codex-loop, codex-keepgoing) into ~/.local/bin
+codex_bin_src="$script_dir/configs/codex/bin"
+if [ -d "$codex_bin_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.local/bin"'
+  for codex_bin_file in "$codex_bin_src"/*; do
+    [ -f "$codex_bin_file" ] || continue
+    codex_bin_name="$(basename "$codex_bin_file")"
+    # shellcheck disable=SC2086
+    ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.local/bin/$codex_bin_name\" && chmod +x \"\$HOME/.local/bin/$codex_bin_name\"" < "$codex_bin_file"
+  done
+  printf "Codex helper scripts (codex-loop, codex-keepgoing) installed on remote host.\n"
+fi
+
 if [ -f "$zellij_config_src" ]; then
   # shellcheck disable=SC2086
   ssh $ssh_opts "$ssh_user@$server_addr" 'mkdir -p "$HOME/.config/zellij"; if [ ! -f "$HOME/.config/zellij/config.kdl" ]; then cat > "$HOME/.config/zellij/config.kdl"; else cat >/dev/null; fi' < "$zellij_config_src"

@@ -1091,6 +1091,19 @@ if [ -f "$codex_default_rules_src" ] && [ ! -f "$HOME/.codex/rules/default.rules
   cp "$codex_default_rules_src" "$HOME/.codex/rules/default.rules"
 fi
 
+# Install Codex helper scripts (codex-loop, codex-keepgoing) into ~/.local/bin
+codex_bin_src="$script_dir/configs/codex/bin"
+if [ -d "$codex_bin_src" ]; then
+  mkdir -p "$HOME/.local/bin"
+  for codex_bin_file in "$codex_bin_src"/*; do
+    [ -f "$codex_bin_file" ] || continue
+    codex_bin_name="$(basename "$codex_bin_file")"
+    cp "$codex_bin_file" "$HOME/.local/bin/$codex_bin_name"
+    chmod +x "$HOME/.local/bin/$codex_bin_name"
+  done
+  printf "Codex helper scripts (codex-loop, codex-keepgoing) installed.\n"
+fi
+
 if [ -f "$opencode_omx_config_src" ] || [ -f "$opencode_config_src" ]; then
   mkdir -p "$HOME/.config/opencode"
 fi
