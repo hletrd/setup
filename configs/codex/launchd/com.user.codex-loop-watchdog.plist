@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.codex-loop-watchdog</string>
+
+    <!--
+      Resolve node without depending on shell rc files (launchd PATH is bare):
+      prefer fnm's stable "default" alias (survives node upgrades), then the
+      newest installed node-version, then PATH. Then exec one watchdog tick.
+    -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"; N="$HOME/.local/share/fnm/aliases/default/bin/node"; [ -x "$N" ] || N="$(ls -t "$HOME"/.local/share/fnm/node-versions/*/installation/bin/node 2>/dev/null | head -1)"; [ -x "$N" ] || N="$(command -v node)"; [ -n "$N" ] || exit 0; exec "$N" "$HOME/.local/bin/codex-loop-watchdog" run</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.codex-loop/watchdog.launchd.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.codex-loop/watchdog.launchd.log</string>
+
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <!-- RunAtLoad true: the boot/login tick is what brings loops back after a reboot. -->
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

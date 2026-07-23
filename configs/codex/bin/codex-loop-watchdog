@@ -1,0 +1,468 @@
+#!/usr/bin/env node
+/**
+ * codex-loop-watchdog — keep codex-loop resident workers alive 24/365 and
+ * feed them from drop-in inbox directories.
+ *
+ * WHY (measured on mac1, 2026-07-16..17):
+ *   A codex-loop living turn dies silently on (a) auth-token refresh failure
+ *   after an account switch/logout elsewhere (observed: 401 on the responses
+ *   websocket after 2h39m), (b) reboot / crash / codex upgrade, and (c) a
+ *   restart attempt while the spend cap or 5h window is closed is rejected at
+ *   the gate (observed). codex-loop itself never restarts anything — this
+ *   watchdog does, but only when the usage oracle says the gate is open, so
+ *   dead loops don't spam doomed `codex exec` attempts.
+ *
+ * WHAT one tick (`run`, scheduled every 60s via launchd) does per managed loop:
+ *   1. Drain the loop's inbox dir (producer half): every `*.task` file dropped
+ *      there is atomically claimed (rename), copied into the loop's local
+ *      queue (`~/.codex-loop/<hash>/queue/`) using the same `.seq` counter
+ *      codex-loop uses, then archived to `inbox/processed/`. Lets any machine
+ *      on the NFS share enqueue work for this host.
+ *   2. If the loop pid is dead (or recycled by a non-codex process) and the
+ *      loop is not paused: check the gate (wham/usage, token from
+ *      ~/.codex/auth.json). Open → `codex-loop start` again and verify the pid
+ *      survives a settle window. Blocked → wait. Oracle unreachable → attempt
+ *      at most once per 15 min.
+ *
+ * Config:  ~/.codex-loop/watchdog.json   { loops: [{cwd, model?, inbox?}], notifyCmd? }
+ * State:   ~/.codex-loop/watchdog-state.json   (per-loop attempt state + __lastTick)
+ * Log:     ~/.codex-loop/watchdog.log    (healthy ticks are silent; 5MB rotate)
+ * Pause:   ~/.codex-loop/<hash>/watchdog.paused  (managed via pause/resume)
+ *
+ * Commands:
+ *   codex-loop-watchdog run                          one tick (what launchd calls)
+ *   codex-loop-watchdog add --cwd DIR [--model M] [--inbox DIR]
+ *   codex-loop-watchdog remove --cwd DIR
+ *   codex-loop-watchdog list                         config + live pid/queue state
+ *   codex-loop-watchdog pause --cwd DIR              stop managing (loop keeps running)
+ *   codex-loop-watchdog resume --cwd DIR
+ *
+ * To stop a managed loop for real: pause it here first, then `codex-loop stop`.
+ * launchd: com.user.codex-loop-watchdog (StartInterval 60, RunAtLoad true — the
+ * RunAtLoad tick is what brings loops back after a reboot).
+ *
+ * Test seams (env overrides; production uses the defaults):
+ *   CODEX_WATCHDOG_USAGE_URL, CODEX_WATCHDOG_SETTLE_MS, CODEX_WATCHDOG_RETRY_UNKNOWN_MS,
+ *   CODEX_WATCHDOG_INBOX_MIN_AGE_MS, CODEX_WATCHDOG_LOCK_STALE_MS, CODEX_WATCHDOG_LOOPLOG_MAX
+ */
+
+import { spawnSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import {
+  existsSync, mkdirSync, rmdirSync, writeFileSync, readFileSync, readdirSync,
+  renameSync, appendFileSync, statSync, unlinkSync, utimesSync,
+} from 'node:fs';
+import { homedir } from 'node:os';
+import { join, basename, dirname } from 'node:path';
+
+const ROOT = join(homedir(), '.codex-loop');
+const CONFIG = join(ROOT, 'watchdog.json');
+const STATE = join(ROOT, 'watchdog-state.json');
+const LOG = join(ROOT, 'watchdog.log');
+const TICK_LOCK = join(ROOT, 'watchdog.tick.lock');
+const LOOP_BIN = join(homedir(), '.local', 'bin', 'codex-loop');
+
+function envInt(name, fallback) {
+  const v = parseInt(process.env[name] || '', 10);
+  return Number.isFinite(v) && v >= 0 ? v : fallback;
+}
+
+const USAGE_URL = process.env.CODEX_WATCHDOG_USAGE_URL || 'https://chatgpt.com/backend-api/wham/usage';
+const FETCH_TIMEOUT_MS = 8_000;
+const RETRY_UNKNOWN_MS = envInt('CODEX_WATCHDOG_RETRY_UNKNOWN_MS', 15 * 60 * 1000);
+const START_SETTLE_MS = envInt('CODEX_WATCHDOG_SETTLE_MS', 5_000);
+const INBOX_MIN_AGE_MS = envInt('CODEX_WATCHDOG_INBOX_MIN_AGE_MS', 2_000);
+const LOCK_STALE_MS = envInt('CODEX_WATCHDOG_LOCK_STALE_MS', 180_000);
+const LOG_MAX_BYTES = 5 * 1024 * 1024;
+const LOOPLOG_MAX_BYTES = envInt('CODEX_WATCHDOG_LOOPLOG_MAX', 50 * 1024 * 1024);
+const PROCESSED_TTL_MS = envInt('CODEX_WATCHDOG_PROCESSED_TTL_MS', 14 * 24 * 60 * 60 * 1000); // 0 disables
+
+function baseDirFor(cwd) {
+  const hash = createHash('sha256').update(cwd).digest('hex').slice(0, 12);
+  return join(ROOT, hash);
+}
+
+function log(msg) {
+  try {
+    mkdirSync(ROOT, { recursive: true });
+    try { if (statSync(LOG).size > LOG_MAX_BYTES) renameSync(LOG, LOG + '.1'); } catch { /* no log yet */ }
+    appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch { /* logging must never kill the tick */ }
+  console.log(msg);
+}
+
+function readJson(p, fallback) {
+  try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { return fallback; }
+}
+
+/** Atomic JSON write (tmp + rename) so a crash mid-write can't corrupt state. */
+function writeJsonAtomic(p, obj) {
+  mkdirSync(dirname(p), { recursive: true });
+  const tmp = `${p}.tmp-${process.pid}`;
+  writeFileSync(tmp, JSON.stringify(obj, null, 2) + '\n', { mode: 0o600 });
+  renameSync(tmp, p);
+}
+
+function pidAlive(pid) {
+  try { process.kill(pid, 0); return true; } catch { return false; }
+}
+
+/** Guard against pid recycling: the recorded pid must still look like codex. */
+function looksLikeCodex(pid) {
+  try {
+    const r = spawnSync('/bin/ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf-8', timeout: 5_000 });
+    if (r.status !== 0) return false; // pid gone between checks
+    return (r.stdout || '').toLowerCase().includes('codex');
+  } catch { return true; } // ps itself failed — don't false-kill a healthy loop
+}
+
+function readPid(base) {
+  try { const p = parseInt(readFileSync(join(base, 'loop.pid'), 'utf-8'), 10); return Number.isFinite(p) ? p : null; } catch { return null; }
+}
+
+function loopAlive(base) {
+  const pid = readPid(base);
+  if (!pid || !pidAlive(pid)) return { alive: false, pid };
+  if (!looksLikeCodex(pid)) return { alive: false, pid, recycled: true };
+  return { alive: true, pid };
+}
+
+function loadConfig() { return readJson(CONFIG, { loops: [], notifyCmd: null }); }
+function saveConfig(c) { writeJsonAtomic(CONFIG, c); }
+
+function notify(cfg, msg) {
+  if (!cfg.notifyCmd) return;
+  try {
+    spawn('/bin/sh', ['-c', cfg.notifyCmd], {
+      env: { ...process.env, WATCHDOG_MSG: msg },
+      detached: true, stdio: 'ignore',
+    }).unref();
+  } catch { /* best-effort */ }
+}
+
+/**
+ * codex binary for the spawned loop. Under launchd PATH is bare, and the npm
+ * `codex` shim's `#!/usr/bin/env node` shebang ALSO needs node on PATH — so
+ * callers must combine this with an augmented PATH (see startLoop).
+ */
+function resolveCodexBin() {
+  if (process.env.CODEX_LOOP_BIN) return process.env.CODEX_LOOP_BIN;
+  for (const d of (process.env.PATH || '').split(':')) {
+    if (d && existsSync(join(d, 'codex'))) return join(d, 'codex');
+  }
+  const fnmRoot = join(homedir(), '.local', 'share', 'fnm', 'node-versions');
+  let best = null; let bestM = 0;
+  try {
+    for (const v of readdirSync(fnmRoot)) {
+      const p = join(fnmRoot, v, 'installation', 'bin', 'codex');
+      try { const m = statSync(p).mtimeMs; if (m > bestM) { bestM = m; best = p; } } catch { /* not here */ }
+    }
+  } catch { /* no fnm */ }
+  if (best) return best;
+  const local = join(homedir(), '.local', 'bin', 'codex');
+  if (existsSync(local)) return local;
+  return 'codex';
+}
+
+// ── usage oracle (same contract as codex-keepgoing) ───────────────────────────
+function readCodexToken() {
+  try {
+    const a = JSON.parse(readFileSync(join(homedir(), '.codex', 'auth.json'), 'utf8'));
+    if (a?.auth_mode !== 'chatgpt') return null;
+    return a?.tokens?.access_token || null;
+  } catch { return null; }
+}
+
+async function getUsage() {
+  const token = readCodexToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(USAGE_URL, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const rl = j?.rate_limit || {};
+    return {
+      rateLimited: !!rl.limit_reached,
+      spendReached: !!j?.spend_control?.reached,
+      primaryPct: rl.primary_window?.used_percent ?? null,
+    };
+  } catch { return null; }
+}
+
+// ── producer half: inbox → queue ──────────────────────────────────────────────
+function nextSeq(base) {
+  const seqPath = join(base, '.seq');
+  let seq = 0;
+  try { seq = parseInt(readFileSync(seqPath, 'utf-8'), 10) || 0; } catch { /* fresh */ }
+  seq += 1;
+  try { writeFileSync(seqPath, String(seq)); } catch { /* ignore */ }
+  return seq;
+}
+
+/** Pick a queue filename that does not collide (seq races are survivable). */
+function claimQueueName(base, queue, slug) {
+  for (let i = 0; i < 5; i++) {
+    const seq = nextSeq(base);
+    const name = `${String(seq).padStart(6, '0')}${slug ? '-' + slug : ''}.task`;
+    if (!existsSync(join(queue, name))) return { seq, name };
+  }
+  const seq = nextSeq(base);
+  return { seq, name: `${String(seq).padStart(6, '0')}-${process.pid}${slug ? '-' + slug : ''}.task` };
+}
+
+/** Keep inbox/processed/ from growing without bound over 24/365 operation. */
+function pruneProcessed(processed) {
+  if (!PROCESSED_TTL_MS) return;
+  const cutoff = Date.now() - PROCESSED_TTL_MS;
+  let entries;
+  try { entries = readdirSync(processed); } catch { return; }
+  for (const f of entries) {
+    const p = join(processed, f);
+    try { if (statSync(p).mtimeMs < cutoff) unlinkSync(p); } catch { /* skip */ }
+  }
+}
+
+function drainInbox(loop) {
+  const inbox = loop.inbox;
+  if (!inbox || !existsSync(inbox)) return 0;
+  const base = baseDirFor(loop.cwd);
+  const queue = join(base, 'queue');
+  const processed = join(inbox, 'processed');
+  mkdirSync(queue, { recursive: true });
+  mkdirSync(processed, { recursive: true });
+  pruneProcessed(processed);
+  let moved = 0;
+  const files = readdirSync(inbox).filter((x) => x.endsWith('.task') && !x.startsWith('.')).sort();
+  for (const f of files) {
+    const src = join(inbox, f);
+    const claim = join(inbox, `.claim-${f}`);
+    try {
+      if (Date.now() - statSync(src).mtimeMs < INBOX_MIN_AGE_MS) continue; // still being written
+      // Atomic claim: if two consumers ever watch the same inbox (misconfig),
+      // rename() lets exactly one of them win — no double-processing.
+      try { renameSync(src, claim); } catch { continue; }
+      const text = readFileSync(claim, 'utf-8');
+      if (!text.trim()) { renameSync(claim, join(processed, `empty-${f}`)); continue; }
+      const slug = basename(f, '.task').replace(/[^A-Za-z0-9._-]+/g, '-').slice(0, 40);
+      const { seq, name } = claimQueueName(base, queue, slug);
+      writeFileSync(join(queue, name), text, { mode: 0o600 });
+      renameSync(claim, join(processed, `${String(seq).padStart(6, '0')}-${f}`));
+      moved += 1;
+      log(`inbox: ${f} -> queue/${name} (${loop.cwd})`);
+    } catch (e) {
+      log(`inbox error on ${f}: ${String(e)}`);
+      try { if (existsSync(claim)) renameSync(claim, src); } catch { /* leave the claim for inspection */ }
+    }
+  }
+  return moved;
+}
+
+// ── watchdog half: restart dead loops when the gate is open ───────────────────
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+function startLoop(loop) {
+  const codexBin = resolveCodexBin();
+  // The npm codex shim needs `node` on PATH (env shebang); launchd's PATH is
+  // bare. Prepend our own node, the codex dir, and the usual brew locations.
+  const path = [dirname(process.execPath), dirname(codexBin), '/opt/homebrew/bin', '/usr/local/bin', process.env.PATH || '/usr/bin:/bin']
+    .filter(Boolean).join(':');
+  const env = { ...process.env, PATH: path, CODEX_LOOP_BIN: codexBin };
+  const args = [LOOP_BIN, 'start', '--cwd', loop.cwd];
+  if (loop.model) args.push('--model', loop.model);
+  const r = spawnSync(process.execPath, args, { env, encoding: 'utf-8', timeout: 30_000 });
+  const out = `${r.stdout || ''}${r.stderr || ''}`.trim().split('\n')[0] || `exit=${r.status}`;
+  log(`start: ${loop.cwd} — ${out}`);
+}
+
+/** Rotate a dead loop's loop.log before restarting so it can't grow forever. */
+function rotateLoopLog(base) {
+  try {
+    const f = join(base, 'loop.log');
+    if (statSync(f).size > LOOPLOG_MAX_BYTES) { renameSync(f, f + '.1'); log(`rotated ${f}`); }
+  } catch { /* no log */ }
+}
+
+async function runTick() {
+  mkdirSync(ROOT, { recursive: true });
+  // Single-flight lock with age-based recovery — an orphaned lock dir can
+  // never wedge the watchdog (lesson from the statusline lock deadlock).
+  try {
+    mkdirSync(TICK_LOCK);
+  } catch {
+    try {
+      if (Date.now() - statSync(TICK_LOCK).mtimeMs < LOCK_STALE_MS) return 0;
+      rmdirSync(TICK_LOCK); mkdirSync(TICK_LOCK);
+    } catch { return 0; }
+  }
+  const state = readJson(STATE, {});
+  try {
+    let cfg = { loops: [] };
+    if (existsSync(CONFIG)) {
+      try { cfg = JSON.parse(readFileSync(CONFIG, 'utf-8')); }
+      catch (e) { log(`CONFIG PARSE ERROR — managing nothing until ${CONFIG} is fixed: ${String(e)}`); }
+    }
+    const managed = new Set((cfg.loops || []).map((l) => l.cwd));
+    for (const key of Object.keys(state)) {
+      if (key !== '__lastTick' && !managed.has(key)) delete state[key]; // prune
+    }
+    let usage; // fetched lazily, at most once per tick
+    for (const loop of cfg.loops || []) {
+      try {
+        try { utimesSync(TICK_LOCK, new Date(), new Date()); } catch { /* lock raced away */ }
+        if (!loop || !loop.cwd) continue;
+        try { drainInbox(loop); } catch (e) { log(`inbox error ${loop.cwd}: ${String(e)}`); }
+        const base = baseDirFor(loop.cwd);
+        if (existsSync(join(base, 'watchdog.paused'))) continue;
+        const st = state[loop.cwd] || {};
+        state[loop.cwd] = st;
+        const { alive, pid, recycled } = loopAlive(base);
+        if (alive) {
+          if (st.deadSince) { delete st.deadSince; delete st.blockedLogged; }
+          continue;
+        }
+        if (!st.deadSince) {
+          st.deadSince = Date.now();
+          log(`dead: ${loop.cwd} (pid ${pid ?? 'none'}${recycled ? ', recycled by non-codex process' : ''})`);
+        }
+        if (usage === undefined) usage = await getUsage();
+        const blocked = usage ? (usage.rateLimited || usage.spendReached) : null;
+        if (blocked === true) {
+          if (!st.blockedLogged) {
+            log(`gate closed (5h=${usage.rateLimited ? 'FULL' : 'ok'} cap=${usage.spendReached ? 'on' : 'off'} primary=${usage.primaryPct ?? '?'}%) — waiting: ${loop.cwd}`);
+            st.blockedLogged = true;
+          }
+          continue;
+        }
+        if (blocked === null && st.lastAttempt && Date.now() - st.lastAttempt < RETRY_UNKNOWN_MS) continue;
+        st.blockedLogged = false;
+        st.lastAttempt = Date.now();
+        // If the pid was recycled by an unrelated live process, codex-loop's
+        // own "already running" guard (pidAlive only) would refuse to start —
+        // clear the stale pid file first so the restart actually happens.
+        if (recycled) { try { unlinkSync(join(base, 'loop.pid')); log(`cleared recycled pid file: ${loop.cwd}`); } catch { /* ignore */ } }
+        rotateLoopLog(base);
+        startLoop(loop);
+        await sleep(START_SETTLE_MS);
+        const after = loopAlive(base);
+        if (after.alive) {
+          log(`restarted: ${loop.cwd} (pid ${after.pid})`);
+          notify(cfg, `codex-loop restarted: ${loop.cwd} (pid ${after.pid})`);
+          delete st.deadSince; delete st.blockedLogged;
+        } else {
+          log(`start attempt did not survive ${START_SETTLE_MS}ms (gate/auth?) — see ${join(base, 'loop.log')}`);
+        }
+      } catch (e) {
+        log(`loop error ${loop && loop.cwd}: ${String(e)}`);
+      }
+    }
+  } finally {
+    state.__lastTick = new Date().toISOString();
+    try { writeJsonAtomic(STATE, state); } catch { /* ignore */ }
+    try { rmdirSync(TICK_LOCK); } catch { /* ignore */ }
+  }
+  return 0;
+}
+
+// ── CLI ───────────────────────────────────────────────────────────────────────
+function parseFlags(argv) {
+  const o = { _: [] };
+  const rest = [...argv];
+  while (rest.length) {
+    const a = rest.shift();
+    if (a === '--cwd') o.cwd = rest.shift();
+    else if (a === '--model') o.model = rest.shift();
+    else if (a === '--inbox') o.inbox = rest.shift();
+    else o._.push(a);
+  }
+  return o;
+}
+
+function requireCwd(flags) {
+  if (!flags.cwd) { console.error('need --cwd DIR'); process.exit(2); }
+  return flags.cwd;
+}
+
+function cmdAdd(flags) {
+  const cwd = requireCwd(flags);
+  const cfg = loadConfig();
+  cfg.loops = (cfg.loops || []).filter((l) => l.cwd !== cwd);
+  cfg.loops.push({ cwd, model: flags.model || null, inbox: flags.inbox || null });
+  saveConfig(cfg);
+  console.log(`watchdog: managing ${cwd}` + (flags.inbox ? ` (inbox ${flags.inbox})` : ''));
+}
+
+function cmdRemove(flags) {
+  const cwd = requireCwd(flags);
+  const cfg = loadConfig();
+  const before = (cfg.loops || []).length;
+  cfg.loops = (cfg.loops || []).filter((l) => l.cwd !== cwd);
+  saveConfig(cfg);
+  console.log(before === cfg.loops.length ? `watchdog: not managed: ${cwd}` : `watchdog: unmanaged ${cwd}`);
+}
+
+function cmdList() {
+  const cfg = loadConfig();
+  const state = readJson(STATE, {});
+  for (const loop of cfg.loops || []) {
+    const base = baseDirFor(loop.cwd);
+    const { alive, pid } = loopAlive(base);
+    let queued = 0;
+    try { queued = readdirSync(join(base, 'queue')).filter((f) => f.endsWith('.task')).length; } catch { /* none */ }
+    const paused = existsSync(join(base, 'watchdog.paused'));
+    console.log(JSON.stringify({ cwd: loop.cwd, model: loop.model ?? null, inbox: loop.inbox ?? null, pid, alive, queued, paused, base }));
+  }
+  if (!(cfg.loops || []).length) console.log('watchdog: no loops managed (add one with: codex-loop-watchdog add --cwd DIR [--inbox DIR])');
+  if (state.__lastTick) console.log(`lastTick: ${state.__lastTick}`);
+}
+
+function cmdPause(flags, on) {
+  const cwd = requireCwd(flags);
+  const base = baseDirFor(cwd);
+  mkdirSync(base, { recursive: true });
+  const marker = join(base, 'watchdog.paused');
+  if (on) { writeFileSync(marker, ''); console.log(`watchdog: paused ${cwd}`); }
+  else { try { unlinkSync(marker); } catch { /* was not paused */ } console.log(`watchdog: resumed ${cwd}`); }
+}
+
+async function main() {
+  const [mode, ...argv] = process.argv.slice(2);
+  const flags = parseFlags(argv);
+  switch (mode) {
+    case 'run': return runTick();
+    case 'add': return cmdAdd(flags);
+    case 'remove': return cmdRemove(flags);
+    case 'list': case 'status': return cmdList();
+    case 'pause': return cmdPause(flags, true);
+    case 'resume': return cmdPause(flags, false);
+    default:
+      console.log(`codex-loop-watchdog — keep codex-loop resident workers alive + drain inboxes
+
+  codex-loop-watchdog run                          one tick (launchd calls this every 60s)
+  codex-loop-watchdog add --cwd DIR [--model M] [--inbox DIR]
+  codex-loop-watchdog remove --cwd DIR
+  codex-loop-watchdog list                         config + live pid/queue state
+  codex-loop-watchdog pause --cwd DIR              leave this loop alone (then codex-loop stop)
+  codex-loop-watchdog resume --cwd DIR
+`);
+      return mode ? 0 : 2;
+  }
+}
+
+// Run main() only when executed directly (not when imported by tests).
+import { pathToFileURL } from 'node:url';
+const isEntry = (() => {
+  try { return !!process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href; }
+  catch { return true; }
+})();
+if (isEntry) {
+  main().then((c) => process.exit(typeof c === 'number' ? c : 0)).catch((e) => { log(`fatal: ${String(e)}`); process.exit(1); });
+}
+
+// Exported for unit tests (see tests/codex-loop-watchdog.test.mjs in nas-ops).
+export {
+  baseDirFor, nextSeq, claimQueueName, drainInbox, looksLikeCodex, loopAlive,
+  readPid, resolveCodexBin, writeJsonAtomic, readJson, runTick, main,
+};

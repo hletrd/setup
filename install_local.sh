@@ -1091,7 +1091,7 @@ if [ -f "$codex_default_rules_src" ] && [ ! -f "$HOME/.codex/rules/default.rules
   cp "$codex_default_rules_src" "$HOME/.codex/rules/default.rules"
 fi
 
-# Install Codex helper scripts (codex-loop, codex-keepgoing) into ~/.local/bin
+# Install Codex helper scripts (codex-loop, codex-keepgoing, codex-loop-watchdog) into ~/.local/bin
 codex_bin_src="$script_dir/configs/codex/bin"
 if [ -d "$codex_bin_src" ]; then
   mkdir -p "$HOME/.local/bin"
@@ -1101,7 +1101,19 @@ if [ -d "$codex_bin_src" ]; then
     cp "$codex_bin_file" "$HOME/.local/bin/$codex_bin_name"
     chmod +x "$HOME/.local/bin/$codex_bin_name"
   done
-  printf "Codex helper scripts (codex-loop, codex-keepgoing) installed.\n"
+  printf "Codex helper scripts (codex-loop, codex-keepgoing, codex-loop-watchdog) installed.\n"
+fi
+
+# Install the codex-loop-watchdog LaunchAgent plist — macOS only. Installed but
+# NOT loaded: it is opt-in (each 24/365 loop is registered by the user with
+# `codex-loop-watchdog add`). Enable per host with the printed command.
+codex_wd_plist_src="$script_dir/configs/codex/launchd/com.user.codex-loop-watchdog.plist"
+if [ "$(uname)" = "Darwin" ] && [ -f "$codex_wd_plist_src" ]; then
+  mkdir -p "$HOME/Library/LaunchAgents"
+  sed "s|__HOME__|${HOME}|g" "$codex_wd_plist_src" > "$HOME/Library/LaunchAgents/com.user.codex-loop-watchdog.plist"
+  printf "codex-loop-watchdog LaunchAgent installed (not loaded). Enable 24/365 loops with:\n"
+  printf "  codex-loop-watchdog add --cwd <repo> [--inbox <dir>]\n"
+  printf "  launchctl bootstrap gui/\$(id -u) \"\$HOME/Library/LaunchAgents/com.user.codex-loop-watchdog.plist\"\n"
 fi
 
 if [ -f "$opencode_omx_config_src" ] || [ -f "$opencode_config_src" ]; then

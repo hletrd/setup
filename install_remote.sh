@@ -1419,7 +1419,7 @@ if [ -f "$cchelper_handler_src" ] && [ -f "$cchelper_daemon_src" ]; then
   printf "Claude Code auto-resume (cchelper) installed on remote host.\n"
 fi
 
-# Install Codex helper scripts (codex-loop, codex-keepgoing) into ~/.local/bin
+# Install Codex helper scripts (codex-loop, codex-keepgoing, codex-loop-watchdog) into ~/.local/bin
 codex_bin_src="$script_dir/configs/codex/bin"
 if [ -d "$codex_bin_src" ]; then
   # shellcheck disable=SC2086
@@ -1430,7 +1430,20 @@ if [ -d "$codex_bin_src" ]; then
     # shellcheck disable=SC2086
     ssh $ssh_opts "$ssh_user@$server_addr" "cat > \"\$HOME/.local/bin/$codex_bin_name\" && chmod +x \"\$HOME/.local/bin/$codex_bin_name\"" < "$codex_bin_file"
   done
-  printf "Codex helper scripts (codex-loop, codex-keepgoing) installed on remote host.\n"
+  printf "Codex helper scripts (codex-loop, codex-keepgoing, codex-loop-watchdog) installed on remote host.\n"
+fi
+
+# Install the codex-loop-watchdog LaunchAgent plist — installed but NOT loaded
+# (opt-in; enable per host with `codex-loop-watchdog add` + launchctl bootstrap).
+codex_wd_plist_src="$script_dir/configs/codex/launchd/com.user.codex-loop-watchdog.plist"
+if [ -f "$codex_wd_plist_src" ]; then
+  # shellcheck disable=SC2086
+  ssh $ssh_opts "$ssh_user@$server_addr" '
+    mkdir -p "$HOME/Library/LaunchAgents"
+    cat > "$HOME/Library/LaunchAgents/com.user.codex-loop-watchdog.plist"
+    sed -i "" "s|__HOME__|$HOME|g" "$HOME/Library/LaunchAgents/com.user.codex-loop-watchdog.plist"
+  ' < "$codex_wd_plist_src"
+  printf "codex-loop-watchdog LaunchAgent installed on remote host (not loaded).\n"
 fi
 
 if [ -f "$zellij_config_src" ]; then
