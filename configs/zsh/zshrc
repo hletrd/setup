@@ -114,6 +114,16 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 #
 # The key is NOT stored here. Put it in ~/.config/xylolabs/h200-key (chmod 600)
 # or export XYLOLABS_H200_KEY.
+#
+# GLM reasons on every request and the proxy strips the thinking blocks back out
+# for clients that did not ask for them -- without that stripping, Claude Code
+# under a non-Claude model id renders the reasoning as its reply. Reasoning is
+# not free: 560 completion tokens / 3.4 s against 87 / 0.7 s for the same
+# arithmetic prompt. For a faster, non-reasoning session:
+#
+#   XYLOLABS_H200_MODEL=glm-5.2-superglm-nonthinking cl
+#
+# Left on by default because coding work is where the reasoning earns its keep.
 : "${XYLOLABS_H200_URL:=https://gpu.internal.xylolabs.com}"
 : "${XYLOLABS_H200_MODEL:=glm-5.2-superglm}"
 
