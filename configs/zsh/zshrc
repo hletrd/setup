@@ -105,5 +105,45 @@ alias opencode='BASH_ENV="" ENV="" command opencode'
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# Claude Code against the self-hosted H200 (xylolabs). Same shape as ck/cg.
+#
+# The backend speaks Anthropic's wire format natively -- content blocks, usage --
+# so Claude Code needs no adapter. PROXY_ALIAS_REWRITE_ALL rewrites every model
+# id to whatever the H200 is actually serving, so XYLOLABS_H200_MODEL is
+# cosmetic; it is set so /model and the usage logs read truthfully.
+#
+# The key is NOT stored here. Put it in ~/.config/xylolabs/h200-key (chmod 600)
+# or export XYLOLABS_H200_KEY.
+: "${XYLOLABS_H200_URL:=https://gpu.internal.xylolabs.com}"
+: "${XYLOLABS_H200_MODEL:=glm-5.2-superglm}"
+
+claude_with_local_env() {
+    local key="${XYLOLABS_H200_KEY:-}"
+    if [ -z "$key" ] && [ -r "$HOME/.config/xylolabs/h200-key" ]; then
+        key=$(< "$HOME/.config/xylolabs/h200-key")
+    fi
+    if [ -z "$key" ]; then
+        print -u2 "cl: no API key. Put one in ~/.config/xylolabs/h200-key (chmod 600)"
+        print -u2 "    or export XYLOLABS_H200_KEY. Get one from $XYLOLABS_H200_URL/"
+        return 1
+    fi
+    # CLAUDE_CODE_AUTO_COMPACT_WINDOW must not exceed the engine's
+    # --max-model-len, or a conversation grows past the context and every
+    # request 400s. The H200 serves 1,048,576.
+    BASH_ENV="" \
+    ENV="" \
+    ANTHROPIC_AUTH_TOKEN="$key" \
+    ANTHROPIC_BASE_URL="$XYLOLABS_H200_URL" \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL="$XYLOLABS_H200_MODEL" \
+    ANTHROPIC_DEFAULT_SONNET_MODEL="$XYLOLABS_H200_MODEL" \
+    ANTHROPIC_DEFAULT_OPUS_MODEL="$XYLOLABS_H200_MODEL" \
+    CLAUDE_CODE_SUBAGENT_MODEL="$XYLOLABS_H200_MODEL" \
+    CLAUDE_CODE_AUTO_COMPACT_WINDOW="1000000" \
+    API_TIMEOUT_MS="3000000" \
+    CLAUDE_CODE_ATTRIBUTION_HEADER="0" \
+    command claude --dangerously-skip-permissions "$@"
+}
+alias cl=claude_with_local_env
+
 # Zoxide (smart cd) — MUST be the very last thing in this file per the zoxide docs; anything added after it should go into a separate file sourced from here, not inline below.
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)" && alias cd="z"
