@@ -4,21 +4,9 @@
 - For anything that changes over time (versions, APIs, CLI flags, config options, deprecations), look it up first in the official docs or with a web search. Use a docs skill or MCP server if one is available.
 - Never answer "I don't know" or "not possible" without trying to look it up.
 
-## Destructive actions: one confirmation
-- Ask before anything hard to undo. This includes deleting files or data, stopping services, destructive DB changes, force-push/reset/branch deletion, DNS/routing/firewall changes, keys/tokens/permissions, removing containers or volumes, production deploys, publishing packages, external messages, changes to system packages/cron/boot, deleting logs, and encryption keys.
-- Ask **once**, covering every decision the action needs, then do all of it. Do not confirm step by step.
-- If a secret is pasted in chat, warn that it should be rotated. Never write secrets to logs or unencrypted files.
-
-## Don't re-ask
-- An instruction is the authorization. "Just do X" means do X.
-- Pick routine defaults yourself (versions, paths, names, tools), state the choice in one line, and proceed.
-- Ask only when different answers lead to materially different work. Batch all questions into one message.
-- When blocked, say what is wrong and which assumption you are using, then deliver the result with that caveat.
-- Destructive steps still get their one confirmation (see above).
-
 ## Latest versions
 - Check registries for the latest stable version before adding a dependency, and never pin old versions without a reason.
-- Current baselines: Node.js 24 LTS, Next.js 16, React 19, TypeScript latest (`target`/`module` = `ESNext`), Rust latest stable with edition 2024, Python ≥ 3.14 managed with `uv`.
+- Baselines (checked 2026-09-24): Node.js latest LTS (24 now, 26 from 2026-10-28), Next.js 16, React 19, TypeScript 7 (`target`/`module` = `ESNext`), Rust latest stable (1.98) with edition 2024, Python ≥ 3.14 managed with `uv` (3.15 is due 2026-10-01).
 
 ## Git
 - Commit messages: `<type>(<scope>): <gitmoji> <description>` (Conventional Commits), imperative mood, header under 72 characters.
