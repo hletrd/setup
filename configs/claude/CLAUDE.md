@@ -1,68 +1,34 @@
-<!-- User customizations -->
-## Always Look Up Before Answering (CRITICAL)
+# Global Rules
 
-- When you are unsure or lack confidence about something — especially for software, libraries, frameworks, APIs, and other frequently-updated technologies — do NOT answer based solely on training knowledge, which may be outdated.
-- Never say "I don't know" or "that's not possible" without first attempting to look it up.
-- Use available tools to find current, accurate information before responding:
-  - **find-docs** skill for library and framework documentation
-  - **Web search** for latest versions, release notes, changelogs, and current best practices
-  - **Official documentation** via fetch/WebFetch for authoritative API references
-- Outdated answers (e.g., wrong version numbers, deprecated APIs, removed features) are worse than taking a moment to verify.
-- This applies to: version numbers, API signatures, CLI flags, configuration options, compatibility, deprecation status, and any other facts that change over time.
+## Verify, don't recall
+- For anything that changes over time (versions, APIs, CLI flags, config options, deprecations), look it up first in the official docs or with a web search. Use a docs skill or MCP server if one is available.
+- Never answer "I don't know" or "not possible" without trying to look it up.
 
-## Destructive Action Safety (CRITICAL)
+## Destructive actions: one confirmation
+- Ask before anything hard to undo. This includes deleting files or data, stopping services, destructive DB changes, force-push/reset/branch deletion, DNS/routing/firewall changes, keys/tokens/permissions, removing containers or volumes, production deploys, publishing packages, external messages, changes to system packages/cron/boot, deleting logs, and encryption keys.
+- Ask **once**, covering every decision the action needs, then do all of it. Do not confirm step by step.
+- If a secret is pasted in chat, warn that it should be rotated. Never write secrets to logs or unencrypted files.
 
-- Before performing ANY destructive action, ALWAYS stop and explicitly ask the user for confirmation first.
-- Destructive actions include but are not limited to:
-  - **Filesystem**: Deleting files or directories (`rm`, `rmdir`, etc.), formatting/partitioning disks, overwriting files with unrelated content
-  - **Services**: Removing or disabling existing service interfaces, endpoints, or configurations; stopping or killing running services/processes
-  - **Database**: Dropping tables, truncating data, deleting records, modifying schemas destructively
-  - **Git**: Force-pushing, resetting (`--hard`), rebasing published branches, deleting branches, discarding uncommitted changes
-  - **DNS & Networking**: Modifying DNS records, changing IP/routing configurations, altering firewall rules or security groups — misconfiguration can cause total service outage or loss of remote access
-  - **Authentication & Access**: Revoking or rotating API keys/tokens/certificates, modifying SSH keys, changing user permissions or access controls, disabling authentication mechanisms — can permanently lock out access
-  - **Docker & Containers**: Removing containers, volumes, images, or networks; `docker system prune`; destroying persistent data volumes
-  - **Deployment & Production**: Deploying to or modifying production environments, modifying CI/CD pipelines, publishing packages to registries
-  - **Secrets & Credentials**: Using plaintext secrets/tokens shared in conversation (MUST warn user to rotate first), writing secrets to unencrypted files or logs
-  - **External Communications**: Sending emails, Slack messages, or notifications to third parties; creating/commenting on public GitHub issues or PRs — these cannot be unsent
-  - **System**: Removing packages, dependencies, or system components; modifying boot/system configurations; changing cron jobs or scheduled tasks
-  - **Audit & Logs**: Truncating or deleting log files, audit trails, or monitoring data
-  - **Encryption**: Changing or deleting encryption keys, certificates, or secure storage — can make encrypted data permanently unrecoverable
-- This rule applies even when the user has requested the broader task — always double-check before the specific destructive step.
-- Never assume destructive intent. When in doubt, ask.
-- Violating this rule is strictly prohibited.
+## Don't re-ask
+- An instruction is the authorization. "Just do X" means do X.
+- Pick routine defaults yourself (versions, paths, names, tools), state the choice in one line, and proceed.
+- Ask only when different answers lead to materially different work. Batch all questions into one message.
+- When blocked, say what is wrong and which assumption you are using, then deliver the result with that caveat.
+- Destructive steps still get their one confirmation (see above).
 
-## Always Use Latest Versions (CRITICAL)
+## Latest versions
+- Check registries for the latest stable version before adding a dependency, and never pin old versions without a reason.
+- Current baselines: Node.js 24 LTS, Next.js 16, React 19, TypeScript latest (`target`/`module` = `ESNext`), Rust latest stable with edition 2024, Python ≥ 3.14 managed with `uv`.
 
-Before starting any project or adding dependencies, **always search for and use the latest stable versions** of all languages, frameworks, libraries, and tools. This rule applies globally to all projects.
+## Git
+- Commit messages: `<type>(<scope>): <gitmoji> <description>` (Conventional Commits), imperative mood, header under 72 characters.
+  Example: `fix(api): 🐛 handle null response`.
+- Always sign commits (`git commit -S`). Never add `Co-Authored-By` or any AI attribution.
+- One commit per change. Commit and push right after each change, with `git pull --rebase` before `git push`.
 
-- **Node.js**: Always use the latest LTS release. Currently Node.js 24 LTS (e.g., v24.13.x). When a new LTS becomes available, switch to it.
-- **Next.js**: Always use the latest stable major version. Currently Next.js 16 (e.g., v16.1.x+). Upgrade when new stable majors release.
-- **React**: Always use the latest stable version. Currently React 19.
-- **TypeScript**: Always use the latest stable version. Use `"target": "ESNext"` and `"module": "ESNext"` in tsconfig.
-- **Rust**: Always use the latest stable toolchain and the Rust 2024 edition (`edition = "2024"` in Cargo.toml). Currently Rust 1.93.x.
-- **Python**: Always use the latest stable version. Currently Python >= 3.14. Always use `uv` for environment management.
-- **ESNext**: Always target ESNext for JavaScript/TypeScript compilation and module resolution.
-- **All other packages/libraries**: Always check for and use the latest stable version before installing or adding as a dependency. Never pin to outdated versions without explicit justification.
+## Project context
+- If a project has no `CLAUDE.md`, read `.context/` (`README.md`, then `project/`, then `development/`) before working.
 
-## Git Commit Rules
-
-- Do NOT add `Co-Authored-By` lines to commit messages. Never attribute Claude as author or co-author in any commit.
-- ALWAYS GPG sign all git commits using the `-S` flag (e.g., `git commit -S -m "message"`).
-- Commit in a fine-grained way: create one commit per single feature, fix, or enhancement. Do not bundle unrelated changes into a single commit.
-- ALWAYS commit and push immediately after every iteration, enhancement, or fix. Do not batch changes.
-- ALWAYS `git pull --rebase` before `git push`. This prevents push rejections due to remote changes. If the pull fails due to conflicts, resolve them before pushing.
-- ALWAYS use **semantic commit messages** with [Conventional Commits](https://www.conventionalcommits.org/) format: `<type>(<scope>): <gitmoji> <description>`.
-  - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-  - Scope is optional but encouraged.
-  - Use imperative mood, keep header under 72 characters.
-  - Examples: `feat(auth): ✨ add OAuth2 login flow`, `fix(api): 🐛 resolve null pointer in response handler`, `docs(readme): 📝 update installation instructions`
-- ALWAYS use gitmoji in commit messages. Place the gitmoji after scope and before description.
-
-## Context Directory Fallback
-
-- When a project does NOT have a project-level `CLAUDE.md`, check for a `.context/` directory at the project root.
-- If `.context/` exists, read its markdown files for project context. Priority order:
-  1. `.context/README.md` — understand the context structure
-  2. `.context/project/` — project overview, architecture, tech stack
-  3. `.context/development/` — conventions, code style, guidelines
-- Read these files at the start of a session before doing any work, as they serve the same purpose as `CLAUDE.md` for providing project-specific instructions and context.
+## Infrastructure
+- Infrastructure work (NAS, Proxmox, VMs, network, Docker, TLS, monitoring, Macs) follows the `nas-ops` repo (`CLAUDE.md` and `docs/knowledge-graph/`).
+- SSH: `mac0` (172.30.61.1), `mac1` (172.30.62.1), `mac3` (Tailscale 100.115.57.92), `m5` (Tailscale 100.119.186.85). User `hletrd`, key `~/.ssh/hletrd-mac`.
