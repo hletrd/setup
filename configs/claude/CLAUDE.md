@@ -6,7 +6,7 @@
 
 ## Latest versions
 - Check registries for the latest stable version before adding a dependency, and never pin old versions without a reason.
-- Baselines (checked 2026-09-24): Node.js latest LTS (24 now, 26 from 2026-10-28), Next.js 16, React 19, TypeScript 7 (`target`/`module` = `ESNext`), Rust latest stable (1.98) with edition 2024, Python ≥ 3.14 managed with `uv` (3.15 is due 2026-10-01).
+- Baselines (checked 2026-09-24): Node.js latest LTS (24 now, 26 from 2026-10-28), Next.js 16, React 19, TypeScript 7.0 (`target`/`module` = `ESNext`), Rust latest stable (1.98) with edition 2024, Python ≥ 3.14 managed with `uv` (3.15 is due 2026-10-01).
 
 ## Git
 - Commit messages: `<type>(<scope>): <gitmoji> <description>` (Conventional Commits), imperative mood, header under 72 characters.
