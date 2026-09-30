@@ -19,4 +19,4 @@
 
 ## Infrastructure
 - Infrastructure work (NAS, Proxmox, VMs, network, Docker, TLS, monitoring, Macs) follows the `nas-ops` repo (`CLAUDE.md` and `docs/knowledge-graph/`).
-- SSH: `mac0` (172.30.61.1), `mac1` (172.30.62.1), `mac3` (Tailscale 100.115.57.92), `m5` (Tailscale 100.119.186.85). User `hletrd`, key `~/.ssh/hletrd-mac`.
+- SSH: `mac0` (172.30.61.1), `mac1` (172.30.62.1), `mac3` (Tailscale 100.115.57.92), `m5` (Tailscale 100.119.186.85). User `hletrd`, key `~/.ssh/hletrd-mac.pem`.
