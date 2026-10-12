@@ -89,7 +89,7 @@ keybinds clear-defaults=true {
         bind "tab" { MovePane; }
     }
     scroll {
-        bind "e" { EditScrollback; SwitchToMode "normal"; }
+        bind "Alt e" { EditScrollback; SwitchToMode "normal"; }  // was plain "e": typing a word that starts with e after a wheel scroll opened vim
         bind "s" { SwitchToMode "entersearch"; SearchInput 0; }
     }
     search {
