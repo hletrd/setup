@@ -176,7 +176,7 @@ All tools are configurable via `config.json`. Installed via cargo for cross-plat
 | lsd | ls | - | Alternative ls with icons |
 
 ### MCP (Model Context Protocol) Servers
-Optional MCP server snippets for AI-assisted development. Former MCP servers (fetch, filesystem, git, github, playwright) are now provided as Claude Code / Codex skills under `configs/claude/skills/` instead:
+Optional MCP server snippets for AI-assisted development. The fetch, filesystem, git, github and playwright skills that once replaced those MCP servers were removed on 2026-10-14. The agents' built-in tools (shell, file editing, `gh`, web fetch) cover them, and `agent-browser` handles browser automation:
 
 | Server | Purpose |
 |--------|---------|
