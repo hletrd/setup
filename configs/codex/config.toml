@@ -60,7 +60,6 @@ model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 
 [features]
-child_agents_md = true
 multi_agent = true
 
 [agents]
