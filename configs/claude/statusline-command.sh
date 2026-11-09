@@ -59,7 +59,7 @@ else
     short_dir="~"
 fi
 
-# 5h/7d usage from Anthropic OAuth usage API (real percentages)
+# 7d usage (and 5h, if the plan still has one) from Anthropic OAuth usage API
 USAGE_CACHE="$HOME/.claude/.statusline-usage-cache.json"
 USAGE_LOCK="${USAGE_CACHE}.lock"
 USAGE_CACHE_TTL=300       # 5 minutes between successful fetches
@@ -142,7 +142,7 @@ fetch_usage_api() {
     d7=$(echo "$resp" | jq -r '.seven_day.utilization // empty' 2>/dev/null)
     [ -z "$h5" ] && [ -z "$d7" ] && return 1
     printf '{"ts":%d,"h5":%s,"d7":%s}\n' "$(date +%s)" "${h5:-0}" "${d7:-0}" > "$USAGE_CACHE"
-    echo "$h5 $d7"
+    echo "${h5:-0} ${d7:-0}"  # keep both fields: an empty h5 would shift d7 into its slot
 }
 
 get_usage() {
@@ -245,7 +245,7 @@ if [ -n "$remaining_pct" ] && [ "$remaining_pct" != "null" ]; then
     fi
 fi
 
-# Section 3: 5h/7d Usage (OMC HUD style with threshold colors)
+# Section 3: Usage (OMC HUD style with threshold colors)
 if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
     h5_disp=$(printf "%.0f" "$h5_pct" 2>/dev/null || echo "0")
     d7_disp=$(printf "%.0f" "$d7_pct" 2>/dev/null || echo "0")
@@ -262,7 +262,10 @@ if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
         usage_bg=$C_USAGE      # teal
         usage_fg=$C_FG
     fi
-    texts+=("5h ${h5_disp}% 7d ${d7_disp}%")
+    # The 5h limit is gone from Claude plans (API five_hour: null); show it only if it returns.
+    usage_text="7d ${d7_disp}%"
+    [ "$h5_disp" -gt 0 ] 2>/dev/null && usage_text="5h ${h5_disp}% $usage_text"
+    texts+=("$usage_text")
     bgs+=($usage_bg)
     fgs+=($usage_fg)
 fi
