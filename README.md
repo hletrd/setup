@@ -26,12 +26,12 @@ The scripts are compatible with all major POSIX-derived operating systems:
 
 | Platform | Package Manager | Status |
 |----------|-----------------|--------|
-| **macOS** | Homebrew (or direct binary) | ✅ Fully supported |
-| **Ubuntu/Debian** | apt | ✅ Fully supported |
-| **Fedora/RHEL** | dnf/yum | ✅ Fully supported |
-| **Arch Linux** | pacman | ✅ Fully supported |
-| **Alpine Linux** | apk | ✅ Supported (Node.js requires glibc) |
-| **OpenWrt** | opkg | ✅ Supported (limited packages) |
+| **macOS** | Homebrew (or direct binary) | Fully supported |
+| **Ubuntu/Debian** | apt | Fully supported |
+| **Fedora/RHEL** | dnf/yum | Fully supported |
+| **Arch Linux** | pacman | Fully supported |
+| **Alpine Linux** | apk | Supported (Node.js requires glibc) |
+| **OpenWrt** | opkg | Supported (limited packages) |
 
 ### Test Results
 
@@ -39,19 +39,19 @@ All platforms have been tested and verified (January 2026).
 
 | Tool | macOS 26 (Tahoe) | Ubuntu 24.04 | Fedora 43 | Arch Linux (2025.01.01) | Alpine 3.23 | OpenWrt 24.10.5 |
 |------|:----------------:|:------------:|:---------:|:-----------------------:|:-----------:|:---------------:|
-| uv | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| cargo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| eza | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| bat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fd | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ripgrep | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zoxide | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fzf | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| zinit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| fnm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
-| pnpm | ✅ | ✅ | ✅ | ✅ | N/A* | N/A* |
-| Node.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MCP servers | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| uv | | | | | | |
+| cargo | | | | | | |
+| eza | | | | | | |
+| bat | | | | | | |
+| fd | | | | | | |
+| ripgrep | | | | | | |
+| zoxide | | | | | | |
+| fzf | | | | | | |
+| zinit | | | | | | |
+| fnm | | | | | N/A* | N/A* |
+| pnpm | | | | | N/A* | N/A* |
+| Node.js | | | | | | |
+| MCP servers | | | | | | |
 
 **Notes:**
 - \* Alpine Linux and OpenWrt use system Node.js packages instead of fnm (fnm requires glibc, which musl-based systems don't have).

@@ -57,17 +57,18 @@ check_rate_limit_reset() {
         return 0
     fi
 
-    local h5_util
-    h5_util=$(echo "$resp" | jq -r '.five_hour.utilization // 0' 2>/dev/null)
+    # The 5h window is gone from Claude plans (five_hour: null); seven_day is what limits now.
+    local util
+    util=$(echo "$resp" | jq -r '[.five_hour.utilization, .seven_day.utilization] | map(select(. != null)) | max // 0' 2>/dev/null)
 
     # Consider reset if utilization dropped below 95%
     local is_under
-    is_under=$(echo "$h5_util < 95" | bc -l 2>/dev/null || echo "1")
+    is_under=$(echo "$util < 95" | bc -l 2>/dev/null || echo "1")
     if [ "$is_under" = "1" ]; then
-        log "Rate limit reset confirmed (5h utilization: ${h5_util}%)"
+        log "Rate limit reset confirmed (utilization: ${util}%)"
         return 0
     else
-        log "Rate limit still active (5h utilization: ${h5_util}%)"
+        log "Rate limit still active (utilization: ${util}%)"
         return 1
     fi
 }
