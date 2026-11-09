@@ -78,19 +78,18 @@ acquire_lock() {
         echo $$ > "$USAGE_LOCK/pid"
         return 0
     fi
-    # Check for stale lock (process died or took too long)
-    if [ -f "$USAGE_LOCK/pid" ]; then
-        local lock_pid lock_age
+    # Check for stale lock (process died, took too long, or orphaned
+    # empty dir — release_lock killed between unlinking pid and rmdir).
+    # Age is measured on the lock dir itself so a pid-less dir still expires.
+    if [ -d "$USAGE_LOCK" ]; then
+        local lock_pid lock_age lock_mtime
         lock_pid=$(cat "$USAGE_LOCK/pid" 2>/dev/null)
         lock_age=0
-        if [ -f "$USAGE_LOCK/pid" ]; then
-            local lock_mtime
-            lock_mtime=$(stat -f %m "$USAGE_LOCK/pid" 2>/dev/null || stat -c %Y "$USAGE_LOCK/pid" 2>/dev/null)
-            if [ -n "$lock_mtime" ]; then
-                lock_age=$(( $(date +%s) - lock_mtime ))
-            fi
+        lock_mtime=$(stat -f %m "$USAGE_LOCK" 2>/dev/null || stat -c %Y "$USAGE_LOCK" 2>/dev/null)
+        if [ -n "$lock_mtime" ]; then
+            lock_age=$(( $(date +%s) - lock_mtime ))
         fi
-        # Stale lock: owner dead or lock older than LOCK_TTL
+        # Stale lock: older than LOCK_TTL, or owner recorded and dead
         if [ "$lock_age" -ge "$USAGE_LOCK_TTL" ] || { [ -n "$lock_pid" ] && ! kill -0 "$lock_pid" 2>/dev/null; }; then
             rm -rf "$USAGE_LOCK"
             if mkdir "$USAGE_LOCK" 2>/dev/null; then
@@ -246,7 +245,7 @@ if [ -n "$remaining_pct" ] && [ "$remaining_pct" != "null" ]; then
     fi
 fi
 
-# Section 3: 5h/7d Usage with threshold colors
+# Section 3: 5h/7d Usage (OMC HUD style with threshold colors)
 if [ "$h5_pct" != "0" ] || [ "$d7_pct" != "0" ]; then
     h5_disp=$(printf "%.0f" "$h5_pct" 2>/dev/null || echo "0")
     d7_disp=$(printf "%.0f" "$d7_pct" 2>/dev/null || echo "0")

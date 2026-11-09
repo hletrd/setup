@@ -1,10 +1,10 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE": "1",
-    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1"
   },
   "permissions": {
     "allow": [
@@ -12,35 +12,143 @@
       "Edit",
       "Write",
       "Bash"
-    ]
+    ],
+    "defaultMode": "dontAsk"
   },
-  "statusLine": {
-    "type": "command",
-    "command": "bash __HOME__/.claude/statusline-command.sh"
+  "skillOverrides": {
+    "ask": "off",
+    "autoresearch": "off",
+    "ccg": "off",
+    "configure-notifications": "off",
+    "debug": "off",
+    "deep-dive": "off",
+    "deep-interview": "off",
+    "external-context": "off",
+    "local-build-reminder": "off",
+    "merge-readiness": "off",
+    "plan": "off",
+    "project-session-manager": "off",
+    "ralplan": "off",
+    "release": "off",
+    "remember": "off",
+    "sciomc": "off",
+    "self-improve": "off",
+    "skill": "off",
+    "skillify": "off",
+    "ultragoal": "off",
+    "ultraqa": "off",
+    "visual-verdict": "off",
+    "writer-memory": "off"
   },
-  "enabledPlugins": {
-    "codex@openai-codex": true,
-    "frontend-design@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "openai-codex": {
-      "source": {
-        "source": "github",
-        "repo": "openai/codex-plugin-cc"
-      }
+  "deniedMcpServers": [
+    {
+      "serverName": "claude.ai Google Drive"
+    },
+    {
+      "serverUrl": "https://drivemcp.googleapis.com/*"
     }
-  },
-  "effortLevel": "high",
-  "showThinkingSummaries": true,
-  "autoUpdatesChannel": "latest",
+  ],
   "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
+    ],
     "StopFailure": [
       {
         "matcher": "rate_limit",
@@ -51,9 +159,70 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "async": true
+          }
+        ]
+      }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash __HOME__/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "ccusage@hletrd": true,
+    "code-review@claude-plugins-official": true,
+    "codex@openai-codex": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "humanize-korean@im-not-ai": true,
+    "ralph-loop@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "hletrd": {
+      "source": {
+        "source": "url",
+        "url": "https://ccusage.hletrd.me/marketplace.json"
+      }
+    },
+    "im-not-ai": {
+      "source": {
+        "source": "github",
+        "repo": "epoko77-ai/im-not-ai"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "feedbackDrafts": "off",
+  "effortLevel": "xhigh",
+  "modelSettings": {
+    "qwen3.8-flash-next-iq3_s": {
+      "effortLevel": "low"
+    }
+  },
+  "autoUpdatesChannel": "latest",
   "autoMemoryEnabled": false,
+  "showThinkingSummaries": true,
   "skipDangerousModePermissionPrompt": true,
-  "defaultMode": "bypassPermissions"
+  "theme": "dark",
+  "switchModelsOnFlag": false,
+  "inputNeededNotifEnabled": true,
+  "defaultMode": "bypassPermissions",
+  "disabledMcpServers": [
+    "claude_ai_Google_Drive"
+  ]
 }

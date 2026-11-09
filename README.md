@@ -111,7 +111,7 @@ All platforms have been tested and verified (January 2026).
 
 ### Moshi (iOS Remote Control)
 
-Optional remote-agent control from the [Moshi](https://getmoshi.app/) iOS app. Not part of the default bootstrap — set up manually per host when you want push-approval round-trips on the Apple Watch / Live Activity.
+Optional remote-agent control from the [Moshi](https://getmoshi.app/) iOS app. The binary is not part of the default bootstrap, but the default `configs/claude/settings.json` already calls `/opt/homebrew/bin/moshi-hook`, so Claude Code reports hook errors until it is installed. Set it up manually per host when you want push-approval round-trips on the Apple Watch / Live Activity.
 
 **Install:**
 
